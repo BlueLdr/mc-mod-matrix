@@ -59,12 +59,12 @@ function useResetCache(data: any) {
 }
 
 // Adapter for react-window
-export const VirtualizedListboxComponent = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLElement> & {
+function VirtualizedListboxComponent(
+  props: React.HTMLAttributes<HTMLElement> & {
     renderRow: <T>(props: ListChildComponentProps<T>) => React.ReactNode;
-  }
->(function ListboxComponent(props, ref) {
+  },
+  ref: React.ForwardedRef<HTMLDivElement>,
+) {
   const { children, renderRow = defaultRenderRow, ...other } = props;
   const itemData: React.ReactElement[] = [];
   (children as React.ReactElement[]).forEach(
@@ -117,4 +117,15 @@ export const VirtualizedListboxComponent = forwardRef<
       </OuterElementContext.Provider>
     </div>
   );
-});
+}
+
+export const VirtualizedListbox = forwardRef(VirtualizedListboxComponent);
+
+export const makeVirtualizedListboxWithRenderFunction = <T extends any>(
+  renderRow: (props: ListChildComponentProps<T>) => React.ReactNode,
+) =>
+  forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLElement>>(
+    function VirtualizedListbox(props, ref) {
+      return VirtualizedListboxComponent({ ...props, renderRow }, ref);
+    },
+  );
