@@ -1,6 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 
-import { HomePage, ModpackDetailPage } from "~/components/routes";
+import {
+  HomePage,
+  ModpackDetailPage,
+  ModpackDetailPageLayout,
+} from "~/components/routes";
 import SiteLayout from "./SiteLayout.tsx";
 
 //================================================
@@ -10,7 +14,9 @@ function App() {
     <Routes>
       <Route element={<SiteLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/:name" element={<ModpackDetailPage />} />
+        <Route element={<ModpackDetailPageLayout />}>
+          <Route path="/:name" element={<ModpackDetailPage />} />
+        </Route>
       </Route>
     </Routes>
   );

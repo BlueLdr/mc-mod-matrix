@@ -1,4 +1,4 @@
-import type { Modpack } from "~/data";
+import type { GameVersion, Modpack } from "~/data";
 
 //================================================
 
@@ -9,4 +9,5 @@ export interface StoredDataState {
   addPack: (pack: Modpack) => void;
   removePack: (name: string) => void;
   updatePack: (pack: Modpack) => void;
+  gameVersions: GameVersion[];
 }

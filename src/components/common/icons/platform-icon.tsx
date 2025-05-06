@@ -1,32 +1,14 @@
-import { styled } from "@mui/material/styles";
-import { get } from "lodash";
+import { SvgIcon } from "./svg-icon";
+import { ModrinthIconSvg, CurseforgeIconSvg } from "~/assets";
 
-import { Icon } from "./icon";
-import {
-  ModrinthIcon as modrinthIcon,
-  CurseforgeIcon as curseforgeIcon,
-} from "~/assets";
-
-import type { IconProps } from "./icon";
+import type { SvgIconProps } from "./svg-icon";
 
 // ================================================================
 
-const PlatformIcon = styled(Icon, {
-  shouldForwardProp: propName => propName !== "color",
-})<{ color?: string }>(({ color, theme }) => ({
-  color: color
-    ? ((value => (typeof value === "string" ? value : undefined))(
-        get(theme.palette, color),
-      ) ?? color)
-    : undefined,
-}));
-
-export type PlatformIconProps = Omit<IconProps, "src"> & { color?: string };
-
-export const ModrinthIcon = (props: PlatformIconProps) => (
-  <PlatformIcon {...props} src={modrinthIcon} color="common.modrinth" />
+export const ModrinthIcon = (props: Omit<SvgIconProps, "src">) => (
+  <SvgIcon color="common.modrinth" {...props} src={ModrinthIconSvg} />
 );
 
-export const CurseforgeIcon = (props: PlatformIconProps) => (
-  <PlatformIcon {...props} src={curseforgeIcon} color="common.curseforge" />
+export const CurseforgeIcon = (props: Omit<SvgIconProps, "src">) => (
+  <SvgIcon color="common.curseforge" {...props} src={CurseforgeIconSvg} />
 );

@@ -4,8 +4,8 @@ import { ModPicker, ModListItem } from "~/components";
 import { NotFound } from "./NotFound.tsx";
 import { DataContext } from "~/context";
 
+import Box from "@mui/material/Box";
 import List from "@mui/material/List";
-import Container from "@mui/material/Container";
 
 import type { Modpack } from "~/data";
 
@@ -21,7 +21,7 @@ function ModpackDetailPageContent({ pack }: ModpackDetailPageContentProps) {
   const [modList, setModList] = useState(() => pack.mods.map(mod => mod.meta));
 
   return (
-    <Container maxWidth="lg" sx={{ paddingBlock: "3rem" }}>
+    <Box marginBlock={6}>
       <ModPicker
         size="small"
         value={modList}
@@ -39,7 +39,7 @@ function ModpackDetailPageContent({ pack }: ModpackDetailPageContentProps) {
           />
         ))}
       </List>
-    </Container>
+    </Box>
   );
 }
 

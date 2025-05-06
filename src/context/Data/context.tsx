@@ -1,10 +1,17 @@
-import { createContext, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useParams } from "react-router-dom";
+import { modrinthApi } from "~/api";
 
 import { loadStorage, useStorageState } from "~/utils";
 
 import type { WithChildren } from "~/utils";
-import type { Modpack } from "~/data";
+import type { GameVersion, Modpack } from "~/data";
 import type { StoredDataState } from "./types";
 
 //================================================
@@ -20,6 +27,7 @@ export const DataContext = createContext<StoredDataState>({
   addPack: () => {},
   removePack: () => {},
   updatePack: () => {},
+  gameVersions: [],
 });
 
 //================================================
@@ -27,7 +35,6 @@ export const DataContext = createContext<StoredDataState>({
 export const DataProvider: React.FC<WithChildren> = ({ children }) => {
   const [packs, setPacks] = useStorageState(STORAGE_KEY, storedList);
   const { name: currentPackName } = useParams();
-  console.log(`currentPackName: `, currentPackName);
 
   const addPack = useCallback(
     (newPack: Modpack) => setPacks(prevState => prevState.concat(newPack)),
@@ -46,6 +53,11 @@ export const DataProvider: React.FC<WithChildren> = ({ children }) => {
     [setPacks],
   );
 
+  const [gameVersions, setGameVersions] = useState<GameVersion[]>([]);
+  useEffect(() => {
+    modrinthApi.getGameVersions().then(setGameVersions);
+  }, []);
+
   const value = useMemo<StoredDataState>(
     () => ({
       currentPack: packs.find(p => p.name === currentPackName),
@@ -54,8 +66,9 @@ export const DataProvider: React.FC<WithChildren> = ({ children }) => {
       addPack,
       removePack,
       updatePack,
+      gameVersions,
     }),
-    [packs, setPacks, addPack, removePack, updatePack],
+    [packs, setPacks, addPack, removePack, updatePack, gameVersions],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

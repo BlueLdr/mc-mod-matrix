@@ -1,6 +1,11 @@
 export interface Modpack {
   name: string;
   mods: Mod[];
+  versions: {
+    min: GameVersion;
+    max: GameVersion;
+  };
+  loaders: ModLoader[];
 }
 
 export interface Mod {
@@ -21,6 +26,7 @@ export enum ModLoader {
   "Fabric" = "fabric",
   "NeoForge" = "neoforge",
   "Forge" = "forge",
+  "Quilt" = "quilt",
 }
 
 export interface CurseforgeModDataRaw {

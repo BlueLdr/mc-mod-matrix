@@ -1,5 +1,7 @@
 import { styled } from "@mui/material/styles";
 
+import { iconBaseStyles } from "./styles";
+
 // ================================================================
 
 export type IconProps = React.ComponentPropsWithRef<"img"> & {
@@ -9,9 +11,4 @@ export type IconProps = React.ComponentPropsWithRef<"img"> & {
 
 export const Icon = styled("img", {
   shouldForwardProp: prop => prop !== "size",
-})<{ size?: number; disabled?: boolean }>(({ size = 32, disabled }) => ({
-  width: `${size}px`,
-  height: `${size}px`,
-  filter: disabled ? `grayscale(1)` : undefined,
-  opacity: disabled ? 0.2 : undefined,
-}));
+})<{ size?: number; disabled?: boolean }>(iconBaseStyles);
