@@ -1,4 +1,6 @@
-import type { CurseforgeModDataRaw } from "./types";
+import type { CurseforgeModDataRaw } from "~/data";
+
+//================================================
 
 export const CURSEFORGE_BASE_URL = "https://www.curseforge.com/api/v1";
 export const CURSEFORGE_MC_GAME_ID = 432;
@@ -6,7 +8,9 @@ export const CURSEFORGE_MC_GAME_ID = 432;
 export enum CurseforgeModClass {
   mod = 6,
 }
+
 export enum CurseforgeSortField {
+  featured = 1,
   popularity = 2,
 }
 
@@ -27,7 +31,7 @@ export class CurseforgeApi {
       gameId: `${this.gameId}`,
       index: "0",
       classId: `${CurseforgeModClass.mod}`,
-      sortField: `${CurseforgeSortField.popularity}`,
+      sortField: `${CurseforgeSortField.featured}`,
       pageSize: "30",
       filterText: text,
     });

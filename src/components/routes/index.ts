@@ -1,2 +1,2 @@
-export * from "./HomePage"
-export * from "./[id]"
+export * from "./HomePage";
+export * from "./[name]";

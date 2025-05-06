@@ -6,6 +6,8 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 
 import type { WithChildren } from "~/utils";
 
+//================================================
+
 // import { Theme } from "./Theme";
 
 const useGlobalStyles = (
@@ -21,9 +23,8 @@ const useGlobalStyles = (
         MozOsxFontSmoothing: "grayscale",
       },
       "#root": {
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
         minHeight: "100vh",
       },
     }}

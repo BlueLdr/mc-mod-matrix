@@ -3,9 +3,9 @@ import {
   unstable_createMuiStrictModeTheme,
 } from "@mui/material/styles";
 
-import ExpandMore from "@mui/icons-material/ExpandMore";
+import { colors } from "./colors.ts";
 
-import type { ThemeOptions } from "@mui/material/styles";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 
 //================================================
 
@@ -18,10 +18,13 @@ const createMuiThemeForEnvironment =
     ? createTheme
     : unstable_createMuiStrictModeTheme;
 
-const themeCustomization: ThemeOptions = {
+export const MuiTheme = createMuiThemeForEnvironment({
   spacing: 4,
   palette: {
     mode: "dark",
+    common: {
+      ...colors,
+    },
   },
   typography: {
     htmlFontSize: 16,
@@ -102,7 +105,7 @@ const themeCustomization: ThemeOptions = {
       },
     },
   },
-};
+});
 
 // type Override = Exclude<EntryOf<ComponentsOverrides<Theme>>, undefined>;
 // (Object.entries(overrides) as Override[]).forEach(([key, styles]) => {
@@ -115,4 +118,3 @@ const themeCustomization: ThemeOptions = {
 //   themeCustomization.components[key]!.styleOverrides = styles;
 // });
 
-export const MuiTheme = createMuiThemeForEnvironment(themeCustomization);

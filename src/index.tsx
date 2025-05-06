@@ -5,8 +5,6 @@ import { HashRouter } from "react-router-dom";
 import { ThemeProvider } from "~/theme";
 import { App } from "~/components";
 
-import { DataProvider } from "~/context";
-
 // ===================================================
 
 const container = document.getElementById("root");
@@ -30,10 +28,8 @@ const renderApp = (node: React.ReactNode) => {
 
 renderApp(
   <ThemeProvider>
-    <DataProvider>
-      <HashRouter>
-        <App />
-      </HashRouter>
-    </DataProvider>
+    <HashRouter>
+      <App />
+    </HashRouter>
   </ThemeProvider>,
 );

@@ -1,20 +1,32 @@
-// ================================================================
+import { styled } from "@mui/material/styles";
+import { get } from "lodash";
 
 import { Icon } from "./icon";
+import {
+  ModrinthIcon as modrinthIcon,
+  CurseforgeIcon as curseforgeIcon,
+} from "~/assets";
+
 import type { IconProps } from "./icon";
 
-export type PlatformIconProps = Omit<IconProps, "src">;
+// ================================================================
+
+const PlatformIcon = styled(Icon, {
+  shouldForwardProp: propName => propName !== "color",
+})<{ color?: string }>(({ color, theme }) => ({
+  color: color
+    ? ((value => (typeof value === "string" ? value : undefined))(
+        get(theme.palette, color),
+      ) ?? color)
+    : undefined,
+}));
+
+export type PlatformIconProps = Omit<IconProps, "src"> & { color?: string };
 
 export const ModrinthIcon = (props: PlatformIconProps) => (
-  <Icon
-    {...props}
-    src="https://media.beehiiv.com/cdn-cgi/image/fit=scale-down,format=auto,onerror=redirect,quality=80/uploads/publication/logo/a49f8e1b-3835-4ea1-a85b-118c6425ebc3/Modrinth_Dark_Logo.png"
-  />
+  <PlatformIcon {...props} src={modrinthIcon} color="common.modrinth" />
 );
 
 export const CurseforgeIcon = (props: PlatformIconProps) => (
-  <Icon
-    {...props}
-    src="https://www.curseforge.com/images/sprite.svg#footer-logo-desktop"
-  />
+  <PlatformIcon {...props} src={curseforgeIcon} color="common.curseforge" />
 );

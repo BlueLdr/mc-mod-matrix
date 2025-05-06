@@ -19,8 +19,8 @@ export const enumValues = <T>(obj: T): (typeof obj)[keyof typeof obj][] =>
 
 export const comparator =
   <T extends object>(
+    direction: "asc" | "desc",
     extract: PropsOfType<T, string | number> | ((item: T) => number),
-    direction: "asc" | "desc" = "asc",
     fallback?: (a: T, b: T) => number
   ) =>
   (a: T, b: T): number => {
@@ -31,3 +31,11 @@ export const comparator =
       (v_a < v_b ? -1 : v_a > v_b ? 1 : fallback ? fallback(a, b) : 0)
     );
   };
+
+export const gameVersionComparator = (a: string, b: string) => {
+  const [, aMinor, aPatch = 0] = a.split(".")
+  const [, bMinor, bPatch = 0] = b.split(".")
+
+  const result = (Number(aMinor) - Number(bMinor)) || (Number(aPatch) - Number(bPatch))
+  return isNaN(result) ? 0 : result;
+}

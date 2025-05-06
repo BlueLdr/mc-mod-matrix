@@ -1,6 +1,5 @@
-import type { Theme as MuiTheme } from "@mui/material/styles";
+import type { SiteTheme } from "~/theme/types.ts";
 
 declare module "@emotion/react" {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  export interface Theme extends MuiTheme {}
+  export interface Theme extends SiteTheme {}
 }

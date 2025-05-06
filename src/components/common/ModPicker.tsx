@@ -1,24 +1,21 @@
-import {
-  Grid,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  styled,
-  TextField,
-} from "@mui/material";
+import { debounce, uniq } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+
+import { curseforgeApi, modrinthApi } from "~/api";
+import { useApiRequest, type DistributiveOmit } from "~/utils";
+import { ModListItem } from "./ModListItem.tsx";
+import { VirtualizedListbox } from "./VirtualizedListBox";
+
+import Autocomplete from "@mui/material/Autocomplete";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
+
+import type { ModMetadata } from "~/data";
+import type { ListChildComponentProps } from "react-window";
 import type {
   AutocompleteProps,
   AutocompleteRenderOptionState,
 } from "@mui/material/Autocomplete";
-import Autocomplete from "@mui/material/Autocomplete";
-import { debounce, uniq } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ListChildComponentProps } from "react-window";
-
-import { curseforgeApi, modrinthApi, type ModMetadata } from "~/api";
-import { useApiRequest, useValueRef, type DistributiveOmit } from "~/utils";
-import { VirtualizedListbox } from "./VirtualizedListBox";
-import { CurseforgeIcon, Icon, ModrinthIcon } from "./icons";
 
 // ================================================================
 
@@ -61,7 +58,7 @@ const searchMods = async (text: string) => {
   return { data: unifiedResults };
 };
 
-const ident = <T extends any = any>(x: T) => x;
+const ident = <T = any,>(x: T) => x;
 
 const renderOption = (
   props: React.HTMLAttributes<HTMLLIElement>,
@@ -80,25 +77,15 @@ const renderVisualOption = (
     top: (style.top as number) + 8,
   };
   return (
-    <MenuItem
+    <ModListItem
+      mod={metadata}
+      showPlatforms
+      component={MenuItem}
       {...rowProps}
       key={metadata.slug}
-      id={`${metadata.slug}`}
-      value={metadata.slug}
       selected={state.selected}
       style={inlineStyle}
-    >
-      <ListItemIcon>
-        <Icon size={48} src={metadata.image} />
-      </ListItemIcon>
-      <ListItemText>
-        <Grid container spacing={4} alignItems="center">
-          {metadata.name}
-          {metadata.curseforge && <CurseforgeIcon />}
-          {metadata.modrinth && <ModrinthIcon />}
-        </Grid>
-      </ListItemText>
-    </MenuItem>
+    />
   );
 };
 
@@ -129,22 +116,30 @@ export function ModPicker(props: ModPickerProps) {
   // }, [])
 
   const [inputValue, setInputValue] = useState("");
+  const [searchString, setSearchString] = useState("");
 
-  const [fetchOptions, options = emptyOptions, status] = useApiRequest(
+  const [fetchOptions, options = emptyOptions, status, reset] = useApiRequest(
     searchMods,
     true,
   );
 
-  const debouncedFetch = useMemo(
-    () => debounce(fetchOptions, 500, { trailing: true }),
+  const debouncedSearch = useMemo(
+    () => debounce(setSearchString, 500, { trailing: true }),
     [fetchOptions],
   );
   useEffect(() => {
-    if (inputValue) {
-      debouncedFetch(inputValue);
+    if (inputValue.trim()) {
+      debouncedSearch(inputValue.trim());
     }
-    return debouncedFetch.cancel;
   }, [inputValue]);
+
+  useEffect(() => {
+    if (searchString) {
+      fetchOptions(searchString);
+    } else {
+      reset(true);
+    }
+  }, [searchString]);
 
   return (
     <Autocomplete<ModMetadata, true, true, false>
@@ -158,11 +153,23 @@ export function ModPicker(props: ModPickerProps) {
       renderValue={() => ""}
       getOptionKey={option => option.slug}
       isOptionEqualToValue={(opt, value) => opt.slug === value.slug}
-      options={options}
+      options={status.success || status.pending ? options : emptyOptions}
       renderOption={renderOption}
-      renderInput={params => <TextField {...params} value={inputValue} />}
+      disableClearable
+      noOptionsText={
+        status.success
+          ? "No matches for your search"
+          : "Start typing to search mods..."
+      }
+      renderInput={params => (
+        <TextField {...params} label="Search for a mod..." value={inputValue} />
+      )}
       onChange={(...args) => {
         setInputValue("");
+        setSearchString("");
+        if (args[2] === "removeOption") {
+          return;
+        }
         props.onChange?.(...args);
       }}
       slotProps={{
@@ -170,6 +177,7 @@ export function ModPicker(props: ModPickerProps) {
           component: VirtualizedListbox,
           // @ts-expect-error custom prop
           renderRow: renderVisualOption,
+          size: 48,
         },
       }}
     />

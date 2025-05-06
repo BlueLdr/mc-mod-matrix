@@ -1,7 +1,12 @@
 import type { Modpack } from "~/data";
 
+//================================================
+
 export interface StoredDataState {
-  list: Omit<Map<string, Modpack>, "add" | "delete" | "clear">;
-  add(value: Modpack): void;
-  remove(key: string | Modpack): void;
+  currentPack: Modpack | undefined;
+  packs: Modpack[];
+  setPacks: React.Dispatch<React.SetStateAction<Modpack[]>>;
+  addPack: (pack: Modpack) => void;
+  removePack: (name: string) => void;
+  updatePack: (pack: Modpack) => void;
 }

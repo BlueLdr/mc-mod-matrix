@@ -1,12 +1,7 @@
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useCallback, useMemo } from "react";
+import { useParams } from "react-router-dom";
 
-import { loadStorage, setStorage } from "~/utils";
+import { loadStorage, useStorageState } from "~/utils";
 
 import type { WithChildren } from "~/utils";
 import type { Modpack } from "~/data";
@@ -16,57 +11,52 @@ import type { StoredDataState } from "./types";
 
 const STORAGE_KEY = "storage";
 
-const storedList = loadStorage(STORAGE_KEY, {});
-const initialSet = new Map<string, Modpack>(
-  typeof storedList === "object" ? Object.entries(storedList) : [],
-);
+const storedList = loadStorage(STORAGE_KEY, [] as Modpack[]);
 
 export const DataContext = createContext<StoredDataState>({
-  list: initialSet,
-  add: () => {},
-  remove: () => {},
+  currentPack: undefined,
+  packs: storedList,
+  setPacks: () => {},
+  addPack: () => {},
+  removePack: () => {},
+  updatePack: () => {},
 });
 
 //================================================
 
 export const DataProvider: React.FC<WithChildren> = ({ children }) => {
-  const [data, setData] = useState(initialSet);
+  const [packs, setPacks] = useStorageState(STORAGE_KEY, storedList);
+  const { name: currentPackName } = useParams();
+  console.log(`currentPackName: `, currentPackName);
 
-  const addFavorite = useCallback((value: Modpack) => {
-    setData(curValue => {
-      if (curValue.has(value.name)) {
-        return curValue;
-      }
-      const newSet = new Map(curValue);
-      newSet.set(value.name, value);
-      return newSet;
-    });
-  }, []);
-
-  const removeFavorite = useCallback((value: string | Modpack) => {
-    setData(curValue => {
-      const id = typeof value === "string" ? value : value.name;
-      if (!curValue.has(id)) {
-        return curValue;
-      }
-      const newSet = new Map(curValue);
-      newSet.delete(id);
-      return newSet;
-    });
-  }, []);
-
-  const value = useMemo(
-    () => ({
-      list: data,
-      add: addFavorite,
-      remove: removeFavorite,
-    }),
-    [addFavorite, data, removeFavorite],
+  const addPack = useCallback(
+    (newPack: Modpack) => setPacks(prevState => prevState.concat(newPack)),
+    [setPacks],
+  );
+  const removePack = useCallback(
+    (name: string) =>
+      setPacks(prevState => prevState.filter(pack => pack.name !== name)),
+    [setPacks],
+  );
+  const updatePack = useCallback(
+    (newPack: Modpack) =>
+      setPacks(prevState =>
+        prevState.map(pack => (pack.name === newPack.name ? newPack : pack)),
+      ),
+    [setPacks],
   );
 
-  useEffect(() => {
-    setStorage(STORAGE_KEY, Object.fromEntries(data.entries()));
-  }, [data]);
+  const value = useMemo<StoredDataState>(
+    () => ({
+      currentPack: packs.find(p => p.name === currentPackName),
+      packs,
+      setPacks,
+      addPack,
+      removePack,
+      updatePack,
+    }),
+    [packs, setPacks, addPack, removePack, updatePack],
+  );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

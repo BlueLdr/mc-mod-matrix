@@ -1,10 +1,14 @@
-import type { ModrinthModDataRaw } from "./types";
+import type { ModrinthModDataRaw } from "~/data";
+
+//================================================
 
 const MODRINTH_BASE_URL = "https://api.modrinth.com/v2";
+
 export enum ModrinthSortIndex {
   relevance = "relevance",
   downloads = "downloads",
 }
+
 export enum ModrinthFacet {
   mod = '["project_type:mod"]',
 }
@@ -23,7 +27,7 @@ export class ModrinthApi {
   public searchMods(text: string) {
     const params = new URLSearchParams({
       facets: `[${ModrinthFacet.mod}]`,
-      index: `${ModrinthSortIndex.downloads}`,
+      index: `${ModrinthSortIndex.relevance}`,
       limit: "30",
       query: text,
     });

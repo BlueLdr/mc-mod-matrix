@@ -1,44 +1,35 @@
-import { useEffect, useState } from "react";
-import { curseforgeApi, modrinthApi, type ModMetadata } from "~/api";
-import { ModPicker } from "../common/ModPicker";
-import {
-  Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  styled,
-} from "@mui/material";
-import { Icon, CurseforgeIcon, ModrinthIcon } from "../common";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import { useContext } from "react";
+import { CreatePackModalContext } from "~/context";
 
 // ================================================================
 
 export function HomePage() {
-  const [value, setValue] = useState<ModMetadata[]>([]);
-
-  useEffect(() => {
-    console.log(`value`, value);
-  }, [value]);
-
+  const { setOpen } = useContext(CreatePackModalContext);
   return (
-    <>
-      <ModPicker value={value} onChange={(_, newValue) => setValue(newValue)} />
-      <List>
-        {value.map(item => (
-          <ListItem key={item.slug}>
-            <ListItemIcon>
-              <Icon src={item.image} />
-            </ListItemIcon>
-            <ListItemText>
-              <Grid container spacing={4} alignItems="center">
-                {item.name}
-                {item.curseforge && <CurseforgeIcon />}
-                {item.modrinth && <ModrinthIcon />}
-              </Grid>
-            </ListItemText>
-          </ListItem>
-        ))}
-      </List>
-    </>
+    <Container maxWidth="lg" sx={{ height: "100vh" }}>
+      <Grid
+        container
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        height="100%"
+        spacing={4}
+      >
+        <Typography variant="body1" color="textSecondary">
+          Select a pack from the list, or create a new one.
+        </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => setOpen(true)}
+        >
+          Create mod pack
+        </Button>
+      </Grid>
+    </Container>
   );
 }
