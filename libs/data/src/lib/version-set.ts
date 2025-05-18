@@ -24,7 +24,7 @@ export class VersionSet<T extends ModVersion | ModVersionData = ModVersion> exte
     return Array.from(new Set(this.map(v => v.loader)));
   }
 
-  public push(version: T) {
+  public override push(version: T) {
     const existingVersions = this.get(version.gameVersion).get(version.loader);
     if (!existingVersions.some(e => e.platform === version.platform)) {
       return super.push(version);
@@ -32,7 +32,7 @@ export class VersionSet<T extends ModVersion | ModVersionData = ModVersion> exte
     return this.length;
   }
 
-  public concat(...items: (T | ConcatArray<T>)[]): VersionSet<T> {
+  public override concat(...items: (T | ConcatArray<T>)[]): VersionSet<T> {
     const newSet = new VersionSet(...Array.from(this));
     items.forEach(itemOrArray => {
       if ("length" in itemOrArray) {

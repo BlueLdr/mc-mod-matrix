@@ -316,6 +316,21 @@ export interface ModAuthor {
   id: number;
   name: string;
   url: string;
+  username: string;
+}
+
+export interface ModClass {
+  id: ModClassEnum;
+  dateModified: string; // ISO datetime string
+  gameId: number;
+  iconUrl: string;
+  name: string;
+  slug: string;
+  url: string;
+  classId: number | null;
+  displayIndex: number;
+  isClass: boolean;
+  parentCategoryId?: number | null;
 }
 
 export interface ModLinks {
@@ -359,7 +374,7 @@ export enum ModsSearchSortField {
   Rating,
 }
 
-export enum ModClass {
+export enum ModClassEnum {
   mod = 6,
 }
 
@@ -390,7 +405,7 @@ export interface SearchModsParams {
   categoryIds?: string[];
   gameVersion?: string;
   gameVersions?: string[];
-  searchFilter?: string;
+  filterText?: string;
   sortField?: ModsSearchSortField;
   sortOrder?: SortOrder;
   modLoaderType?: ModLoaderType;
@@ -404,8 +419,45 @@ export interface SearchModsParams {
 }
 
 export interface SearchModsResponse {
-  data: Mod[];
+  data: SearchResult[];
   pagination: Pagination;
+}
+
+export interface SearchResult {
+  id: number;
+  author: ModAuthor;
+  avatarUrl: string;
+  thumbnailUrl: string;
+  categories: Category[];
+  class: ModClass | null;
+  creationDate: number;
+  downloads: number;
+  gameVersion: string;
+  name: string;
+  slug: string;
+  summary: string;
+  updateDate: number;
+  releaseDate: number;
+  fileSize: number;
+  isClientCompatible: boolean;
+  latestFileDetails: FileIndex;
+  hasEarlyAccessFiles: boolean;
+  hasLocalization: boolean;
+  status: ModStatus;
+  websiteRecentFiles: SearchResultRecentFileCollection[];
+  isMainFileClientCompatible: boolean;
+  isPremium: boolean;
+  thumbnails: {
+    thumbnailUrl256: string;
+    thumbnailUrl64: string;
+  };
+  isAvailableForDownload: boolean;
+  downloadAvailability: number;
+}
+
+export interface SearchResultRecentFileCollection {
+  gameVersion: GameVersion;
+  files: File[];
 }
 
 export interface SortableGameVersion {

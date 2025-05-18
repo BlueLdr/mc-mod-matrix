@@ -1,4 +1,5 @@
-import type { GameVersion, Curseforge, ModLoader } from "./index";
+import type { Curseforge } from "@mcmm/curseforge";
+import type { GameVersion, ModLoader } from "./index";
 
 //================================================
 
@@ -15,7 +16,7 @@ export interface CurseforgeModVersionDataRaw {
 export interface CurseforgeModMetadataRaw {
   id: number;
   slug: string;
-  author: { name: string; username: string; id: number };
+  author: { name: string; id: number };
   name: string;
   summary: string;
   thumbnailUrl: string;
