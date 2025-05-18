@@ -1,3 +1,5 @@
+import { escapeRegExp } from "lodash";
+
 import { VersionSet } from "./version-set";
 import { Platform } from "./types";
 
@@ -12,6 +14,7 @@ import type {
   ModVersionData,
   PackSupportMeta,
   ModVersion,
+  ModMetadata,
 } from "./types";
 import type { Curseforge } from "@mcmm/curseforge";
 
@@ -147,4 +150,111 @@ export const parseCurseforgeModFileData = (
     });
   });
   return versionSet;
+};
+
+//================================================
+
+const areModMetaValuesEqual = (m: string, c: string) =>
+  new RegExp(`.*?${escapeRegExp(m)}.*?`, "i").test(c) ||
+  new RegExp(`.*?${escapeRegExp(c)}.*?`, "i").test(m);
+
+export const isSameMod = (modrinth: Modrinth.SearchResult, curseforge: Curseforge.SearchResult) =>
+  (areModMetaValuesEqual(modrinth.slug, curseforge.slug) ||
+    areModMetaValuesEqual(modrinth.title, curseforge.name)) &&
+  (areModMetaValuesEqual(modrinth.author, curseforge.author.name) ||
+    areModMetaValuesEqual(modrinth.author, curseforge.author.username));
+
+export const createMergedMetadata = (
+  modrinthItem: Modrinth.SearchResult | undefined,
+  curseforgeItem: Curseforge.SearchResult | undefined,
+): ModMetadata | undefined => {
+  if (!modrinthItem && !curseforgeItem) {
+    return;
+  }
+  return {
+    name: modrinthItem?.title ?? curseforgeItem!.name,
+    slug: modrinthItem?.slug ?? curseforgeItem!.slug,
+    image: modrinthItem?.icon_url ?? curseforgeItem!.thumbnailUrl,
+    curseforge: curseforgeItem ? getCurseforgeModMetadataFromSearch(curseforgeItem) : undefined,
+    modrinth: modrinthItem ? getModrinthModMetadata(modrinthItem) : undefined,
+  };
+};
+
+export const mergeSearchResults = (
+  modrinth: Modrinth.SearchResult[],
+  curseforge: Curseforge.SearchResult[],
+): ModMetadata[] => {
+  const modrinthCopy = modrinth.slice();
+  const curseforgeCopy = curseforge.slice();
+
+  const curseforgeIdsUsed = new Set<number>();
+  const modrinthIdsUsed = new Set<string>();
+
+  const unifiedResults: ModMetadata[] = [];
+  const addResult = (
+    modrinthItem: Modrinth.SearchResult | undefined,
+    curseforgeItem: Curseforge.SearchResult | undefined,
+  ) => {
+    const metadata = createMergedMetadata(modrinthItem, curseforgeItem);
+    if (metadata) {
+      unifiedResults.push(metadata);
+      if (metadata.modrinth) {
+        modrinthIdsUsed.add(metadata.modrinth.project_id);
+      }
+      if (metadata.curseforge) {
+        curseforgeIdsUsed.add(metadata.curseforge.id);
+      }
+    }
+  };
+
+  while (modrinthCopy.length > 0 || curseforgeCopy.length > 0) {
+    let currentModrinthMod = modrinthCopy.shift();
+    let currentCurseforgeMod = curseforgeCopy.shift();
+
+    if (currentModrinthMod && modrinthIdsUsed.has(currentModrinthMod.id)) {
+      currentModrinthMod = undefined;
+    }
+    if (currentCurseforgeMod && curseforgeIdsUsed.has(currentCurseforgeMod.id)) {
+      currentCurseforgeMod = undefined;
+    }
+
+    if (!currentModrinthMod && !currentCurseforgeMod) {
+      break;
+    }
+
+    if (
+      !!currentModrinthMod &&
+      !!currentCurseforgeMod &&
+      isSameMod(currentModrinthMod, currentCurseforgeMod)
+    ) {
+      addResult(currentModrinthMod, currentCurseforgeMod);
+      continue;
+    }
+
+    const matchForCurrentModrinthMod = !currentModrinthMod
+      ? undefined
+      : [currentCurseforgeMod, ...curseforgeCopy].find(
+          mod => !!mod && isSameMod(currentModrinthMod, mod),
+        );
+    if (matchForCurrentModrinthMod) {
+      addResult(currentModrinthMod, matchForCurrentModrinthMod);
+    }
+    const matchForCurrentCurseforgeMod = !currentCurseforgeMod
+      ? undefined
+      : [currentModrinthMod, ...modrinthCopy].find(
+          mod => !!mod && isSameMod(mod, currentCurseforgeMod),
+        );
+    if (matchForCurrentCurseforgeMod) {
+      addResult(matchForCurrentCurseforgeMod, currentCurseforgeMod);
+    }
+
+    if (!matchForCurrentModrinthMod) {
+      addResult(currentModrinthMod, undefined);
+    }
+    if (!matchForCurrentCurseforgeMod) {
+      addResult(undefined, currentCurseforgeMod);
+    }
+  }
+
+  return unifiedResults;
 };
