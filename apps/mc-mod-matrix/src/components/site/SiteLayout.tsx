@@ -9,7 +9,7 @@ import { NavDrawer } from "./NavDrawer";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 
-import type { WithChildren } from "~/utils";
+import type { WithChildren } from "@mcmm/types";
 
 //================================================
 

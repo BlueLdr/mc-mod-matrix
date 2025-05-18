@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "jsxImportSource": "@emotion/react",
     "strict": true,
     "noEmit": true,
     "emitDeclarationOnly": false,
@@ -27,10 +26,27 @@
       "esnext"
     ],
     "baseUrl": ".",
-    "rootDir": ".",
     "paths": {
       "~/*": [
         "src/*"
+      ],
+      "@mcmm/api": [
+        "../../libs/api/src/index.ts"
+      ],
+      "@mcmm/curseforge": [
+        "../../libs/curseforge/src/index.ts"
+      ],
+      "@mcmm/modrinth": [
+        "../../libs/modrinth/src/index.ts"
+      ],
+      "@mcmm/data": [
+        "../../libs/data/src/index.ts"
+      ],
+      "@mcmm/utils": [
+        "../../libs/utils/src/index.ts"
+      ],
+      "@mcmm/types": [
+        "../../libs/types/src/index.ts"
       ]
     }
   },
@@ -45,8 +61,9 @@
     "**/*.tsx",
     "../../apps/temp/.next/types/**/*.ts",
     "../../dist/apps/temp/.next/types/**/*.ts",
+    ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    "../../dist/apps/mc-mod-matrix/.next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

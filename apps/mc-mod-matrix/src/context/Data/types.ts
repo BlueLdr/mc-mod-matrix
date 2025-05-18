@@ -1,4 +1,4 @@
-import type { GameVersion, Modpack } from "~/data";
+import type { GameVersion, Modpack } from "@mcmm/data";
 
 //================================================
 

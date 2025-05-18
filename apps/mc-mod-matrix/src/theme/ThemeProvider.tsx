@@ -6,7 +6,7 @@ import { MuiTheme } from "./Theme";
 
 import GlobalStyles from "@mui/material/GlobalStyles";
 
-import type { WithChildren } from "~/utils";
+import type { WithChildren } from "@mcmm/types";
 
 //================================================
 

@@ -20,6 +20,7 @@ export const MuiTheme = createMuiThemeForEnvironment({
   spacing: 4,
   palette: {
     mode: "dark",
+    // @ts-expect-error: aug isnt working
     common: {
       ...colors,
     },

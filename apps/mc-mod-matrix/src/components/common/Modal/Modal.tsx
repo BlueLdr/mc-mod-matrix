@@ -3,7 +3,7 @@
 import styled from "@emotion/styled";
 import * as React from "react";
 
-import { classNameWithModifiers, classNames } from "~/utils";
+import { classNameWithModifiers, classNames } from "@mcmm/utils";
 
 import CloseIcon from "@mui/icons-material/Close";
 import Dialog from "@mui/material/Dialog";
@@ -83,6 +83,7 @@ export const Modal: React.FC<ModalProps> = ({
       aria-describedby={`${id}-description`}
     >
       {(!hideCloseButton || !!titleText) && (
+        // @ts-expect-error: aug isnt working
         <DialogTitle component="div" id={`${id}-title`} sx={titleText ? headerStyle : undefined}>
           <Grid container justifyContent="space-between" alignItems="center" spacing={4}>
             <Grid>{titleText}</Grid>

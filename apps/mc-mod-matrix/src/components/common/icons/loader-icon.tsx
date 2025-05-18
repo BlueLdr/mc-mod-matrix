@@ -2,8 +2,8 @@
 
 import { SvgIcon } from "./svg-icon";
 
+import type { ModLoader } from "@mcmm/data";
 import type { SvgIconProps } from "./svg-icon";
-import type { ModLoader } from "~/data";
 
 //================================================
 

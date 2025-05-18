@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 
-import { debounce } from "~/utils";
+import { debounce } from "@mcmm/utils";
 
 //================================================
 

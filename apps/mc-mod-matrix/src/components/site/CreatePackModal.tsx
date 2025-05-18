@@ -4,7 +4,7 @@ import { entries } from "lodash";
 import { useContext } from "react";
 import { useRouter } from "next/navigation";
 
-import { ModLoader } from "~/data";
+import { ModLoader } from "@mcmm/data";
 import { useStateObject } from "~/utils";
 import { CreatePackModalContext, DataContext } from "~/context";
 import { LoaderIcon, Modal } from "~/components";
@@ -22,7 +22,7 @@ import Grid from "@mui/material/Grid";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 
-import type { Modpack } from "~/data";
+import type { Modpack } from "@mcmm/data";
 
 //================================================
 

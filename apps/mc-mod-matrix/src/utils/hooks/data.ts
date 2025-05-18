@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { loadStorage, setStorage } from "~/utils";
+import { loadStorage, setStorage } from "../helpers";
 
 import type { Dispatch, SetStateAction } from "react";
 

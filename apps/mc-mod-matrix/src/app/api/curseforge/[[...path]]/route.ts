@@ -1,4 +1,4 @@
-import { curseforgeApi } from "~/api";
+import { curseforgeApi } from "@mcmm/api";
 import { shouldForwardHeader } from "~/utils";
 
 import type { NextRequest } from "next/server";

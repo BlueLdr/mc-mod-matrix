@@ -3,11 +3,11 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
+import { curseforgeApi, modrinthApi } from "@mcmm/api";
 import { loadStorage, useStorageState } from "~/utils";
-import { curseforgeApi, modrinthApi } from "~/api";
 
-import type { WithChildren } from "~/utils";
-import type { GameVersion, Modpack } from "~/data";
+import type { WithChildren } from "@mcmm/types";
+import type { GameVersion, Modpack } from "@mcmm/data";
 import type { StoredDataState } from "./types";
 
 //================================================
@@ -46,9 +46,9 @@ export const DataProvider: React.FC<WithChildren> = ({ children }) => {
     [setPacks],
   );
 
-  const [gameVersions, setGameVersions] = useState<GameVersion[]>([]);
+  const [gameVersions] = useState<GameVersion[]>([]);
   useEffect(() => {
-    modrinthApi.getGameVersions().then(setGameVersions);
+    modrinthApi.getGameVersions();
     curseforgeApi.getVersionTypes();
   }, []);
 
