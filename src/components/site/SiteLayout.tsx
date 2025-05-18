@@ -1,11 +1,11 @@
-import styled from "@emotion/styled";
+"use client";
 
-import { AppRouter } from "./AppRouter";
-// import { Footer } from "./Footer";
-// import { Header } from "./Header";
+import styled from "@emotion/styled";
 
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
+
+import type { WithChildren } from "~/utils";
 
 //================================================
 
@@ -21,6 +21,7 @@ const Body = styled.main`
   flex-direction: column;
   flex: 1 1 100%;
   box-sizing: border-box;
+
   & > .pending-view,
   & > * > .pending-view {
     min-height: ${({ theme }) => theme.spacing(120)};
@@ -28,21 +29,20 @@ const Body = styled.main`
 `;
 Body.displayName = "Body";
 
-function App() {
+//================================================
+
+export type SiteLayoutProps = WithChildren;
+
+export function SiteLayout({ children }: SiteLayoutProps) {
   return (
     <>
       <CssBaseline />
+      {/*<NavDrawer />*/}
       <Box display="flex" flexDirection="column" minHeight="100vh">
         <SiteContainer flexGrow={1}>
-          {/* <Header /> */}
-          <Body>
-            <AppRouter />
-          </Body>
-          {/* <Footer /> */}
+          <Body>{children}</Body>
         </SiteContainer>
       </Box>
     </>
   );
 }
-
-export default App;

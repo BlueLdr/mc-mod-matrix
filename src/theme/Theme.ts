@@ -1,11 +1,10 @@
-import {
-  createTheme,
-  unstable_createMuiStrictModeTheme,
-} from "@mui/material/styles";
+"use client";
+
+import { createTheme, unstable_createMuiStrictModeTheme } from "@mui/material/styles";
+
+import { colors } from "./colors";
 
 import ExpandMore from "@mui/icons-material/ExpandMore";
-
-import type { ThemeOptions } from "@mui/material/styles";
 
 //================================================
 
@@ -14,14 +13,16 @@ import type { ThemeOptions } from "@mui/material/styles";
   https://v4.mui.com/customization/theming/#unstable-createmuistrictmodetheme-options-args-theme
 */
 const createMuiThemeForEnvironment =
-  import.meta.env.NODE_ENV === "production"
-    ? createTheme
-    : unstable_createMuiStrictModeTheme;
+  process.env.NODE_ENV === "production" ? createTheme : unstable_createMuiStrictModeTheme;
 
-const themeCustomization: ThemeOptions = {
+export const MuiTheme = createMuiThemeForEnvironment({
   spacing: 4,
   palette: {
     mode: "dark",
+    // @ts-expect-error: custom colors
+    common: {
+      ...colors,
+    },
   },
   typography: {
     htmlFontSize: 16,
@@ -102,7 +103,7 @@ const themeCustomization: ThemeOptions = {
       },
     },
   },
-};
+});
 
 // type Override = Exclude<EntryOf<ComponentsOverrides<Theme>>, undefined>;
 // (Object.entries(overrides) as Override[]).forEach(([key, styles]) => {
@@ -115,4 +116,3 @@ const themeCustomization: ThemeOptions = {
 //   themeCustomization.components[key]!.styleOverrides = styles;
 // });
 
-export const MuiTheme = createMuiThemeForEnvironment(themeCustomization);
