@@ -6,7 +6,7 @@ import { fixupConfigRules } from "@eslint/compat";
 import nx from "@nx/eslint-plugin";
 
 import baseConfig from "../../eslint.base.config.mjs";
-import { generateNestedOverridesConfig } from "../../eslint.overrides.config.mjs";
+import { tseslintConfig, importConfig, overridesCompat } from "../../eslint.overrides.config.mjs";
 
 //================================================
 
@@ -28,7 +28,8 @@ const config = [
   {
     ignores: [".next/**/*"],
   },
-  ...generateNestedOverridesConfig(),
+  ...overridesCompat.config(importConfig),
+  tseslintConfig,
 ];
 
 export default config;

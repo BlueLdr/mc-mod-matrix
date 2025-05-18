@@ -2,10 +2,11 @@
 
 import { createContext, useEffect, useMemo, useState } from "react";
 
-import { DataRegistry, type DataRegistryMap } from "~/data";
+import { DataRegistry } from "~/data";
 
-import type { DataRegistryContextState } from "./types.ts";
 import type { WithChildren } from "@mcmm/types";
+import type { DataRegistryMap } from "~/data";
+import type { DataRegistryContextState } from "./types";
 
 //================================================
 

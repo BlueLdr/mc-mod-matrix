@@ -1,8 +1,8 @@
 "use client";
 
 import { use, useContext } from "react";
-import { ModpackDetailModList } from "~/components";
 
+import { ModpackDetailModList } from "~/components";
 import { DataContext } from "~/context";
 
 import Container from "@mui/material/Container";

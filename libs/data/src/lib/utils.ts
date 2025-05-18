@@ -1,5 +1,3 @@
-import { escapeRegExp } from "lodash";
-
 import { VersionSet } from "./version-set";
 import { Platform } from "./types";
 
@@ -68,8 +66,6 @@ export const getPackSupportForConfig = (
   });
 
   const percentage = supportedMods.length ? supportedMods.length / pack.mods.length : 0;
-
-  console.log(`percentage: `, percentage);
 
   return {
     gameVersion,
@@ -154,16 +150,6 @@ export const parseCurseforgeModFileData = (
 
 //================================================
 
-const areModMetaValuesEqual = (m: string, c: string) =>
-  new RegExp(`.*?${escapeRegExp(m)}.*?`, "i").test(c) ||
-  new RegExp(`.*?${escapeRegExp(c)}.*?`, "i").test(m);
-
-export const isSameMod = (modrinth: Modrinth.SearchResult, curseforge: Curseforge.SearchResult) =>
-  (areModMetaValuesEqual(modrinth.slug, curseforge.slug) ||
-    areModMetaValuesEqual(modrinth.title, curseforge.name)) &&
-  (areModMetaValuesEqual(modrinth.author, curseforge.author.name) ||
-    areModMetaValuesEqual(modrinth.author, curseforge.author.username));
-
 export const createMergedMetadata = (
   modrinthItem: Modrinth.SearchResult | undefined,
   curseforgeItem: Curseforge.SearchResult | undefined,
@@ -180,15 +166,43 @@ export const createMergedMetadata = (
   };
 };
 
-export const mergeSearchResults = (
+export const mergeSearchResults = async (
   modrinth: Modrinth.SearchResult[],
   curseforge: Curseforge.SearchResult[],
-): ModMetadata[] => {
+  isSameMod: (
+    modrinth: Modrinth.SearchResult,
+    curseforge: Curseforge.SearchResult,
+  ) => Promise<boolean>,
+): Promise<ModMetadata[]> => {
   const modrinthCopy = modrinth.slice();
   const curseforgeCopy = curseforge.slice();
 
   const curseforgeIdsUsed = new Set<number>();
   const modrinthIdsUsed = new Set<string>();
+
+  const findMatchingModrinthMod = async (mod: Curseforge.SearchResult | undefined) => {
+    if (!mod) {
+      return undefined;
+    }
+    for (const item of modrinthCopy) {
+      if (!modrinthIdsUsed.has(item.project_id) && (await isSameMod(item, mod))) {
+        return item;
+      }
+    }
+    return undefined;
+  };
+
+  const findMatchingCurseforgeMod = async (mod: Modrinth.SearchResult | undefined) => {
+    if (!mod) {
+      return undefined;
+    }
+    for (const item of curseforgeCopy) {
+      if (!curseforgeIdsUsed.has(item.id) && (await isSameMod(mod, item))) {
+        return item;
+      }
+    }
+    return undefined;
+  };
 
   const unifiedResults: ModMetadata[] = [];
   const addResult = (
@@ -222,28 +236,20 @@ export const mergeSearchResults = (
       break;
     }
 
-    if (
+    const currentModsMatch =
       !!currentModrinthMod &&
       !!currentCurseforgeMod &&
-      isSameMod(currentModrinthMod, currentCurseforgeMod)
-    ) {
+      (await isSameMod(currentModrinthMod, currentCurseforgeMod));
+    if (currentModsMatch) {
       addResult(currentModrinthMod, currentCurseforgeMod);
       continue;
     }
 
-    const matchForCurrentModrinthMod = !currentModrinthMod
-      ? undefined
-      : [currentCurseforgeMod, ...curseforgeCopy].find(
-          mod => !!mod && isSameMod(currentModrinthMod, mod),
-        );
+    const matchForCurrentModrinthMod = await findMatchingCurseforgeMod(currentModrinthMod);
     if (matchForCurrentModrinthMod) {
       addResult(currentModrinthMod, matchForCurrentModrinthMod);
     }
-    const matchForCurrentCurseforgeMod = !currentCurseforgeMod
-      ? undefined
-      : [currentModrinthMod, ...modrinthCopy].find(
-          mod => !!mod && isSameMod(mod, currentCurseforgeMod),
-        );
+    const matchForCurrentCurseforgeMod = await findMatchingModrinthMod(currentCurseforgeMod);
     if (matchForCurrentCurseforgeMod) {
       addResult(matchForCurrentCurseforgeMod, currentCurseforgeMod);
     }

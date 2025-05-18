@@ -4,5 +4,5 @@ const buildEslintCommand = filenames =>
   `next lint --file ${filenames.map(f => path.relative(process.cwd(), f)).join(" --file ")}`;
 
 module.exports = {
-  "./src/***.{js,jsx,ts,tsx}": [buildEslintCommand],
+  "./src/**/*.{js,jsx,ts,tsx}": [buildEslintCommand],
 };

@@ -223,10 +223,6 @@ export class CurseforgeApi extends ApiConnector {
           return arr.concat(thisFileVersions);
         }, [] as string[]) ?? [];
 
-      console.log(
-        `Page ${page} for ${loader} had versions ${versions[0]} - ${versions.slice(-1)[0]}`,
-      );
-
       const isLastPage =
         (page + 1) * result.data.pagination.pageSize >= result.data.pagination.totalCount;
 

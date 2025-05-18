@@ -1,4 +1,4 @@
-import type { GameVersion, Mod, ModMetadata, ModLoader } from "@mcmm/data";
+import type { GameVersion, Mod, ModMetadata } from "@mcmm/data";
 
 //================================================
 

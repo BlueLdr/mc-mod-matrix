@@ -23,7 +23,6 @@ export abstract class ApiConnector {
     params?: URLSearchParams,
     request?: RequestInit,
   ): Promise<ApiResponse<T>> {
-    console.log(`path: `, path);
     const isCustomUrl = path.startsWith("https");
     const url = isCustomUrl ? new URL(path) : new URL(this.joinUrl(this.baseUrl, path));
     url.search = params?.size ? params.toString() : "";

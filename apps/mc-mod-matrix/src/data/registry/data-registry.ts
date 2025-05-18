@@ -1,21 +1,14 @@
 "use client";
 
-import { gameVersionComparator } from "@mcmm/utils";
 import * as Immutable from "immutable";
 
+import { gameVersionComparator } from "@mcmm/utils";
 import { curseforgeApi, modrinthApi, promiseAll } from "@mcmm/api";
+import { VersionSet, parseCurseforgeModFileData, parseModrinthModVersionData } from "@mcmm/data";
 
-import {
-  VersionSet,
-  parseCurseforgeModFileData,
-  parseModrinthModVersionData,
-  ModLoader,
-  type GameVersion,
-  Platform,
-} from "@mcmm/data";
 import { loadDataRegistry, storeDataRegistry } from "./storage";
 
-import type { ModVersionData, Mod, ModMetadata } from "@mcmm/data";
+import type { GameVersion, ModVersionData, Mod, ModMetadata } from "@mcmm/data";
 import type {
   // CurseforgeVersionTypeRegistry,
   DataRegistryEntryMap,

@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
-import { curseforgeApi, modrinthApi } from "@mcmm/api";
+import { modrinthApi } from "@mcmm/api";
 import { gameVersionComparator } from "@mcmm/utils";
 import { DataRegistryContext } from "~/context";
 import { loadStorage, useStorageState } from "~/utils";

@@ -12,6 +12,13 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["@mui/*"],
   },
+
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push("resemble.js");
+    }
+    return config;
+  },
   // transpilePackages: ["@mui/material", "@mui/icons-material"],
 
   nx: {

@@ -112,8 +112,6 @@ export const importConfig = {
         project: ["tsconfig.json"],
       },
     },
-    "import/internal-regex":
-      "^~/((api)|(app)|(assets)|(data)|(theme)|(context)|(routing)|(components)|(utils))",
   },
 };
 

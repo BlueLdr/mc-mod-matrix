@@ -1,16 +1,13 @@
 "use client";
 
-import { debounce, uniq } from "lodash";
+import { debounce } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  getCurseforgeModMetadata,
-  getCurseforgeModMetadataFromSearch,
-  getModrinthModMetadata,
-  mergeSearchResults,
-} from "@mcmm/data";
+import { mergeSearchResults } from "@mcmm/data";
 import { curseforgeApi, modrinthApi } from "@mcmm/api";
+import { isSameMod } from "~/data";
 import { useApiRequest } from "~/utils";
+
 import { ModListItem } from "./ModListItem";
 import { VirtualizedListbox } from "./VirtualizedListBox";
 
@@ -30,7 +27,11 @@ const searchMods = async (text: string) => {
   const curseforgeResults = await curseforgeApi.searchMods(text);
 
   return {
-    data: mergeSearchResults(modrinthResults.data?.hits ?? [], curseforgeResults.data?.data ?? []),
+    data: await mergeSearchResults(
+      modrinthResults.data?.hits ?? [],
+      curseforgeResults.data?.data ?? [],
+      isSameMod,
+    ),
   };
 };
 
@@ -107,6 +108,7 @@ export function ModPicker(props: ModPickerProps) {
     } else {
       reset(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchString]);
 
   return (
@@ -123,7 +125,9 @@ export function ModPicker(props: ModPickerProps) {
       isOptionEqualToValue={(opt, value) => opt.slug === value.slug}
       options={status.success || status.pending ? options : emptyOptions}
       renderOption={renderOption}
+      getOptionDisabled={() => status.pending}
       disableClearable
+      loading={status.pending}
       noOptionsText={
         status.success ? "No matches for your search" : "Start typing to search mods..."
       }
