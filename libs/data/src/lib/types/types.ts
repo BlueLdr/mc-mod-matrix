@@ -61,7 +61,7 @@ export interface ModMetadata {
 export interface ModVersionData extends ModVersion {
   id: string | number;
   slug: string;
-  image: string;
+  image?: string;
 }
 
 export type ModVersionDataMap = Record<GameVersion, Partial<Record<ModLoader, ModVersionData>>>;

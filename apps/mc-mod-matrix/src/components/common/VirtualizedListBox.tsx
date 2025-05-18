@@ -56,13 +56,14 @@ function useResetCache(data: any) {
 }
 
 // Adapter for react-window
-export const VirtualizedListboxComponent = forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLElement> & {
+function VirtualizedListboxComponent(
+  props: React.HTMLAttributes<HTMLElement> & {
+    size?: number;
     renderRow: <T>(props: ListChildComponentProps<T>) => React.ReactNode;
-  }
->(function ListboxComponent(props, ref) {
-  const { children, renderRow = defaultRenderRow, ...other } = props;
+  },
+  ref: React.ForwardedRef<HTMLDivElement>,
+) {
+  const { children, renderRow = defaultRenderRow, size, ...other } = props;
   const itemData: React.ReactElement[] = [];
   (children as React.ReactElement[]).forEach(
     (item: React.ReactElement & { children?: React.ReactElement[] }) => {
@@ -76,9 +77,12 @@ export const VirtualizedListboxComponent = forwardRef<
     noSsr: true,
   });
   const itemCount = itemData.length;
-  const itemSize = smUp ? 36 : 48;
+  const itemSize = size ?? (smUp ? 48 : 36);
 
   const getChildSize = (child: React.ReactElement) => {
+    if (size) {
+      return size;
+    }
     // eslint-disable-next-line no-prototype-builtins
     if (child.hasOwnProperty("group")) {
       return 48;
@@ -115,4 +119,18 @@ export const VirtualizedListboxComponent = forwardRef<
       </OuterElementContext.Provider>
     </div>
   );
-});
+}
+
+export const VirtualizedListbox = forwardRef(VirtualizedListboxComponent);
+/*
+
+export const makeVirtualizedListboxWithRenderFunction = <T = any>(
+  renderRow: (props: ListChildComponentProps<T>) => React.ReactNode,
+) =>
+  forwardRef<
+    HTMLDivElement,
+    React.HTMLAttributes<HTMLElement> & { size?: number }
+  >(function VirtualizedListbox(props, ref) {
+    return VirtualizedListboxComponent({ ...props, renderRow }, ref);
+  });
+*/

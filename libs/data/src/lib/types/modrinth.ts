@@ -1,4 +1,5 @@
-import type { GameVersion, ModLoader, Modrinth } from "./index";
+import type { Modrinth } from "@mcmm/modrinth";
+import type { GameVersion, ModLoader } from "./index";
 
 //================================================
 
@@ -17,5 +18,5 @@ export interface ModrinthModMetadataRaw {
   author: string;
   title: string;
   description: string;
-  icon_url: string;
+  icon_url?: string;
 }

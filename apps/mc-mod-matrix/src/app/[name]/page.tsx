@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useContext } from "react";
+import { ModpackDetailModList } from "~/components";
 
 import { DataContext } from "~/context";
 
@@ -40,5 +41,5 @@ export default function ModpackDetailPage({ params }: ModpackDetailPageProps) {
     );
   }
 
-  return <div>pack</div>;
+  return <ModpackDetailModList pack={currentPack} />;
 }

@@ -61,7 +61,7 @@ export class ModrinthApi extends ApiConnector {
   }
 
   public getGameVersions() {
-    return this.fetch("/tag/game_version") /*.then(
+    return this.fetch<{ version: string; version_type: string }[]>("/tag/game_version") /*.then(
       (data: { version: string; version_type: string }[]) =>
         data
           .filter(item => item.version_type === "release")

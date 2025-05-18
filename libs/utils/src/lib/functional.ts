@@ -25,3 +25,10 @@ export const debounce = <T extends (...args: any[]) => any>(
 
   return invoke;
 };
+
+//================================================
+
+export const awaitTimeout = (delay: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(() => resolve(), delay);
+  });
