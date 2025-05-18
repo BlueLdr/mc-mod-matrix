@@ -1,41 +1,15 @@
-import type { GameVersion } from "~/data";
+import type { GameVersion, Curseforge, ModLoader } from "~/data";
 
 //================================================
-
-export enum CurseforgeModStatus {
-  Processing = 1,
-  ChangesRequired,
-  UnderReview,
-  Approved,
-  Rejected,
-  MalwareDetected,
-  Deleted,
-  Archived,
-  Testing,
-  Released,
-  ReadyForReview,
-  Deprecated,
-  Baking,
-  AwaitingPublishing,
-  FailedPublishing,
-  Cooking,
-  Cooked,
-  UnderManualReview,
-  ScanningForMalware,
-  ProcessingFile,
-  PendingRelease,
-  ReadyForCooking,
-  PostProcessing,
-}
 
 export interface CurseforgeModVersionDataRaw {
   id: number;
   modId: number;
   displayName: string;
-  fileStatus: CurseforgeModStatus;
+  fileStatus: Curseforge.FileStatus;
   isAvailable: boolean;
   gameVersions: GameVersion[];
-  // loaders: ModLoader[];
+  loaders: ModLoader[];
 }
 
 export interface CurseforgeModMetadataRaw {
