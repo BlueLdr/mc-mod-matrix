@@ -27,7 +27,7 @@ import Menu from "@mui/icons-material/Menu";
 const NAV_DRAWER_OPEN_STORAGE_KEY = "nav-drawer-open";
 
 export function NavDrawer() {
-  const params = useParams();
+  const params = useParams<{ name: string }>();
   const { packs } = useContext(DataContext);
   const [open, setOpen] = useStorageState(NAV_DRAWER_OPEN_STORAGE_KEY, true);
   const { setOpen: setCreateModalOpen } = useContext(CreatePackModalContext);
@@ -82,7 +82,7 @@ export function NavDrawer() {
           {packs.map(pack => (
             <ListItem key={pack.name} disablePadding>
               <ListItemButton
-                selected={pack.name === params.name}
+                selected={pack.name === decodeURIComponent(params.name ?? "")}
                 component={Link}
                 href={`/${encodeURIComponent(pack.name)}`}
               >

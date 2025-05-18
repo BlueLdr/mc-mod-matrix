@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useMemo, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { loadStorage, useStorageState } from "~/utils";
@@ -8,6 +8,7 @@ import { loadStorage, useStorageState } from "~/utils";
 import type { WithChildren } from "~/utils";
 import type { GameVersion, Modpack } from "~/data";
 import type { StoredDataState } from "./types";
+import { curseforgeApi, modrinthApi } from "~/api";
 
 //================================================
 
@@ -29,7 +30,7 @@ export const DataContext = createContext<StoredDataState>({
 
 export const DataProvider: React.FC<WithChildren> = ({ children }) => {
   const [packs, setPacks] = useStorageState(STORAGE_KEY, storedList);
-  const { name: currentPackName } = useParams();
+  const { name: currentPackName } = useParams<{ name: string }>();
 
   const addPack = useCallback(
     (newPack: Modpack) => setPacks(prevState => prevState.concat(newPack)),
@@ -45,14 +46,15 @@ export const DataProvider: React.FC<WithChildren> = ({ children }) => {
     [setPacks],
   );
 
-  const [gameVersions] = useState<GameVersion[]>([]);
-  // useEffect(() => {
-  //   modrinthApi.getGameVersions().then(setGameVersions);
-  // }, []);
+  const [gameVersions, setGameVersions] = useState<GameVersion[]>([]);
+  useEffect(() => {
+    modrinthApi.getGameVersions().then(setGameVersions);
+    curseforgeApi.getVersionTypes();
+  }, []);
 
   const value = useMemo<StoredDataState>(
     () => ({
-      currentPack: packs.find(p => p.name === currentPackName),
+      currentPack: packs.find(p => p.name === decodeURIComponent(currentPackName ?? "")),
       packs,
       setPacks,
       addPack,
