@@ -30,13 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={roboto.variable}>
       <body>
-        <AppRouterCacheProvider>
-          <ThemeProvider>
-            {/*  <CreatePackModalProvider>*/}
-            <SiteLayout>{children}</SiteLayout>
-            {/*</CreatePackModalProvider>*/}
-          </ThemeProvider>
-        </AppRouterCacheProvider>
+        <div id="root">
+          <AppRouterCacheProvider>
+            <ThemeProvider>
+              <SiteLayout>{children}</SiteLayout>
+            </ThemeProvider>
+          </AppRouterCacheProvider>
+        </div>
       </body>
     </html>
   );

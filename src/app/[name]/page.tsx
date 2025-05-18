@@ -2,6 +2,6 @@ export type ModpackDetailProps = {
   x: string;
 };
 
-export function ModpackDetail({}: ModpackDetailProps) {
+export default function ModpackDetail({}: ModpackDetailProps) {
   return <div>pack</div>;
 }
