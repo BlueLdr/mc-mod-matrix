@@ -5,17 +5,17 @@
 
 /** */
 export interface Category {
-  id: 0;
-  gameId: 0;
-  name: "string";
-  slug: "string";
-  url: "string";
-  iconUrl: "string";
-  dateModified: "2019-08-24T14:15:22Z";
-  isClass: true | null;
-  classId: 0 | null;
-  parentCategoryId: 0 | null;
-  displayIndex: 0 | null;
+  id: number;
+  gameId: number;
+  name: string;
+  slug: string;
+  url: string;
+  iconUrl: string;
+  dateModified: string; // UTC datetime string
+  isClass: boolean | null;
+  classId: number | null;
+  parentCategoryId: number | null;
+  displayIndex: number | null;
 }
 
 export enum CoreApiStatus {
@@ -38,32 +38,40 @@ export interface FeaturedModsResponse {
   recentlyUpdated: Mod[];
 }
 
+export interface GetModFilesParams {
+  gameVersion?: string;
+  modLoaderType?: ModLoaderType;
+  gameVersionTypeId?: number;
+  index?: number;
+  pageSize?: number;
+}
+
 export interface File {
-  id: 0;
-  gameId: 0;
-  modId: 0;
-  isAvailable: true;
-  displayName: "string";
-  fileName: "string";
+  id: number;
+  gameId: number;
+  modId: number;
+  isAvailable: boolean;
+  displayName: string;
+  fileName: string;
   releaseType: FileReleaseType;
   fileStatus: FileStatus;
   hashes: FileHash[];
-  fileDate: "2019-08-24T14:15:22Z";
-  fileLength: 0;
-  downloadCount: 0;
-  fileSizeOnDisk: 0 | null;
-  downloadUrl: "string";
+  fileDate: string; // UTC datetime string
+  fileLength: number;
+  downloadCount: number;
+  fileSizeOnDisk: number | null;
+  downloadUrl: string;
   gameVersions: string[];
   sortableGameVersions: SortableGameVersion[];
   dependencies: FileDependency[];
-  exposeAsAlternative: true | null;
-  parentProjectFileId: 0 | null;
-  alternateFileId: 0 | null;
-  isServerPack: true | null;
-  serverPackFileId: 0 | null;
-  isEarlyAccessContent: true | null;
-  earlyAccessEndDate: "2019-08-24T14:15:22Z" | null;
-  fileFingerprint: 0;
+  exposeAsAlternative: boolean | null;
+  parentProjectFileId: number | null;
+  alternateFileId: number | null;
+  isServerPack: boolean | null;
+  serverPackFileId: number | null;
+  isEarlyAccessContent: boolean | null;
+  earlyAccessEndDate: string | null; // UTC datetime string
+  fileFingerprint: number;
   modules: FileModule[];
 }
 
@@ -109,11 +117,11 @@ export interface FileHash {
 }
 
 export interface FileIndex {
-  gameVersion: "string";
-  fileId: 0;
-  filename: "string";
+  gameVersion: string;
+  fileId: number;
+  filename: string;
   releaseType: FileReleaseType;
-  gameVersionTypeId: 0 | null;
+  gameVersionTypeId: number | null;
   modLoader: ModLoaderType;
 }
 
@@ -157,19 +165,19 @@ export interface FolderFingerprint {
 }
 
 export interface Game {
-  id: 0;
-  name: "string";
-  slug: "string";
-  dateModified: "2019-08-24T14:15:22Z";
+  id: number;
+  name: string;
+  slug: string;
+  dateModified: string; // UTC datetime string
   assets: GameAssets;
   status: CoreStatus;
   apiStatus: CoreApiStatus;
 }
 
 export interface GameAssets {
-  iconUrl: "string";
-  tileUrl: "string";
-  coverUrl: "string";
+  iconUrl: string;
+  tileUrl: string;
+  coverUrl: string;
 }
 
 export interface GameVersion {
@@ -195,11 +203,11 @@ export enum GameVersionStatus {
 }
 
 export interface GameVersionType {
-  id: 0;
-  gameId: 0;
-  name: "string";
-  slug: "string";
-  isSyncable: true;
+  id: number;
+  gameId: number;
+  name: string;
+  slug: string;
+  isSyncable: boolean;
   status: GameVersionTypeStatus;
 }
 
@@ -231,85 +239,90 @@ export interface MinecraftModLoaderIndex {
 }
 
 export interface MinecraftModLoaderVersion {
-  id: 0;
-  gameVersionId: 0;
-  minecraftGameVersionId: 0;
-  forgeVersion: "string";
-  name: "string";
+  id: number;
+  gameVersionId: number;
+  minecraftGameVersionId: number;
+  forgeVersion: string;
+  name: string;
   type: ModLoaderType;
-  downloadUrl: "string";
-  filename: "string";
+  downloadUrl: string;
+  filename: string;
   installMethod: ModLoaderInstallMethod;
-  latest: true;
-  recommended: true;
-  approved: true;
-  dateModified: "2019-08-24T14:15:22Z";
-  mavenVersionString: "string";
-  versionJson: "string";
-  librariesInstallLocation: "string";
-  minecraftVersion: "string";
-  additionalFilesJson: "string";
-  modLoaderGameVersionId: 0;
-  modLoaderGameVersionTypeId: 0;
+  latest: boolean;
+  recommended: boolean;
+  approved: boolean;
+  dateModified: string; // UTC datetime string
+  mavenVersionString: string;
+  versionJson: string;
+  librariesInstallLocation: string;
+  minecraftVersion: string;
+  additionalFilesJson: string;
+  modLoaderGameVersionId: number;
+  modLoaderGameVersionTypeId: number;
   modLoaderGameVersionStatus: GameVersionStatus;
   modLoaderGameVersionTypeStatus: GameVersionTypeStatus;
-  mcGameVersionId: 0;
-  mcGameVersionTypeId: 0;
+  mcGameVersionId: number;
+  mcGameVersionTypeId: number;
   mcGameVersionStatus: GameVersionStatus;
   mcGameVersionTypeStatus: GameVersionTypeStatus;
-  installProfileJson: "string";
+  installProfileJson: string;
+}
+
+export interface GetModLoadersParams {
+  version?: string;
+  includeAll?: boolean;
 }
 
 export interface Mod {
-  id: 0;
-  gameId: 0;
-  name: "string";
-  slug: "string";
+  id: number;
+  gameId: number;
+  name: string;
+  slug: string;
   links: ModLinks;
-  summary: "string";
+  summary: string;
   status: ModStatus;
-  downloadCount: 0;
-  isFeatured: true;
-  primaryCategoryId: 0;
+  downloadCount: number;
+  isFeatured: boolean;
+  primaryCategoryId: number;
   categories: Category[];
-  classId: 0 | null;
+  classId: number | null;
   authors: ModAuthor[];
   logo: ModAsset;
   screenshots: ModAsset[];
-  mainFileId: 0;
+  mainFileId: number;
   latestFiles: File[];
   latestFileIndexes: FileIndex[];
   latestEarlyAccessFileIndexes: FileIndex[];
-  dateCreated: "2019-08-24T14:15:22Z";
-  dateModified: "2019-08-24T14:15:22Z";
-  dateReleased: "2019-08-24T14:15:22Z";
-  allowModDistribution: true | null;
-  gamePopularityRank: 0;
-  isAvailable: true;
-  thumbsUpCount: 0;
-  rating: 0 | null;
+  dateCreated: string; // UTC datetime string
+  dateModified: string; // UTC datetime string
+  dateReleased: string; // UTC datetime string
+  allowModDistribution: boolean | null;
+  gamePopularityRank: number;
+  isAvailable: boolean;
+  thumbsUpCount: number;
+  rating: number | null;
 }
 
 export interface ModAsset {
-  id: 0;
-  modId: 0;
-  title: "string";
-  description: "string";
-  thumbnailUrl: "string";
-  url: "string";
+  id: number;
+  modId: number;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  url: string;
 }
 
 export interface ModAuthor {
-  id: 0;
-  name: "string";
-  url: "string";
+  id: number;
+  name: string;
+  url: string;
 }
 
 export interface ModLinks {
-  websiteUrl: "string";
-  wikiUrl: "string";
-  issuesUrl: "string";
-  sourceUrl: "string";
+  websiteUrl: string;
+  wikiUrl: string;
+  issuesUrl: string;
+  sourceUrl: string;
 }
 
 export enum ModLoaderInstallMethod {
@@ -331,7 +344,7 @@ export enum ModLoaderType {
   "neoforge",
 }
 
-export enum ModSearchSortField {
+export enum ModsSearchSortField {
   Featured = 1,
   Popularity,
   LastUpdated,
@@ -344,6 +357,10 @@ export enum ModSearchSortField {
   FeaturedReleased,
   ReleasedDate,
   Rating,
+}
+
+export enum ModClass {
+  mod = 6,
 }
 
 export enum ModStatus {
@@ -366,18 +383,40 @@ export interface Pagination {
   totalCount: number;
 }
 
+export interface SearchModsParams {
+  gameId?: number;
+  classId?: number;
+  categoryId?: number;
+  categoryIds?: string[];
+  gameVersion?: string;
+  gameVersions?: string[];
+  searchFilter?: string;
+  sortField?: ModsSearchSortField;
+  sortOrder?: SortOrder;
+  modLoaderType?: ModLoaderType;
+  modLoaderTypes?: string[];
+  gameVersionTypeId?: number;
+  authorId?: number;
+  primaryAuthorId?: number;
+  slug?: string;
+  index?: number;
+  pageSize?: number;
+}
+
 export interface SearchModsResponse {
   data: Mod[];
   pagination: Pagination;
 }
 
 export interface SortableGameVersion {
-  gameVersionName: "string";
-  gameVersionPadded: "string";
-  gameVersion: "string";
-  gameVersionReleaseDate: "2019-08-24T14:15:22Z";
-  gameVersionTypeId: 0 | null;
+  gameVersionName: string;
+  gameVersionPadded: string;
+  gameVersion: string;
+  gameVersionReleaseDate: string; // UTC datetime string
+  gameVersionTypeId: number | null;
 }
+
+export type SortOrder = "asc" | "desc";
 
 export interface VersionsByType {
   type: number;

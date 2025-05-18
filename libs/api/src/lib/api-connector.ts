@@ -26,7 +26,7 @@ export abstract class ApiConnector {
     console.log(`path: `, path);
     const isCustomUrl = path.startsWith("https");
     const url = isCustomUrl ? new URL(path) : new URL(this.joinUrl(this.baseUrl, path));
-    url.search = params?.toString() ?? "";
+    url.search = params?.size ? params.toString() : "";
     return fetch(url, {
       ...request,
       headers: {
