@@ -1,0 +1,74 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "strict": true,
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "incremental": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "src/*"
+      ],
+      "@mcmm/api": [
+        "../../libs/api/src/index.ts"
+      ],
+      "@mcmm/curseforge": [
+        "../../libs/curseforge/src/index.ts"
+      ],
+      "@mcmm/modrinth": [
+        "../../libs/modrinth/src/index.ts"
+      ],
+      "@mcmm/data": [
+        "../../libs/data/src/index.ts"
+      ],
+      "@mcmm/utils": [
+        "../../libs/utils/src/index.ts"
+      ],
+      "@mcmm/types": [
+        "../../libs/types/src/index.ts"
+      ]
+    }
+  },
+  "files": [
+    "./src/augmentations.d.ts",
+    "./src/styled.d.ts"
+  ],
+  "include": [
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../apps/temp/.next/types/**/*.ts",
+    "../../dist/apps/temp/.next/types/**/*.ts",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    "../../dist/apps/mc-mod-matrix/.next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "jest.config.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}

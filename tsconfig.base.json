@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "module": "esnext",
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mcmm/api": ["libs/api/src/index.ts"],
+      "@mcmm/curseforge": ["libs/curseforge/src/index.ts"],
+      "@mcmm/data": ["libs/data/src/index.ts"],
+      "@mcmm/modrinth": ["libs/modrinth/src/index.ts"],
+      "@mcmm/types": ["libs/types/src/index.ts"],
+      "@mcmm/utils": ["libs/utils/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules"]
+}

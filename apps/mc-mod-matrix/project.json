@@ -1,0 +1,67 @@
+{
+  "name": "mc-mod-matrix",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/mc-mod-matrix",
+  "projectType": "application",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project mc-mod-matrix --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/mc-mod-matrix",
+        "assets": [
+          {
+            "glob": "ecosystem.config.js",
+            "input": "apps/mc-mod-matrix",
+            "output": "./.."
+          }
+        ],
+        "generatePackageJson": true,
+        "turbo": true
+      },
+      "configurations": {
+        "development": {
+          "outputPath": "apps/mc-mod-matrix"
+        },
+        "production": {}
+      }
+    },
+    "dev": {
+      "executor": "@nx/next:server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "mc-mod-matrix:build",
+        "dev": true,
+        "port": 3000,
+        "turbo": true
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "mc-mod-matrix:build:development",
+          "dev": true
+        },
+        "production": {
+          "buildTarget": "mc-mod-matrix:build:production",
+          "dev": false
+        }
+      }
+    },
+    "export": {
+      "executor": "@nx/next:export",
+      "options": {
+        "buildTarget": "mc-mod-matrix:build:production"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": [
+        "{options.outputFile}"
+      ]
+    }
+  }
+}
