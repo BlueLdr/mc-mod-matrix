@@ -7,6 +7,7 @@ import {
   getCurseforgeModMetadata,
   getCurseforgeModMetadataFromSearch,
   getModrinthModMetadata,
+  mergeSearchResults,
 } from "@mcmm/data";
 import { curseforgeApi, modrinthApi } from "@mcmm/api";
 import { useApiRequest } from "~/utils";
@@ -28,31 +29,9 @@ const searchMods = async (text: string) => {
   const modrinthResults = await modrinthApi.searchMods(text);
   const curseforgeResults = await curseforgeApi.searchMods(text);
 
-  const modrinthMap = new Map(modrinthResults.data?.hits.map(item => [item.slug, item]));
-  const curseforgeMap = new Map(curseforgeResults.data?.data?.map(item => [item.slug, item]));
-
-  const modrinthSlugs = Array.from(modrinthMap.keys());
-  const curseforgeSlugs = Array.from(curseforgeMap.keys());
-  const uniqueSlugs = uniq([...modrinthSlugs, ...curseforgeSlugs]).sort((a, b) => {
-    const aIndex = modrinthMap.has(a) ? modrinthSlugs.indexOf(a) : curseforgeSlugs.indexOf(a);
-    const bIndex = modrinthMap.has(b) ? modrinthSlugs.indexOf(b) : curseforgeSlugs.indexOf(b);
-    return aIndex - bIndex;
-  });
-
-  const unifiedResults: ModMetadata[] = [];
-  for (const slug of uniqueSlugs) {
-    const modrinthItem = modrinthMap.get(slug);
-    const curseforgeItem = curseforgeMap.get(slug);
-    unifiedResults.push({
-      name: modrinthItem?.title ?? curseforgeItem!.name,
-      slug: modrinthItem?.slug ?? curseforgeItem!.slug,
-      image: modrinthItem?.icon_url ?? curseforgeItem!.thumbnailUrl,
-      curseforge: curseforgeItem ? getCurseforgeModMetadataFromSearch(curseforgeItem) : undefined,
-      modrinth: modrinthItem ? getModrinthModMetadata(modrinthItem) : undefined,
-    });
-  }
-
-  return { data: unifiedResults };
+  return {
+    data: mergeSearchResults(modrinthResults.data?.hits ?? [], curseforgeResults.data?.data ?? []),
+  };
 };
 
 const ident = <T = any,>(x: T) => x;
