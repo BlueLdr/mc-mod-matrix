@@ -15,7 +15,7 @@ import type { TypographyVariant } from "@mui/material/styles";
 import type { ListItemProps } from "@mui/material/ListItem";
 import type MenuItem from "@mui/material/MenuItem";
 import type { MenuItemProps } from "@mui/material/MenuItem";
-import type { ModMetadata } from "~/data";
+import type { ModMetadata } from "@mcmm/data";
 
 //================================================
 

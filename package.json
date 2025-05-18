@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "20.19.1"
+    "node": ">=20.19.1"
   },
   "scripts": {
-    "dev": "nx run-many -t dev",
-    "build": "nx run-many -t build",
-    "start": "nx run-many -t start",
-    "lint": "nx run-many -t lint",
+    "dev": "nx dev mc-mod-matrix",
+    "build": "nx build mc-mod-matrix",
+    "start": "nx start mc-mod-matrix",
+    "lint": "nx lint mc-mod-matrix",
     "lint:staged": "nx lint-staged"
   },
   "dependencies": {

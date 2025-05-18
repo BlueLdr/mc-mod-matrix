@@ -2,7 +2,7 @@ import { ModpackDetailPageHeader } from "~/components";
 
 import Container from "@mui/material/Container";
 
-import type { WithChildren } from "~/utils";
+import type { WithChildren } from "@mcmm/types";
 
 //================================================
 
