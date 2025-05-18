@@ -1,3 +1,5 @@
+"use client";
+
 import styled from "@emotion/styled";
 import * as React from "react";
 
@@ -16,11 +18,11 @@ import type { ModalProps } from "./types";
 
 //================================================
 
-const headerStyle: StyleProps = {
+const headerStyle = {
   backgroundColor: theme => theme.palette.grey["800"],
   borderBottom: theme => `1px solid ${theme.palette.grey["600"]}`,
   marginBottom: theme => theme.spacing(4),
-};
+} satisfies StyleProps;
 
 const CloseButton = styled(IconButton)`
   padding: ${({ theme }) => theme.spacing(2)};
@@ -51,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({
         ...cancelButtonProp.props,
         onClick: cancelButtonProp.props?.disabled
           ? undefined
-          : cancelButtonProp.props?.onClick ?? onClose,
+          : (cancelButtonProp.props?.onClick ?? onClose),
       })
     : undefined;
 
@@ -60,19 +62,14 @@ export const Modal: React.FC<ModalProps> = ({
         name: "confirm-button",
         variant: "contained",
         ...confirmButtonProp.props,
-        onClick: confirmButtonProp.props?.disabled
-          ? undefined
-          : confirmButtonProp.props?.onClick,
+        onClick: confirmButtonProp.props?.disabled ? undefined : confirmButtonProp.props?.onClick,
       })
     : undefined;
 
   return (
     <Dialog
       {...props}
-      className={classNames(
-        classNameWithModifiers("modal", { "-open": open }),
-        className
-      )}
+      className={classNames(classNameWithModifiers("modal", { "-open": open }), className)}
       open={open}
       fullWidth={fullWidth}
       maxWidth={maxWidth}
@@ -86,25 +83,12 @@ export const Modal: React.FC<ModalProps> = ({
       aria-describedby={`${id}-description`}
     >
       {(!hideCloseButton || !!titleText) && (
-        <DialogTitle
-          component="div"
-          id={`${id}-title`}
-          sx={!!titleText ? headerStyle : undefined}
-        >
-          <Grid
-            container
-            justifyContent="space-between"
-            alignItems="center"
-            spacing={4}
-          >
-            <Grid item>{titleText}</Grid>
+        <DialogTitle component="div" id={`${id}-title`} sx={!!titleText ? headerStyle : undefined}>
+          <Grid container justifyContent="space-between" alignItems="center" spacing={4}>
+            <Grid>{titleText}</Grid>
             {!hideCloseButton ? (
-              <Grid item sx={{ lineHeight: 0 }}>
-                <CloseButton
-                  className="modal-close"
-                  aria-label="close"
-                  onClick={onClose}
-                >
+              <Grid sx={{ lineHeight: 0 }}>
+                <CloseButton className="modal-close" aria-label="close" onClick={onClose}>
                   <CloseIcon />
                 </CloseButton>
               </Grid>
@@ -117,14 +101,9 @@ export const Modal: React.FC<ModalProps> = ({
 
       {(confirmButton || cancelButton) && (
         <DialogActions>
-          <Grid
-            container
-            alignItems="center"
-            justifyContent="flex-end"
-            spacing={4}
-          >
-            {cancelButton && <Grid item>{cancelButton}</Grid>}
-            {confirmButton && <Grid item>{confirmButton}</Grid>}
+          <Grid container alignItems="center" justifyContent="flex-end" spacing={4}>
+            {cancelButton && <Grid>{cancelButton}</Grid>}
+            {confirmButton && <Grid>{confirmButton}</Grid>}
           </Grid>
         </DialogActions>
       )}

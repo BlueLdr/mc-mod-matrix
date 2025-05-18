@@ -19,7 +19,6 @@ export const MuiTheme = createMuiThemeForEnvironment({
   spacing: 4,
   palette: {
     mode: "dark",
-    // @ts-expect-error: custom colors
     common: {
       ...colors,
     },

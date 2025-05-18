@@ -2,13 +2,7 @@
 
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import {
-  createContext,
-  forwardRef,
-  useContext,
-  useEffect,
-  useRef,
-} from "react";
+import { createContext, forwardRef, useContext, useEffect, useRef } from "react";
 import { VariableSizeList } from "react-window";
 
 import MenuItem from "@mui/material/MenuItem";
@@ -47,6 +41,7 @@ const OuterElementType = forwardRef<HTMLDivElement>((props, ref) => {
   const outerProps = useContext(OuterElementContext);
   return <div ref={ref} {...props} {...outerProps} />;
 });
+OuterElementType.displayName = "OuterElementType";
 
 function useResetCache(data: any) {
   const ref = useRef<VariableSizeList>(null);

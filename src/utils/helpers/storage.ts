@@ -7,6 +7,9 @@ interface LoadStorageFunction {
 }
 
 export const loadStorage: LoadStorageFunction = <T>(key: string, def?: T): T | undefined => {
+  if (!("window" in global)) {
+    return def;
+  }
   const stored = localStorage.getItem(key);
   if (stored) {
     try {
