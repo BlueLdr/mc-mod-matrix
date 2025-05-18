@@ -1,6 +1,10 @@
 export abstract class ApiConnector {
   protected abstract baseUrl: string;
 
+  protected joinUrl(...strings: string[]) {
+    return strings.join("/").replace(/([^:])\/\/+/, "$1/");
+  }
+
   protected getHeaders(): RequestInit["headers"] {
     return {
       "Content-Type": "application/json",
@@ -9,9 +13,9 @@ export abstract class ApiConnector {
   }
 
   public fetch(path: string, params?: URLSearchParams, request?: RequestInit) {
-    const url = new URL(
-      `${this.baseUrl}${path.startsWith("/") || this.baseUrl.endsWith("/") ? "" : "/"}${path}`,
-    );
+    console.log(`path: `, path);
+    const isCustomUrl = path.startsWith("https");
+    const url = isCustomUrl ? new URL(path) : new URL(this.joinUrl(this.baseUrl, path));
     url.search = params?.toString() ?? "";
     return fetch(url, {
       ...request,

@@ -1,13 +1,13 @@
 import { ApiConnector } from "./abstract-api";
 
-import type { CurseforgeModMetadataRaw } from "~/data";
+import type { CurseforgeModMetadataRaw, GameVersion, ModLoader, Curseforge } from "~/data";
 
 //================================================
 
 const CURSEFORGE_BASE_URL =
   "window" in global
-    ? window.location.origin
-    : (process.env.MCMM_CURSEFORGE_API_URL ?? "https://api.curseforge.com");
+    ? `${window.location.origin}/api/curseforge/`
+    : (process.env.MCMM_CURSEFORGE_API_URL ?? "https://api.curseforge.com/");
 const CURSEFORGE_MC_GAME_ID = 432;
 
 export enum CurseforgeModClass {
@@ -20,16 +20,27 @@ export enum CurseforgeSortField {
 }
 
 export class CurseforgeApi extends ApiConnector {
-  protected baseUrl = `${CURSEFORGE_BASE_URL}/api/curseforge/`;
+  protected baseUrl = CURSEFORGE_BASE_URL;
   protected gameId = CURSEFORGE_MC_GAME_ID;
 
   public fetch(path: string, params?: URLSearchParams, request?: RequestInit): Promise<any> {
-    path = path.startsWith("v2/") ? path : `v1/${path}`;
+    path =
+      path.startsWith("https") || path.startsWith("v2/")
+        ? path
+        : `v1${path.startsWith("/") ? "" : "/"}${path}`;
     return super.fetch(path, params, request);
   }
 
-  public getVersionTypes() {
+  public getVersionTypes(): Promise<{ data: Curseforge.VersionsByType[] }> {
     return this.fetch(`v2/games/${this.gameId}/versions`);
+  }
+
+  public getMinecraftGameVersions() {
+    return this.fetch("/minecraft/version");
+  }
+
+  public getMinecraftLoaderVersions() {
+    return this.fetch("/minecraft/modloader");
   }
 
   public searchMods(text: string) {
@@ -41,20 +52,29 @@ export class CurseforgeApi extends ApiConnector {
       pageSize: "30",
       filterText: text,
     });
-    return this.fetch("/mods/search", params).then((data: { data: CurseforgeModMetadataRaw[] }) =>
-      data.data.map(({ id, slug, name, summary, thumbnailUrl, author }) => ({
-        id,
-        slug,
-        name,
-        summary,
-        thumbnailUrl,
-        author,
-      })),
+    return this.fetch("https://www.curseforge.com/api/v1/mods/search", params).then(
+      (data: { data: CurseforgeModMetadataRaw[] }) =>
+        data.data.map(({ id, slug, name, summary, thumbnailUrl, author }) => ({
+          id,
+          slug,
+          name,
+          summary,
+          thumbnailUrl,
+          author,
+        })),
     );
   }
 
-  public getModFiles(modId: number) {
-    return this.fetch(`/mods/${modId}/files`);
+  public getModFiles(modId: number, loaders: ModLoader[] = [], gameVersions: GameVersion[] = []) {
+    return this.fetch(
+      `/mods/${modId}/files`,
+      gameVersions.length || loaders.length
+        ? new URLSearchParams({
+            gameVersion: `[${gameVersions.join(",")}]`,
+            modLoaderType: `[${loaders.join(",")}]`,
+          })
+        : undefined,
+    );
   }
 
   public getModsByIds(modIds: number[]) {
