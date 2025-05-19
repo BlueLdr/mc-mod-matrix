@@ -23,7 +23,9 @@ const filterTop25Percentile = <T extends ModLoader[] | GameVersion[]>(
   data: PackSupportMeta[][],
   cols: T,
 ): [PackSupportMeta[][], T] => {
-  const sorted = flatten(data).sort(comparator("desc", "percentage"));
+  const sorted = flatten(data).sort(
+    comparator("desc", item => Math.max(item.percentage, item.percentageWithAlternatives)),
+  );
   const bestItems = sorted.slice(0, Math.round(sorted.length / 4));
   const bestLoaders = new Set(bestItems.map(item => item.loader));
   const bestVersions = new Set(bestItems.map(item => item.gameVersion));

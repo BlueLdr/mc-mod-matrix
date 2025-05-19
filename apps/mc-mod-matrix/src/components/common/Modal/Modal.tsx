@@ -22,11 +22,12 @@ const headerStyle = {
   backgroundColor: theme => theme.palette.grey["800"],
   borderBottom: theme => `1px solid ${theme.palette.grey["600"]}`,
   marginBottom: theme => theme.spacing(4),
+  alignItems: "center",
 } satisfies StyleProps;
 
 const CloseButton = styled(IconButton)`
   padding: ${({ theme }) => theme.spacing(2)};
-  margin: ${({ theme }) => theme.spacing(-2, -2, 0, 2)};
+  margin: ${({ theme }) => theme.spacing(0, -2, 0, 2)};
 `;
 CloseButton.displayName = "CloseButton";
 

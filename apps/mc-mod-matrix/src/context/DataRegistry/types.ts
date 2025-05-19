@@ -9,5 +9,7 @@ export interface DataRegistryContextState {
 
   storeMod(meta: ModMetadata, minGameVersion: GameVersion): Promise<Mod | null>;
 
+  setModAlternatives(mod: Mod, alternatives: ModMetadata[]): void;
+
   forceRefresh(): void;
 }

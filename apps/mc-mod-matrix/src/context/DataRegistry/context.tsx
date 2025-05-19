@@ -14,6 +14,7 @@ export const DataRegistryContext = createContext<DataRegistryContextState>({
   data: [],
   getMod: () => undefined,
   storeMod: () => Promise.reject(),
+  setModAlternatives: () => undefined,
   forceRefresh: () => undefined,
 });
 
@@ -31,6 +32,7 @@ export function DataRegistryProvider({ children }: WithChildren) {
       data: Array.from(registryMap?.values() ?? []),
       getMod: slugOrId => registryMap.get(slugOrId),
       storeMod: (meta, minGameVersion) => dataRegistry.storeMod(meta, minGameVersion),
+      setModAlternatives: (mod, alternatives) => dataRegistry.setModAlternatives(mod, alternatives),
       forceRefresh: () => dataRegistry.forceRefresh(),
     }),
     [registryMap],

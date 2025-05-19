@@ -2,6 +2,7 @@
 
 import { use } from "react";
 
+import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
@@ -27,10 +28,16 @@ export default function NotFoundPage({ params }: NotFoundPageProps) {
         width="100%"
         height="100vh"
       >
-        <Typography variant="h6">Pack not found</Typography>
-        <Typography variant="body2">
-          Could not find a pack with name &quot;{packName}&quot;
-        </Typography>
+        {!!packName && !("window" in global) ? (
+          <CircularProgress variant="indeterminate" />
+        ) : (
+          <>
+            <Typography variant="h6">Pack not found</Typography>
+            <Typography variant="body2">
+              Could not find a pack with name &quot;{packName}&quot;
+            </Typography>
+          </>
+        )}
       </Grid>
     </Container>
   );

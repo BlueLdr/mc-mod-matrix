@@ -6,7 +6,7 @@ import { Fragment, useContext, useMemo, useState } from "react";
 
 import { getPackSupportForConfig } from "@mcmm/data";
 import { gameVersionComparator } from "@mcmm/utils";
-import { DataContext } from "~/context";
+import { DataContext, DataRegistryContext } from "~/context";
 
 import { ModMatrixItem } from "./ModMatrixItem";
 
@@ -65,6 +65,7 @@ export function ModMatrix({ pack, disablePivot, filterItems, onClickItem }: ModM
     loaders,
   } = pack;
   const { gameVersions } = useContext(DataContext);
+  const { getMod } = useContext(DataRegistryContext);
   const versions = useMemo(
     () =>
       gameVersions.filter(
@@ -89,10 +90,11 @@ export function ModMatrix({ pack, disablePivot, filterItems, onClickItem }: ModM
           getPackSupportForConfig(
             pack,
             ...((pivoted ? [rowKey, colKey] : [colKey, rowKey]) as [string, ModLoader]),
+            getMod,
           ),
         ),
       ),
-    [rows, cols, pack, pivoted],
+    [rows, cols, pack, pivoted, getMod],
   );
 
   const [filteredData, filteredCols] = useMemo(() => {

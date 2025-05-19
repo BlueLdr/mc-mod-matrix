@@ -122,7 +122,10 @@ export function ModPicker(props: ModPickerProps) {
       getOptionLabel={option => option.name}
       renderValue={() => ""}
       getOptionKey={option => option.slug}
-      isOptionEqualToValue={(opt, value) => opt.slug === value.slug}
+      isOptionEqualToValue={(opt, value) =>
+        (!opt.modrinth || opt.modrinth.project_id === value.modrinth?.project_id) &&
+        (!opt.curseforge || opt.curseforge.id === value.curseforge?.id)
+      }
       options={status.success || status.pending ? options : emptyOptions}
       renderOption={renderOption}
       getOptionDisabled={() => status.pending}
