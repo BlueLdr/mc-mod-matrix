@@ -32,3 +32,18 @@ export const awaitTimeout = (delay: number) =>
   new Promise<void>(resolve => {
     setTimeout(() => resolve(), delay);
   });
+
+//================================================
+
+export const pluralize = (word: string, count: number) => {
+  if (count === 1) {
+    return word;
+  }
+  if (word.endsWith("y")) {
+    return word.replace(/y$/, "ies");
+  }
+  if (word.endsWith("s")) {
+    return `${word}es`;
+  }
+  return `${word}s`;
+};

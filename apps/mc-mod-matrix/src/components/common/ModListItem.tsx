@@ -74,7 +74,8 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
       <>
         <ListItemIcon
           sx={{
-            marginRight: theme => theme.spacing(2),
+            minWidth: `${iconSize}px`,
+            marginRight: theme => theme.spacing(4),
             filter: loading ? "grayscale(1)" : undefined,
           }}
         >
