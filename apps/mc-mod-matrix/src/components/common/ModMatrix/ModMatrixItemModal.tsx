@@ -33,6 +33,9 @@ export function ModMatrixItemModal({
         paper: {
           sx: {
             minWidth: "420px",
+            "& .mcmm-SupportIssuesList__allSupported": {
+              height: "12rem",
+            },
           },
         },
       }}

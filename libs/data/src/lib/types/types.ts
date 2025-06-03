@@ -22,6 +22,7 @@ export interface Modpack {
     max: GameVersion;
   };
   loaders: ModLoader[];
+  pinnedVersions?: Pick<ModVersion, "gameVersion" | "loader">[];
 }
 
 export interface Mod {

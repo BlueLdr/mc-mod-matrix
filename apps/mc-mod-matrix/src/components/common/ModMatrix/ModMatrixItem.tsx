@@ -11,7 +11,7 @@ import type { PackSupportMeta } from "@mcmm/data";
 const Component = styled(Box, {
   shouldForwardProp: (propName: PropertyKey) => propName !== "interactive",
 })<{ interactive?: boolean }>(({ theme, interactive }) => ({
-  border: `1px solid ${theme.palette.grey.A700}`,
+  border: `1px solid ${theme.palette.divider}`,
   display: "flex",
   justifyContent: "center",
   alignItems: "center",

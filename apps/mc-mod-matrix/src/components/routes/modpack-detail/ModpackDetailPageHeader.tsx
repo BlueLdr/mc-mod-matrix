@@ -1,12 +1,13 @@
 "use client";
 
 import { capitalize } from "lodash";
-import { usePathname, useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useRef } from "react";
 
-import { LoaderIcon } from "~/components";
+import { LoaderIcon, ModpackDetailPageContext, ScrollNavContext } from "~/components";
 import { DataContext } from "~/context";
+import { useStackedStickyElement } from "~/utils";
 
+import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import Tabs from "@mui/material/Tabs";
 import Chip from "@mui/material/Chip";
@@ -18,41 +19,61 @@ import Tab from "@mui/material/Tab";
 
 export function ModpackDetailPageHeader() {
   const { currentPack: pack } = useContext(DataContext);
-  const router = useRouter();
-  const isMatrix = usePathname().match(/^\/?[^/]*\/matrix/i);
+  const { currentAnchor } = useContext(ScrollNavContext);
+  const { isSingleColumn } = useContext(ModpackDetailPageContext);
+
+  const ref = useRef<HTMLDivElement>(null);
+  const rootStyle = useStackedStickyElement(ref.current);
 
   if (!pack) {
     return null;
   }
 
   return (
-    <>
-      <Grid container direction="column" mb={6} spacing={1}>
-        <Grid container alignItems="center" justifyContent="space-between">
+    <Box
+      ref={ref}
+      style={rootStyle}
+      sx={{
+        backgroundColor: theme => theme.palette.background.paper,
+        zIndex: 100,
+        padding: theme => theme.spacing(4),
+        paddingBottom: 0,
+        margin: theme => theme.spacing(-4),
+        marginBottom: 0,
+      }}
+    >
+      <Grid
+        container
+        display="grid"
+        mb={6}
+        spacing={1}
+        gridTemplateColumns="1fr auto"
+        gridTemplateRows="repeat(auto-fill, auto)"
+      >
+        <Grid container alignItems="center" flexWrap="wrap">
           <Grid container alignItems="center" spacing={2}>
             <Typography variant="h4" fontWeight={600} pr={2}>
               {pack.name}
             </Typography>
-            {pack.loaders.map(loader => (
-              <Chip
-                key={loader}
-                icon={<LoaderIcon loader={loader} size={20} />}
-                label={capitalize(loader)}
-              />
-            ))}
+            <Grid container spacing={2}>
+              {pack.loaders.map(loader => (
+                <Chip
+                  key={loader}
+                  icon={<LoaderIcon loader={loader} size={20} />}
+                  label={capitalize(loader)}
+                />
+              ))}
+            </Grid>
           </Grid>
-          {
-            <Tabs
-              value={isMatrix ? "matrix" : "detail"}
-              onChange={(_, value) =>
-                router.push(`/${pack?.name}${value === "matrix" ? "/matrix" : ""}`)
-              }
-            >
-              <Tab value="detail" label="Mods" />
-              <Tab value="matrix" label="Matrix" />
-            </Tabs>
-          }
         </Grid>
+        {isSingleColumn && (
+          <Grid gridRow="span 2">
+            <Tabs value={currentAnchor ?? "list"}>
+              <Tab href="#list" value="list" label="Mods" />
+              <Tab href="#matrix" value="matrix" label="Matrix" />
+            </Tabs>
+          </Grid>
+        )}
         <Typography variant="body1">
           Minecraft{" "}
           <Typography component="span" fontWeight={600}>
@@ -61,6 +82,6 @@ export function ModpackDetailPageHeader() {
         </Typography>
       </Grid>
       <Divider />
-    </>
+    </Box>
   );
 }
