@@ -1,15 +1,19 @@
 "use client";
 
 import * as Immutable from "immutable";
+import { v4 as uuid } from "uuid";
 
 import { gameVersionComparator } from "@mcmm/utils";
 import { curseforgeApi, modrinthApi, promiseAll } from "@mcmm/api";
 import { VersionSet, parseCurseforgeModFileData, parseModrinthModVersionData } from "@mcmm/data";
 
-import { loadDataRegistry, storeDataRegistry } from "./storage";
+import { loadDataRegistry, loadDataRegistryDb, storeDataRegistry } from "./storage";
 
 import type { GameVersion, ModVersionData, Mod, ModMetadata } from "@mcmm/data";
 import type {
+  DataRegistryDb,
+  DataRegistryDbEntry,
+  DataRegistryEntry,
   // CurseforgeVersionTypeRegistry,
   DataRegistryEntryMap,
   DataRegistryEntryRecord,
@@ -35,12 +39,15 @@ export class DataRegistry {
     // this.curseforgeVersionTypeRegistry = curseforgeVersionTypeRegistry;
     // this.initCurseforgeVersionTypeRegistry();
 
+    this.db = loadDataRegistryDb();
+
     // TODO: Perform or schedule cache refresh
   }
 
   private cacheLifespan = 1000 * 60 * 60 * 24; // 1 day
   private lastRefresh = 0;
 
+  private db: DataRegistryDb;
   private _registry: DataRegistryEntryMap = Immutable.Map();
 
   public onRegistryChanged?: React.Dispatch<React.SetStateAction<DataRegistryMap>>;
@@ -75,20 +82,59 @@ export class DataRegistry {
     });
   }
 
+  public static parseDbEntry(dbEntry: DataRegistryDbEntry): DataRegistryEntry {
+    const { minGameVersionFetched, dateModified, ...mod } = dbEntry;
+    return {
+      modId: mod.id ?? uuid(),
+      minGameVersionFetched,
+      dateModified,
+      data: mod,
+    };
+  }
+
+  public static createDbEntry(entry: DataRegistryEntry): DataRegistryDbEntry {
+    const { minGameVersionFetched, dateModified, data } = entry;
+    return {
+      minGameVersionFetched,
+      dateModified,
+      ...data,
+      id: data.id ?? uuid(),
+    };
+  }
+
+  public async getAllMods() {
+    return this.db.registry.toArray();
+  }
+
+  public async getModById(modId: string) {
+    return this.db.registry.where("modId").equals(modId).first();
+  }
+
   //================================================
 
-  public storeMod(meta: ModMetadata, minGameVersion: GameVersion) {
-    const existingEntry = this.registry.get(meta.slug);
+  public async storeMod(meta: ModMetadata, minGameVersion: GameVersion): Promise<Mod | null> {
+    const existingEntry = (
+      await this.db.registry.where("meta.slug").equalsIgnoreCase(meta.slug).toArray()
+    ).find(
+      entry =>
+        (meta.modrinth?.project_id == null ||
+          meta.modrinth?.project_id === entry.meta.modrinth?.project_id) &&
+        (meta.curseforge?.id == null || meta.curseforge?.id === entry.meta.curseforge?.id),
+    );
 
     const existingEntryHasAllData =
       existingEntry &&
-      ((existingEntry.data.meta.modrinth && !meta.curseforge) ||
-        (existingEntry.data.meta.curseforge && !meta.modrinth)) &&
+      ((existingEntry.meta.modrinth && !meta.curseforge) ||
+        (existingEntry.meta.curseforge && !meta.modrinth)) &&
       !!existingEntry.minGameVersionFetched &&
       gameVersionComparator(existingEntry.minGameVersionFetched, minGameVersion) <= 0;
 
-    if (existingEntryHasAllData && Date.now() - existingEntry.dateModified < this.cacheLifespan) {
-      return Promise.resolve(existingEntry.data);
+    if (
+      !!existingEntry &&
+      existingEntryHasAllData &&
+      Date.now() - existingEntry.dateModified < this.cacheLifespan
+    ) {
+      return Promise.resolve(DataRegistry.parseDbEntry(existingEntry).data);
     }
 
     const promises = {
@@ -111,17 +157,26 @@ export class DataRegistry {
       }
 
       const versions = modrinthData.concat(curseforgeData);
+
       const mod: Mod = {
+        id: existingEntry?.id ?? uuid(),
         name: meta.name,
-        meta,
+        meta: {
+          ...meta,
+          curseforge: meta.curseforge ?? existingEntry?.meta?.curseforge,
+          modrinth: meta.modrinth ?? existingEntry?.meta?.modrinth,
+        },
         versions,
       };
 
-      this.registry = this.registry.set(mod.meta.slug, {
-        data: mod,
+      const entry: DataRegistryDbEntry = {
+        ...mod,
         dateModified: Date.now(),
         minGameVersionFetched: minGameVersion,
-      });
+      };
+      this.db.registry.put(entry, entry.id);
+
+      // this.registry = this.registry.set(mod.meta.slug, entry);
       return mod;
     });
   }

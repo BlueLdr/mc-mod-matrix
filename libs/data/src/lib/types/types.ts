@@ -26,6 +26,7 @@ export interface Modpack {
 }
 
 export interface Mod {
+  id: string; // guid
   name: string;
   meta: ModMetadata;
   versions: VersionSet;
