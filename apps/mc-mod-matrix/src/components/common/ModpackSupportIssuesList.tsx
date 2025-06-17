@@ -10,7 +10,7 @@ import Grid from "@mui/material/Grid";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 
-import type { Mod, ModMetadata, PackSupportMeta } from "@mcmm/data";
+import type { Mod, PackSupportMeta } from "@mcmm/data";
 
 //================================================
 
@@ -36,22 +36,22 @@ export function ModpackSupportIssuesList({
       packSupportMeta?.supportedAlternativeMods?.reduce(
         ([altToMain, mainToAlt], item) => {
           const mainMod = packSupportMeta.pack.mods.find(mod =>
-            mod.alternatives?.some(alt => alt.slug === item.slug),
+            mod.alternatives?.some(alt => alt === item.id),
           );
           if (mainMod) {
-            mainToAlt[mainMod.meta.slug] = item;
-            altToMain[item.slug] = mainMod;
+            mainToAlt[mainMod.id] = item;
+            altToMain[item.id] = mainMod;
           }
           return [altToMain, mainToAlt];
         },
-        [{} as Record<string, Mod>, {} as Record<string, ModMetadata>],
+        [{} as Record<string, Mod>, {} as Record<string, Mod>],
       ) ?? [{}, {}]
     );
   }, [packSupportMeta?.pack.mods, packSupportMeta?.supportedAlternativeMods]);
 
   const unsupportedMods = packSupportMeta?.unsupportedMods
     ?.slice()
-    ?.sort(comparator("asc", item => (mainToAltMapping[item.meta.slug] ? 1 : -1)));
+    ?.sort(comparator("asc", item => (mainToAltMapping[item.id] ? 1 : -1)));
 
   return (
     <Grid container direction="column" spacing={4}>
@@ -94,23 +94,23 @@ export function ModpackSupportIssuesList({
           <Card variant="outlined" sx={{ paddingInline: 4 }}>
             <List>
               {unsupportedMods?.map((item, index) => (
-                <Fragment key={item.meta.slug}>
+                <Fragment key={item.id}>
                   {index > 0 && <Divider />}
                   <ModListItem
                     sx={
-                      mainToAltMapping[item.meta.slug]
+                      mainToAltMapping[item.id]
                         ? {
-                            fontStyle: mainToAltMapping[item.meta.slug] ? "italic" : undefined,
+                            fontStyle: mainToAltMapping[item.id] ? "italic" : undefined,
                             color: theme => theme.palette.text.disabled,
                           }
                         : undefined
                     }
-                    key={item.meta.slug}
+                    key={item.id}
                     mod={item.meta}
                     contentRight={
-                      !separateAltModsList && mainToAltMapping[item.meta.slug] ? (
+                      !separateAltModsList && mainToAltMapping[item.id] ? (
                         <Typography fontStyle="normal" variant="caption" color="textPrimary">
-                          {mainToAltMapping[item.meta.slug].name}
+                          {mainToAltMapping[item.id].name}
                         </Typography>
                       ) : undefined
                     }
@@ -132,14 +132,14 @@ export function ModpackSupportIssuesList({
           <Card variant="outlined" sx={{ paddingInline: 4 }}>
             <List>
               {packSupportMeta.supportedAlternativeMods.map((item, index) => (
-                <Fragment key={item.slug}>
+                <Fragment key={item.id}>
                   {index > 0 && <Divider />}
                   <ModListItem
-                    key={item.slug}
-                    mod={item}
+                    key={item.id}
+                    mod={item.meta}
                     contentRight={
                       <Typography variant="caption" color="textDisabled">
-                        {altToMainMapping?.[item.slug]?.name}
+                        {altToMainMapping?.[item.id]?.name}
                       </Typography>
                     }
                     // onRemove={mod => setAlternatives(list => list.filter(m => m.slug !== mod.slug))}

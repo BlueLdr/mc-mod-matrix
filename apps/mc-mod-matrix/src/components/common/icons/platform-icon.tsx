@@ -4,6 +4,7 @@ import { styled } from "@mui/material/styles";
 
 import { SvgIcon } from "./svg-icon";
 
+import type { Platform, PlatformModMetadata } from "@mcmm/data";
 import type { SvgIconProps } from "./svg-icon";
 
 // ================================================================
@@ -16,28 +17,30 @@ const Link = styled("a")`
   }
 `;
 
-export type PlatformIconProps = Omit<SvgIconProps, "src"> & {
-  modSlug?: string;
-};
+export type PlatformIconProps = Omit<SvgIconProps, "src"> &
+  (
+    | {
+        platform: Platform;
+        meta?: never;
+      }
+    | {
+        platform?: never;
+        meta: PlatformModMetadata;
+      }
+  );
 
-export const ModrinthIcon = ({ modSlug, ...props }: PlatformIconProps) => {
-  const icon = <SvgIcon color="common.modrinth" {...props} src="/modrinth.svg" />;
-  if (modSlug) {
+export const PlatformIcon = ({ platform, meta, ...props }: PlatformIconProps) => {
+  const platformName = platform ?? meta?.platform;
+  const icon = (
+    <SvgIcon
+      color={`common.${platformName?.toLowerCase()}`}
+      {...props}
+      src={`/${platformName?.toLowerCase()}.svg`}
+    />
+  );
+  if (meta) {
     return (
-      <Link href={`https://modrinth.com/mod/${modSlug}`} target="_blank">
-        {icon}
-      </Link>
-    );
-  }
-  return icon;
-};
-
-export const CurseforgeIcon = ({ modSlug, ...props }: PlatformIconProps) => {
-  const icon = <SvgIcon color="common.curseforge" {...props} src="/curseforge.svg" />;
-
-  if (modSlug) {
-    return (
-      <Link href={`https://www.curseforge.com/minecraft/mc-mods/${modSlug}`} target="_blank">
+      <Link href={`https://modrinth.com/mod/${meta.slug}`} target="_blank">
         {icon}
       </Link>
     );

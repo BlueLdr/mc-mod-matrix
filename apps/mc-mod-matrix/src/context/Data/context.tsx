@@ -1,16 +1,23 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams } from "next/navigation";
 
-import { modrinthApi } from "@mcmm/api";
+import { modrinthApi } from "@mcmm/modrinth";
 import { gameVersionComparator } from "@mcmm/utils";
-import { DataRegistryContext } from "~/context";
+import { useAllModsMap } from "~/data-utils";
 import { loadStorage, useStorageState } from "~/utils";
 
 import type { WithChildren } from "@mcmm/types";
 import type { GameVersion, Modpack, StoredModpack } from "@mcmm/data";
-import type { UseStorageStateTransformer } from "~/utils";
 import type { StoredDataState } from "./types";
 
 //================================================
@@ -45,27 +52,27 @@ export const useVersionRange = (min: GameVersion, max: GameVersion) => {
 //================================================
 
 export const DataProvider: React.FC<WithChildren> = ({ children }) => {
-  const { getMod } = useContext(DataRegistryContext);
-  const transform = useMemo<UseStorageStateTransformer<StoredModpack[], Modpack[]>>(
-    () => ({
-      to: packs =>
-        packs.map(pack => ({
-          ...pack,
-          mods: pack.mods.map(mod => mod.meta.slug),
-        })),
-      from: packs =>
-        packs.map(pack => ({
-          ...pack,
-          mods: pack.mods.map(slug => getMod(slug)).filter(i => !!i),
-        })),
-    }),
-    [getMod],
-  );
-  const [packs, setPacks] = useStorageState(STORAGE_KEY, storedList, transform);
+  const allMods = useAllModsMap();
+  const [_packs, setPacks, reloadStorage] = useStorageState(STORAGE_KEY, storedList);
   const { name: currentPackName } = useParams<{ name: string }>();
 
+  const prevValue = useRef(allMods);
+  useEffect(() => {
+    if (!prevValue.current && allMods) {
+      reloadStorage();
+    }
+    prevValue.current = allMods;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMods]);
+
   const addPack = useCallback(
-    (newPack: Modpack) => setPacks(prevState => prevState.concat(newPack)),
+    (newPack: Modpack) =>
+      setPacks(prevState =>
+        prevState.concat({
+          ...newPack,
+          mods: newPack.mods.map(mod => mod.id),
+        }),
+      ),
     [setPacks],
   );
   const removePack = useCallback(
@@ -74,7 +81,16 @@ export const DataProvider: React.FC<WithChildren> = ({ children }) => {
   );
   const updatePack = useCallback(
     (newPack: Modpack) =>
-      setPacks(prevState => prevState.map(pack => (pack.name === newPack.name ? newPack : pack))),
+      setPacks(prevState =>
+        prevState.map(pack =>
+          pack.name === newPack.name
+            ? {
+                ...newPack,
+                mods: newPack.mods.map(mod => mod.id),
+              }
+            : pack,
+        ),
+      ),
     [setPacks],
   );
 
@@ -92,18 +108,33 @@ export const DataProvider: React.FC<WithChildren> = ({ children }) => {
     // curseforgeApi.getVersionTypes();
   }, []);
 
-  const value = useMemo<StoredDataState>(
-    () => ({
-      currentPack: packs.find(p => p.name === decodeURIComponent(currentPackName ?? "")),
+  const packs = useMemo(
+    () =>
+      _packs.map<Modpack>(pack => ({
+        ...pack,
+        mods: allMods ? pack.mods.map(id => allMods.get(id)).filter(m => !!m) : [],
+      })),
+    [_packs, allMods],
+  );
+
+  const _currentPack = packs.find(p => p.name === decodeURIComponent(currentPackName ?? ""));
+  const currentPackEquality = JSON.stringify(_currentPack);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const currentPack = useMemo(() => _currentPack, [currentPackEquality]);
+
+  const value = useMemo<StoredDataState>(() => {
+    return {
+      currentPack,
       packs,
       setPacks,
       addPack,
       removePack,
       updatePack,
       gameVersions,
-    }),
-    [packs, setPacks, addPack, removePack, updatePack, gameVersions, currentPackName],
-  );
+    };
+  }, [currentPack, packs, setPacks, addPack, removePack, updatePack, gameVersions]);
 
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  return (
+    <DataContext.Provider value={value}>{!allMods ? "Loading..." : children}</DataContext.Provider>
+  );
 };

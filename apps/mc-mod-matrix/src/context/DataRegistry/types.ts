@@ -1,15 +1,14 @@
 import type { GameVersion, Mod, ModMetadata } from "@mcmm/data";
+import type { DataRegistry } from "~/data";
 
 //================================================
 
 export interface DataRegistryContextState {
-  data: Mod[];
-
-  getMod(slugOrId: string | number): Mod | undefined;
+  dataRegistry: DataRegistry;
 
   storeMod(meta: ModMetadata, minGameVersion: GameVersion): Promise<Mod | null>;
 
-  setModAlternatives(mod: Mod, alternatives: ModMetadata[]): void;
+  setModAlternatives(mod: Mod, alternatives: string[]): void;
 
   forceRefresh(): void;
 }

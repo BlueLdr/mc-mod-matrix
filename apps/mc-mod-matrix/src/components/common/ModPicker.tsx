@@ -1,11 +1,11 @@
 "use client";
 
 import { debounce } from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { mergeSearchResults } from "@mcmm/data";
-import { curseforgeApi, modrinthApi } from "@mcmm/api";
-import { isSameMod } from "~/data";
+import { getUniqueIdForModMetadata } from "@mcmm/data";
+import { DataRegistryContext } from "~/context";
+import { isSameMod, platformManager } from "~/data";
 import { useApiRequest } from "~/utils";
 
 import { ModListItem } from "./ModListItem";
@@ -21,19 +21,6 @@ import type { AutocompleteProps, AutocompleteRenderOptionState } from "@mui/mate
 import type { DistributiveOmit } from "@mcmm/types";
 
 // ================================================================
-
-const searchMods = async (text: string) => {
-  const modrinthResults = await modrinthApi.searchMods(text);
-  const curseforgeResults = await curseforgeApi.searchMods(text);
-
-  return {
-    data: await mergeSearchResults(
-      modrinthResults.data?.hits ?? [],
-      curseforgeResults.data?.data ?? [],
-      isSameMod,
-    ),
-  };
-};
 
 const ident = <T = any,>(x: T) => x;
 
@@ -57,7 +44,7 @@ const renderVisualOption = (props: ListChildComponentProps<Parameters<typeof ren
       showPlatforms
       component={MenuItem}
       {...rowProps}
-      key={metadata.slug}
+      key={getUniqueIdForModMetadata(metadata)}
       selected={state.selected}
       style={inlineStyle}
     />
@@ -92,6 +79,18 @@ export function ModPicker(props: ModPickerProps) {
 
   const [inputValue, setInputValue] = useState("");
   const [searchString, setSearchString] = useState("");
+  const { dataRegistry } = useContext(DataRegistryContext);
+  const searchMods = useCallback(
+    async (text: string) => {
+      const result = await platformManager.searchMods(
+        text,
+        isSameMod,
+        async meta => (await dataRegistry.getModByPlatformMeta(meta))?.data,
+      );
+      return result;
+    },
+    [dataRegistry],
+  );
 
   const [fetchOptions, options = emptyOptions, status, reset] = useApiRequest(searchMods, true);
 
@@ -121,10 +120,9 @@ export function ModPicker(props: ModPickerProps) {
       filterOptions={ident}
       getOptionLabel={option => option.name}
       renderValue={() => ""}
-      getOptionKey={option => option.slug}
+      getOptionKey={option => getUniqueIdForModMetadata(option)}
       isOptionEqualToValue={(opt, value) =>
-        (!opt.modrinth || opt.modrinth.project_id === value.modrinth?.project_id) &&
-        (!opt.curseforge || opt.curseforge.id === value.curseforge?.id)
+        opt.platforms.every(meta => meta.id === value.platforms.get(meta.platform)?.id)
       }
       options={status.success || status.pending ? options : emptyOptions}
       renderOption={renderOption}

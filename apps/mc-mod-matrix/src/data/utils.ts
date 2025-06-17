@@ -3,8 +3,10 @@
 import { escapeRegExp } from "lodash";
 import resemble from "resemblejs";
 
-import type { Curseforge } from "@mcmm/curseforge";
-import type { Modrinth } from "@mcmm/modrinth";
+import { comparator } from "@mcmm/utils";
+import { Platform } from "@mcmm/data";
+
+import type { PlatformModMetadata } from "@mcmm/data";
 
 //================================================
 
@@ -73,20 +75,16 @@ const areModMetaValuesEqual = (m: string, c: string) =>
   new RegExp(`.*?${escapeRegExp(m)}.*?`, "i").test(c) ||
   new RegExp(`.*?${escapeRegExp(c)}.*?`, "i").test(m);
 
-export const isSameMod = async (
-  modrinth: Modrinth.SearchResult,
-  curseforge: Curseforge.SearchResult,
-) => {
+export const isSameMod = async (modA: PlatformModMetadata, modB: PlatformModMetadata) => {
+  const [a, b] = [modA, modB].sort((_a, _b) =>
+    _a.platform === Platform.Modrinth ? -1 : comparator("asc", "id")(_a, _b),
+  );
   return (
-    (areModMetaValuesEqual(modrinth.slug, curseforge.slug) ||
-      areModMetaValuesEqual(modrinth.title, curseforge.name)) &&
-    (areModMetaValuesEqual(modrinth.author, curseforge.author.name) ||
-      areModMetaValuesEqual(modrinth.author, curseforge.author.username) ||
-      (!!modrinth.icon_url &&
-        !!(await areThumbnailsSameClientSide(
-          modrinth.icon_url,
-          curseforge.thumbnails?.thumbnailUrl64 ?? curseforge.thumbnailUrl,
-        ).catch(err => {
+    (areModMetaValuesEqual(a.slug, b.slug) || areModMetaValuesEqual(a.modName, b.modName)) &&
+    (areModMetaValuesEqual(a.authorName, b.authorName) ||
+      areModMetaValuesEqual(`${a.authorId}`, `${b.authorId}`) ||
+      (!!a.thumbnailUrl &&
+        !!(await areThumbnailsSameClientSide(a.thumbnailUrl, b.thumbnailUrl).catch(err => {
           console.error(err);
           return false;
         }))))

@@ -15,17 +15,13 @@ export const storeDataRegistry = (state: DataRegistryStorageState) =>
 export const loadDataRegistry = () =>
   loadStorage<DataRegistryStorageState>(DATA_REGISTRY_STORAGE_KEY, {
     lastRefresh: 0,
-    registry: {},
-    /*curseforgeVersionTypeRegistry: {
-      raw: [],
-    },*/
   });
 
 export const loadDataRegistryDb = () => {
   const dataRegistryDb = new Dexie("DataRegistry") as DataRegistryDb;
 
   dataRegistryDb.version(1).stores({
-    registry: "&id, dateModified, minGameVersionFetched, meta.slug",
+    registry: "&id, dateModified, minGameVersionFetched",
   });
   dataRegistryDb.open().catch(e => console.error(e));
 
