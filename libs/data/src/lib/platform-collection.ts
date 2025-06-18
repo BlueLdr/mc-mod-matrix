@@ -20,6 +20,14 @@ export class PlatformModMetadataCollection extends Array<PlatformModMetadata> {
     }
   }
 
+  remove(platform: PlatformModMetadata["platform"]) {
+    const index = this.findIndex(item => item.platform == platform);
+    if (index >= 0) {
+      return this.splice(index, 1);
+    }
+    return;
+  }
+
   override push(...items: PlatformModMetadata[]) {
     items = items.filter(item => !this.has(item.platform));
     return super.push(...items);

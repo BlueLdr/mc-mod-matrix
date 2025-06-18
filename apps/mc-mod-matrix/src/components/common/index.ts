@@ -2,7 +2,7 @@ export * from "./icons";
 
 export * from "./Anchor";
 export * from "./Modal";
-export * from "./ModAlternativeModal";
+export * from "./ModDetailModal";
 export * from "./ModListItem";
 export * from "./ModMatrix";
 export * from "./ModPicker";

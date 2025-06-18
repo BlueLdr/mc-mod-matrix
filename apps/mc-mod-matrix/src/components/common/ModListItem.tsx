@@ -1,5 +1,6 @@
 "use client";
 
+import { mergeDeep } from "immutable";
 import { values } from "lodash";
 import { forwardRef } from "react";
 
@@ -73,69 +74,90 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
     const uniqueId = getUniqueIdForModMetadata(mod);
     const iconSize = ICON_SIZE_MAP[size];
     const platformIconSize = (iconSize >= 32 ? 0.5 : 0.625) * ICON_SIZE_MAP[size];
-    const content = (
-      <>
-        <ListItemIcon
-          sx={{
-            minWidth: `${iconSize}px`,
-            marginRight: theme => theme.spacing(4),
-            filter: loading ? "grayscale(1)" : undefined,
-          }}
-        >
-          <Icon size={iconSize} src={mod.image || undefined} />
-        </ListItemIcon>
-        <ListItemText
-          slotProps={{
-            primary: {
-              component: "div",
-              variant: TEXT_SIZE_MAP[size],
-            },
-          }}
-        >
-          <Grid
-            container
-            spacing={4}
-            justifyContent="space-between"
-            alignItems="center"
-            marginRight={4}
-            flexWrap="nowrap"
-          >
-            <Grid container spacing={2} alignItems="center">
-              <Grid whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden" flex="1 1 auto">
-                {mod.name}
-              </Grid>
-              {contentLeft}
-              {loading ? <CircularProgress variant="indeterminate" size={24} /> : null}
-            </Grid>
-            {(contentRight || showPlatforms) && (
-              <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
-                {contentRight}
-                {showPlatforms && (
-                  <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
-                    {values(Platform).map(platform => {
-                      const meta = mod.platforms.get(platform);
 
-                      return (
-                        <PlatformIcon
-                          key={platform}
-                          {...(showPlatforms === "link" && meta ? { meta } : { platform })}
-                          disabled={!meta}
-                          size={platformIconSize}
-                        />
-                      );
-                    })}
-                  </Grid>
-                )}
-              </Grid>
-            )}
+    const sx: ModListItemProps["sx"] = theme =>
+      mergeDeep(
+        props.onClick
+          ? {
+              cursor: "pointer",
+              "&:not(:hover) .mcmm-ModListItem__alternatives--empty": {
+                display: "none",
+              },
+              "&:hover": {
+                backgroundColor: theme.palette.action.hover,
+              },
+              "&:active": {
+                backgroundColor: theme.palette.grey[900],
+              },
+            }
+          : {},
+        typeof props.sx === "function" ? (props.sx(theme) ?? {}) : (props.sx ?? {}),
+      );
+
+    const content = [
+      <ListItemIcon
+        key="icon"
+        sx={{
+          minWidth: `${iconSize}px`,
+          marginRight: theme => theme.spacing(4),
+          filter: loading ? "grayscale(1)" : undefined,
+        }}
+      >
+        <Icon size={iconSize} src={mod.image || undefined} />
+      </ListItemIcon>,
+      <ListItemText
+        key="text"
+        slotProps={{
+          primary: {
+            component: "div",
+            variant: TEXT_SIZE_MAP[size],
+          },
+        }}
+      >
+        <Grid
+          container
+          spacing={4}
+          justifyContent="space-between"
+          alignItems="center"
+          marginRight={4}
+          flexWrap="nowrap"
+        >
+          <Grid container spacing={2} alignItems="center">
+            <Grid whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden" flex="1 1 auto">
+              {mod.name}
+            </Grid>
+            {contentLeft}
+            {loading ? <CircularProgress variant="indeterminate" size={24} /> : null}
           </Grid>
-        </ListItemText>
-      </>
-    );
+          {(contentRight || showPlatforms) && (
+            <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
+              {contentRight}
+              {showPlatforms && (
+                <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
+                  {values(Platform).map(platform => {
+                    const meta = mod.platforms.get(platform);
+
+                    return (
+                      <PlatformIcon
+                        key={platform}
+                        {...(showPlatforms === "link" && meta ? { meta } : { platform })}
+                        disabled={!meta}
+                        size={platformIconSize}
+                        onClick={showPlatforms === "link" ? e => e.stopPropagation() : undefined}
+                      />
+                    );
+                  })}
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </Grid>
+      </ListItemText>,
+    ];
 
     if (Component) {
       return (
-        <Component ref={ref} id={uniqueId} value={uniqueId} {...props}>
+        <Component ref={ref} id={uniqueId} value={uniqueId} {...props} sx={sx}>
           {content}
         </Component>
       );
@@ -146,12 +168,18 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
         ref={ref}
         secondaryAction={
           onRemove ? (
-            <IconButton onClick={() => onRemove(mod)}>
+            <IconButton
+              onClick={e => {
+                e.stopPropagation();
+                onRemove(mod);
+              }}
+            >
               <Close />
             </IconButton>
           ) : undefined
         }
         {...props}
+        sx={sx}
       >
         {content}
       </ListItem>

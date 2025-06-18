@@ -3,8 +3,8 @@
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
 
 import { classNameWithModifiers } from "@mcmm/utils";
-import { ModAlternativeModal, ModListItem, ModPicker } from "~/components";
-import { DataContext, DataRegistryContext } from "~/context";
+import { ModListItem, ModPicker } from "~/components";
+import { DataContext, DataRegistryContext, ModDetailModalContext } from "~/context";
 
 import Divider from "@mui/material/Divider";
 import Card from "@mui/material/Card";
@@ -17,7 +17,7 @@ import Link from "@mui/material/Link";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 
-import type { Mod, ModMetadata, Modpack } from "@mcmm/data";
+import type { ModMetadata, Modpack } from "@mcmm/data";
 
 //================================================
 
@@ -26,9 +26,9 @@ export type ModpackDetailModListProps = {
 };
 
 export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
+  const { setModDetailTarget } = useContext(ModDetailModalContext);
   const { updatePack } = useContext(DataContext);
-  const { storeMod, setModAlternatives } = useContext(DataRegistryContext);
-  const [alternativesTarget, setAlternativesTarget] = useState<Mod>();
+  const { storeMod } = useContext(DataRegistryContext);
 
   const [editMode, setEditMode] = useState(false);
   const [modList, setModList] = useState(() => pack.mods);
@@ -103,11 +103,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
                 key={item.id}
                 mod={item.meta}
                 showPlatforms="link"
-                sx={{
-                  "&:not(:hover) .mcmm-ModListItem__alternatives--empty": {
-                    display: "none",
-                  },
-                }}
+                onClick={() => setModDetailTarget(item.id)}
                 onRemove={
                   editMode
                     ? () => setModList(list => list.filter(m => m.id !== item.id))
@@ -123,23 +119,18 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
                         true,
                       )}
                     >
-                      <Link
-                        typography="body2"
-                        component="button"
-                        onClick={() => setAlternativesTarget(item)}
-                      >
-                        {!item.alternatives?.length ? (
-                          "+ Add alternatives"
-                        ) : (
-                          <Chip
-                            clickable
-                            variant="outlined"
-                            size="small"
-                            color="info"
-                            label={`${item.alternatives.length} Alternatives`}
-                          />
-                        )}
-                      </Link>
+                      {!item.alternatives?.length ? (
+                        <Link typography="body2" component="button">
+                          + Add alternatives
+                        </Link>
+                      ) : (
+                        <Chip
+                          variant="outlined"
+                          size="small"
+                          color="info"
+                          label={`${item.alternatives.length} Alternatives`}
+                        />
+                      )}
                     </Grid>
                   )
                 }
@@ -154,14 +145,6 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
           )}
         </List>
       </Card>
-      <ModAlternativeModal
-        mod={alternativesTarget}
-        closeModal={() => setAlternativesTarget(undefined)}
-        onSave={(mod, alts) => {
-          setModAlternatives(mod, alts);
-        }}
-        minVersion={pack.versions.min}
-      />
     </Box>
   );
 }

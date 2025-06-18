@@ -10,7 +10,7 @@ import {
   ModpackDetailPageContext,
   ModpackSupportIssuesList,
 } from "~/components";
-import { DataContext } from "~/context";
+import { DataContext, ModDetailModalContext } from "~/context";
 import { usePackSupportMetaList } from "~/data-utils";
 import { useMounted, useResizeObserver } from "~/utils";
 
@@ -44,6 +44,7 @@ export type ModpackMatrixContentProps = { pack: Modpack };
 
 export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
   const { updatePack } = useContext(DataContext);
+  const { setModDetailTarget } = useContext(ModDetailModalContext);
   const { setIsSingleColumn, isSingleColumn } = useContext(ModpackDetailPageContext);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -132,7 +133,10 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
             <Card key={`${item.loader}${item.gameVersion}`}>
               <CardHeader title={`${capitalize(item.loader)} ${item.gameVersion}`} />
               <CardContent>
-                <ModpackSupportIssuesList packSupportMeta={item} />
+                <ModpackSupportIssuesList
+                  packSupportMeta={item}
+                  onClickItem={mod => setModDetailTarget(mod.id)}
+                />
               </CardContent>
             </Card>
           ))}
