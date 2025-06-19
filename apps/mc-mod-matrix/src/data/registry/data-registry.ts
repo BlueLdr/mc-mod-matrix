@@ -1,24 +1,13 @@
 "use client";
 
-import { v4 as uuid } from "uuid";
-
-import {
-  getUniqueIdForModMetadata,
-  getUniqueIdForPlatformModMeta,
-  PlatformModMetadataCollection,
-} from "@mcmm/data";
 import { gameVersionComparator } from "@mcmm/utils";
 import { platformManager } from "~/data";
 
-import { loadDataRegistry, loadDataRegistryDb } from "./storage";
+import { DataRegistryHelper } from "./helper";
+import { loadDataRegistryDb } from "./storage";
 
-import type { PlatformModMetadata, GameVersion, Mod, ModMetadata, Platform } from "@mcmm/data";
-import type {
-  DataRegistryDb,
-  DataRegistryDbEntry,
-  DataRegistryEntry,
-  DataRegistryMap,
-} from "./types";
+import type { GameVersion, Mod, ModMetadata, Platform } from "@mcmm/data";
+import type { DataRegistryDb } from "./types";
 
 //================================================
 
@@ -33,102 +22,53 @@ export class DataRegistry {
     if (cacheLifespan) {
       this.cacheLifespan = cacheLifespan;
     }
-    const { lastRefresh } = loadDataRegistry();
-    this.lastRefresh = lastRefresh;
     // this.curseforgeVersionTypeRegistry = curseforgeVersionTypeRegistry;
     // this.initCurseforgeVersionTypeRegistry();
 
-    this._db = loadDataRegistryDb();
+    this.db = loadDataRegistryDb();
+    this.helper = new DataRegistryHelper(this.db);
 
-    // TODO: Perform or schedule cache refresh
+    this.db?.platformMods
+      .orderBy("meta.lastUpdated")
+      .first()
+      .then(record => {
+        if (record) {
+          this.lastRefresh = record?.meta?.lastUpdated ?? 0;
+          // TODO: Perform or schedule cache refresh
+        }
+      });
   }
 
   private cacheLifespan = 1000 * 60 * 60 * 24; // 1 day
   private lastRefresh = 0;
 
-  private _db: DataRegistryDb;
-
-  public onRegistryChanged?: React.Dispatch<React.SetStateAction<DataRegistryMap>>;
-
-  //================================================
-
-  public get db(): DataRegistryDb {
-    return this._db;
-  }
-
-  public static parseDbEntry(dbEntry: DataRegistryDbEntry): DataRegistryEntry {
-    const { minGameVersionFetched, dateModified, ...mod } = dbEntry;
-
-    return {
-      modId: mod.id ?? uuid(),
-      minGameVersionFetched,
-      dateModified,
-      data: {
-        ...mod,
-        meta: {
-          ...mod.meta,
-          platforms: new PlatformModMetadataCollection(...(mod.meta.platforms ?? [])),
-        },
-      },
-    };
-  }
-
-  public static createDbEntry(entry: DataRegistryEntry): DataRegistryDbEntry {
-    const { minGameVersionFetched, dateModified, data } = entry;
-    return {
-      minGameVersionFetched,
-      dateModified,
-      ...data,
-      id: data.id ?? uuid(),
-    };
-  }
-
-  public async getAllMods() {
-    return (await this._db.registry.toArray()).map(DataRegistry.parseDbEntry);
-  }
-
-  public async getModById(modId: string) {
-    const entry = await this._db.registry.get(modId);
-    return entry ? DataRegistry.parseDbEntry(entry) : undefined;
-  }
-
-  public async getModByMeta(meta: ModMetadata) {
-    const mods = await this.getAllMods();
-    return mods.find(
-      mod => getUniqueIdForModMetadata(meta) === getUniqueIdForModMetadata(mod.data.meta),
-    );
-  }
-
-  public async getModByPlatformMeta(meta: PlatformModMetadata) {
-    const mods = await this.getAllMods();
-    return mods.find(mod =>
-      getUniqueIdForModMetadata(mod.data.meta).includes(getUniqueIdForPlatformModMeta(meta)),
-    );
-  }
+  public readonly db: DataRegistryDb;
+  public readonly helper: DataRegistryHelper;
 
   //================================================
 
   public async storeMod(meta: ModMetadata, minGameVersion: GameVersion): Promise<Mod | null> {
-    const existingEntry = (await this.getAllMods()).find(entry =>
-      meta.platforms.some(item =>
-        getUniqueIdForModMetadata(entry.data.meta).includes(getUniqueIdForPlatformModMeta(item)),
-      ),
-    );
+    if (!this.db || !this.helper) {
+      return null;
+    }
+
+    const existingEntry = await this.helper?.getModByMeta(meta);
 
     const existingEntryHasAllData =
       existingEntry &&
-      meta.platforms.every(platformMeta =>
-        existingEntry.data.meta.platforms.has(platformMeta.platform),
-      ) &&
+      meta.platforms.every(platformMeta => existingEntry.platforms.has(platformMeta.platform)) &&
       !!existingEntry.minGameVersionFetched &&
       gameVersionComparator(existingEntry.minGameVersionFetched, minGameVersion) <= 0;
 
+    const lastUpdated = Math.min(
+      ...(existingEntry?.platforms?.map(p => p.lastUpdated ?? 0) ?? [0]),
+    );
     if (
       !!existingEntry &&
       existingEntryHasAllData &&
-      Date.now() - existingEntry.dateModified < this.cacheLifespan
+      Date.now() - lastUpdated < this.cacheLifespan
     ) {
-      return existingEntry.data;
+      return existingEntry;
     }
 
     const { data, error } = await platformManager.getModVersions(meta, minGameVersion);
@@ -140,41 +80,19 @@ export class DataRegistry {
       return null;
     }
 
-    const mod: Mod = {
-      id: existingEntry?.modId ?? uuid(),
-      name: meta.name,
-      meta,
+    const mod = existingEntry ?? {
+      ...meta,
       versions: data,
+      alternatives: [],
     };
+    mod.minGameVersionFetched = minGameVersion;
 
-    const entry: DataRegistryDbEntry = {
+    const result = await this.helper?.writeMod(mod, minGameVersion);
+
+    return {
+      id: result.id,
       ...mod,
-      dateModified: Date.now(),
-      minGameVersionFetched: minGameVersion,
     };
-    this._db.registry.put(entry, entry.id);
-
-    // this.registry = this.registry.set(mod.meta.slug, entry);
-    return mod;
-  }
-
-  public async removePlatformFromMod(id: string, platform: Platform) {
-    const entry = await this.getModById(id);
-    if (!entry) {
-      return;
-    }
-    const newEntry: DataRegistryEntry = {
-      ...entry,
-      data: {
-        ...entry.data,
-        meta: {
-          ...entry.data.meta,
-          platforms: new PlatformModMetadataCollection(...entry.data.meta.platforms),
-        },
-      },
-    };
-    newEntry.data.meta.platforms.remove(platform);
-    await this._db.registry.put(DataRegistry.createDbEntry(newEntry), id);
   }
 
   public async updateModRootMeta(
@@ -182,28 +100,18 @@ export class DataRegistry {
     property: keyof Pick<ModMetadata, "name" | "image">,
     platform: Platform,
   ) {
-    const entry = await this.getModById(id);
+    const entry = await this.helper?.getModById(id);
     if (!entry) {
       return;
     }
-    const targetMeta = entry.data.meta.platforms.get(platform);
+    const targetMeta = entry.platforms.get(platform);
     if (!targetMeta) {
       return;
     }
-    const newEntry: DataRegistryEntry = {
-      ...entry,
-      data: {
-        ...entry.data,
-        meta: {
-          ...entry.data.meta,
-          [property]: targetMeta[property === "image" ? "thumbnailUrl" : "modName"],
-        },
-      },
+    const newEntry = {
+      [property]: targetMeta[property === "image" ? "thumbnailUrl" : "modName"],
     };
-    if (property === "name") {
-      newEntry.data.name = targetMeta.modName;
-    }
-    await this._db.registry.put(DataRegistry.createDbEntry(newEntry), id);
+    await this.helper?.updateModMeta(id, newEntry);
   }
 
   //================================================
@@ -213,24 +121,15 @@ export class DataRegistry {
   //================================================
 
   public async setModAlternatives(mod: Mod, alternatives: string[]) {
-    const entry = await this.getModById(mod.id);
+    const entry = await this.helper?.getModById(mod.id);
     if (
       !entry ||
-      (!alternatives.length && !entry.data.alternatives) ||
-      JSON.stringify(alternatives) === JSON.stringify(entry.data.alternatives)
+      (!alternatives.length && !entry.alternatives.length) ||
+      JSON.stringify(alternatives) === JSON.stringify(entry.alternatives)
     ) {
       return;
     }
-    const newData = { ...entry };
-
-    if (!alternatives.length) {
-      delete newData.data.alternatives;
-    } else {
-      newData.data.alternatives = alternatives;
-    }
-
-    await this.db.registry.put(DataRegistry.createDbEntry(newData), mod.id);
-    return;
+    return await this.helper?.updateModMeta(mod.id, { alternatives });
   }
 
   //#region Curseforge-specific =====================================

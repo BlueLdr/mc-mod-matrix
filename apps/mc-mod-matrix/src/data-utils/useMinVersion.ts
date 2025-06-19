@@ -2,21 +2,21 @@
 
 import { use, useContext } from "react";
 
-import { DataContext } from "~/context";
+import { DataContext, DataRegistryContext } from "~/context";
 
 import type { Mod } from "@mcmm/data";
-import type { DataRegistry } from "~/data";
 
 //================================================
 
-export const useMinVersion = (mod: Mod | undefined, dataRegistry: DataRegistry) => {
+export const useMinVersion = (mod: Mod | undefined) => {
+  const { dataRegistry } = useContext(DataRegistryContext);
   const { currentPack } = useContext(DataContext);
 
   if (currentPack) {
     return currentPack.versions.min;
   }
-  if (mod) {
-    const entry = use(dataRegistry.getModById(mod.id));
+  if (mod && dataRegistry) {
+    const entry = use(dataRegistry?.helper.getModById(mod.id));
     if (entry) {
       return entry.minGameVersionFetched;
     }

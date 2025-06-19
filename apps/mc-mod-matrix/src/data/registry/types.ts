@@ -1,36 +1,34 @@
 import type Dexie from "dexie";
 import type { EntityTable } from "dexie";
-import type * as Immutable from "immutable";
-import type { Mod } from "@mcmm/data";
-import type { Curseforge } from "@mcmm/curseforge";
+import type { Mod, ModVersion, PlatformModMetadata } from "@mcmm/data";
 
 //================================================
 
-export type DataRegistryMap = Immutable.Map<string | number, Mod>;
-export type DataRegistryEntryMap = Immutable.Map<string | number, DataRegistryEntry>;
-
-export interface DataRegistryDbEntryMeta {
-  dateModified: number;
-  minGameVersionFetched: string;
+export interface ModDbEntry extends Omit<Mod, "platforms" | "alternatives" | "versions"> {
+  platforms: string[];
+  alternatives: string[];
 }
 
-export interface DataRegistryDbEntry extends DataRegistryDbEntryMeta, Mod {}
+//================================================
 
-export interface DataRegistryEntry extends DataRegistryDbEntryMeta {
-  modId: Mod["id"];
-  data: Mod;
+export interface PlatformModDbEntry<Id extends string | number = string | number> {
+  meta: PlatformModMetadata<Id>;
+  id: string;
 }
 
-export interface CurseforgeVersionTypeRegistry {
-  raw: Curseforge.VersionsByType[];
+export interface PlatformModVersionDbEntry<Id extends string | number = string | number>
+  extends ModVersion {
+  modId: `${Id}`;
 }
 
-export interface DataRegistryStorageState {
+export interface PlatformManagerDb extends Dexie {
+  platformMods: EntityTable<PlatformModDbEntry, "id">;
+  platformModVersions: EntityTable<PlatformModVersionDbEntry, "modId">;
+}
+
+//================================================
+
+export interface DataRegistryDb extends Dexie, PlatformManagerDb {
   lastRefresh: number;
-  // curseforgeVersionTypeRegistry: CurseforgeVersionTypeRegistry;
-}
-
-export interface DataRegistryDb extends Dexie {
-  lastRefresh: number;
-  registry: EntityTable<DataRegistryDbEntry, "id">;
+  mods: EntityTable<ModDbEntry, "id">;
 }

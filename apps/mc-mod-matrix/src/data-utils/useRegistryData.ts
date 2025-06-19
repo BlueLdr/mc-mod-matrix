@@ -1,3 +1,5 @@
+"use client";
+
 import { useLiveQuery } from "dexie-react-hooks";
 import * as Immutable from "immutable";
 import { useCallback, useContext } from "react";
@@ -25,16 +27,19 @@ export const useRegistryData: UseRegistryData = <T, TDefault>(
 ) => {
   const { dataRegistry } = useContext(DataRegistryContext);
 
-  const doQuery = useCallback(() => query(dataRegistry), [dataRegistry, query]);
+  const doQuery = useCallback(
+    () => (dataRegistry ? query(dataRegistry) : new Promise<T>(() => undefined)),
+    [dataRegistry, query],
+  );
 
-  return useLiveQuery(doQuery, deps ?? [], defaultValue);
+  return useLiveQuery(doQuery, [...(deps ?? []), dataRegistry, query], defaultValue);
 };
 
 //================================================
 
 const getAllMods = async (registry: DataRegistry) => {
-  const allMods = await registry.getAllMods();
-  return Immutable.Map(allMods.map(mod => [mod.modId, mod.data] as const));
+  const allMods = (await registry?.helper.getAllMods()) ?? [];
+  return Immutable.Map(allMods.map(mod => [mod.id, mod] as const));
 };
 
 export const useAllModsMap = () => useRegistryData(getAllMods);

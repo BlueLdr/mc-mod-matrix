@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useContext, useEffect, useMemo, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 
 import { classNameWithModifiers } from "@mcmm/utils";
 import { ModListItem, ModPicker } from "~/components";
@@ -53,8 +53,6 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
 
   const [loadingMod, setLoadingMod] = useState<ModMetadata>();
 
-  const modMetaList = useMemo(() => modList.map(mod => mod.meta), [modList]);
-
   return (
     <Box marginBlock={6}>
       <Grid container mb={4} justifyContent="space-between" alignItems="center">
@@ -80,7 +78,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
       {editMode && (
         <ModPicker
           size="small"
-          value={modMetaList}
+          value={modList}
           onChange={(_, newValue, __, details) => {
             if (details?.option) {
               setLoadingMod(details.option);
@@ -101,7 +99,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
               {index > 0 && <Divider />}
               <ModListItem
                 key={item.id}
-                mod={item.meta}
+                mod={item}
                 showPlatforms="link"
                 onClick={() => setModDetailTarget(item.id)}
                 onRemove={

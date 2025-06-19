@@ -4,7 +4,7 @@ import { Platform, VersionSet } from "@mcmm/data";
 
 import { modrinthApi } from "./lib/api";
 
-import type { ModLoader, ModVersionData, PlatformModMetadata } from "@mcmm/data";
+import type { ModLoader, PlatformModMetadata } from "@mcmm/data";
 import type { ApiResponse } from "@mcmm/api";
 import type { PlatformPlugin } from "@mcmm/platform";
 import type * as Modrinth from "./lib/types";
@@ -21,6 +21,7 @@ export class ModrinthPlatformPlugin
 {
   platformName = Platform.Modrinth;
   modUrlBase = "https://modrinth.com/mod/";
+  idType = "string" as const;
 
   toModMetadata = (
     record: ModrinthPlatformModMetadata,
@@ -61,12 +62,12 @@ export class ModrinthPlatformPlugin
 
   getModVersions(
     meta: PlatformModMetadata<ModrinthPlatformModMetadata["project_id"]>,
-  ): Promise<ApiResponse<VersionSet<ModVersionData>>> {
+  ): Promise<ApiResponse<VersionSet>> {
     return modrinthApi.getModVersions(meta.id).then(({ data, error }) => {
       if (error) {
         return { data: null, error };
       }
-      const versionSet = new VersionSet<ModVersionData>();
+      const versionSet = new VersionSet();
       data.forEach(projectVersion => {
         projectVersion.game_versions.forEach(gameVersion => {
           (projectVersion.loaders as ModLoader[]).forEach(loader => {
@@ -74,9 +75,6 @@ export class ModrinthPlatformPlugin
               gameVersion,
               loader,
               platform: this.platformName,
-              id: meta.id,
-              slug: meta.slug,
-              image: meta.thumbnailUrl,
             });
           });
         });

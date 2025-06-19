@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useMemo } from "react";
+import { createContext, useLayoutEffect, useMemo, useState } from "react";
 
 import { DataRegistry } from "~/data";
 
@@ -9,24 +9,28 @@ import type { DataRegistryContextState } from "./types";
 
 //================================================
 
-const dataRegistry = new DataRegistry();
-
 export const DataRegistryContext = createContext<DataRegistryContextState>({
-  dataRegistry: dataRegistry,
+  dataRegistry: undefined,
   storeMod: () => Promise.reject(),
   setModAlternatives: () => Promise.reject("Uninitialized"),
   forceRefresh: () => undefined,
 });
 
 export function DataRegistryProvider({ children }: WithChildren) {
+  const [dataRegistry, setDataRegistry] = useState<DataRegistry>();
+  useLayoutEffect(() => {
+    setDataRegistry(new DataRegistry());
+  }, []);
   const value = useMemo<DataRegistryContextState>(
     () => ({
       dataRegistry: dataRegistry,
-      storeMod: (meta, minGameVersion) => dataRegistry.storeMod(meta, minGameVersion),
-      setModAlternatives: (mod, alternatives) => dataRegistry.setModAlternatives(mod, alternatives),
-      forceRefresh: () => dataRegistry.forceRefresh(),
+      storeMod: (meta, minGameVersion) =>
+        dataRegistry?.storeMod(meta, minGameVersion) ?? Promise.reject(),
+      setModAlternatives: (mod, alternatives) =>
+        dataRegistry?.setModAlternatives(mod, alternatives) ?? Promise.reject(),
+      forceRefresh: () => dataRegistry?.forceRefresh(),
     }),
-    [],
+    [dataRegistry],
   );
 
   return <DataRegistryContext.Provider value={value}>{children}</DataRegistryContext.Provider>;
