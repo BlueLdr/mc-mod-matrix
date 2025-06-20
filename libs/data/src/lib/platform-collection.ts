@@ -28,6 +28,18 @@ export class PlatformModMetadataCollection extends Array<PlatformModMetadata> {
     return;
   }
 
+  clone() {
+    return new PlatformModMetadataCollection(...this.slice());
+  }
+
+  merge(items: PlatformModMetadata[]) {
+    const newThis = this.clone();
+    items.forEach(item => {
+      newThis.set(item);
+    });
+    return newThis;
+  }
+
   override push(...items: PlatformModMetadata[]) {
     items = items.filter(item => !this.has(item.platform));
     return super.push(...items);

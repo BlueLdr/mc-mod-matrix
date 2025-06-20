@@ -27,20 +27,9 @@ export class DataRegistry {
 
     this.db = loadDataRegistryDb();
     this.helper = new DataRegistryHelper(this.db);
-
-    this.db?.platformMods
-      .orderBy("meta.lastUpdated")
-      .first()
-      .then(record => {
-        if (record) {
-          this.lastRefresh = record?.meta?.lastUpdated ?? 0;
-          // TODO: Perform or schedule cache refresh
-        }
-      });
   }
 
   private cacheLifespan = 1000 * 60 * 60 * 24; // 1 day
-  private lastRefresh = 0;
 
   public readonly db: DataRegistryDb;
   public readonly helper: DataRegistryHelper;
@@ -71,7 +60,10 @@ export class DataRegistry {
       return existingEntry;
     }
 
-    const { data, error } = await platformManager.getModVersions(meta, minGameVersion);
+    if (existingEntry) {
+      meta.platforms = existingEntry.platforms.merge(meta.platforms);
+    }
+    const { data, error } = await platformManager.getModVersions(meta.platforms, minGameVersion);
     if (error) {
       console.error("Failed to fetch version data while storing mod in registry", error);
     }

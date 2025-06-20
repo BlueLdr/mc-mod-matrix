@@ -6,8 +6,8 @@
     "node": ">=20.19.1"
   },
   "scripts": {
-    "dev": "nx dev mc-mod-matrix",
-    "build": "nx build mc-mod-matrix",
+    "dev": "nx run-many -p mc-mod-matrix --targets=dev,worker",
+    "build": "nx build mc-mod-matrix --configuration=production",
     "start": "nx start mc-mod-matrix",
     "lint": "nx lint mc-mod-matrix",
     "lint:staged": "nx lint-staged"

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useLayoutEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { DataRegistry } from "~/data";
 
@@ -11,26 +11,35 @@ import type { DataRegistryContextState } from "./types";
 
 export const DataRegistryContext = createContext<DataRegistryContextState>({
   dataRegistry: undefined,
-  storeMod: () => Promise.reject(),
-  setModAlternatives: () => Promise.reject("Uninitialized"),
-  forceRefresh: () => undefined,
+  isRefreshing: false,
+  worker: { current: null },
 });
 
 export function DataRegistryProvider({ children }: WithChildren) {
+  const workerRef = useRef<Worker>(null);
   const [dataRegistry, setDataRegistry] = useState<DataRegistry>();
-  useLayoutEffect(() => {
-    setDataRegistry(new DataRegistry());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  useEffect(() => {
+    const dataRegistry = new DataRegistry();
+    setDataRegistry(dataRegistry);
+
+    workerRef.current = new window.Worker("/workers/worker.js");
+    workerRef.current.postMessage({ init: true });
+    workerRef.current.addEventListener("message", e => {
+      console.log(`[DataRegistry Worker]`, e.data.message);
+      if ("inProgress" in e.data) {
+        setIsRefreshing(!!e.data.inProgress);
+      }
+    });
+    return () => workerRef.current?.terminate();
   }, []);
   const value = useMemo<DataRegistryContextState>(
     () => ({
-      dataRegistry: dataRegistry,
-      storeMod: (meta, minGameVersion) =>
-        dataRegistry?.storeMod(meta, minGameVersion) ?? Promise.reject(),
-      setModAlternatives: (mod, alternatives) =>
-        dataRegistry?.setModAlternatives(mod, alternatives) ?? Promise.reject(),
-      forceRefresh: () => dataRegistry?.forceRefresh(),
+      dataRegistry,
+      isRefreshing,
+      worker: workerRef,
     }),
-    [dataRegistry],
+    [dataRegistry, isRefreshing],
   );
 
   return <DataRegistryContext.Provider value={value}>{children}</DataRegistryContext.Provider>;

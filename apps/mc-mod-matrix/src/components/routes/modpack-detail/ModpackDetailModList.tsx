@@ -28,7 +28,7 @@ export type ModpackDetailModListProps = {
 export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
   const { setModDetailTarget } = useContext(ModDetailModalContext);
   const { updatePack } = useContext(DataContext);
-  const { storeMod } = useContext(DataRegistryContext);
+  const { dataRegistry } = useContext(DataRegistryContext);
 
   const [editMode, setEditMode] = useState(false);
   const [modList, setModList] = useState(() => pack.mods);
@@ -82,7 +82,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
           onChange={(_, newValue, __, details) => {
             if (details?.option) {
               setLoadingMod(details.option);
-              storeMod(details.option, pack.versions.min).then(mod => {
+              dataRegistry?.storeMod(details.option, pack.versions.min).then(mod => {
                 if (mod) {
                   setModList(prevState => [...prevState, mod]);
                   setLoadingMod(undefined);
