@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMergedRef } from "next/dist/client/use-merged-ref";
+import { useEffect, useMemo, useRef } from "react";
 
 import { Icon } from "~/components";
 import { useModSearch } from "~/data-utils";
@@ -41,34 +42,50 @@ function Picker({
   inputValue: string;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
 }) {
-  const { getInputLabelProps, getInputProps, getListboxProps, getOptionProps, groupedOptions } =
-    useAutocomplete<PlatformModMetadata, false, false, false>({
-      inputValue: inputValue ?? "",
-      onInputChange: (_, newValue) => setInputValue(newValue),
-      filterSelectedOptions: true,
-      filterOptions: ident,
-      getOptionLabel: option => option.modName,
-      getOptionKey: opt => opt.id,
-      isOptionEqualToValue: (opt, value) => opt.id === value.id,
-      options: status.success || status.pending ? options : emptyOptions,
-      getOptionDisabled: () => status.pending,
-      value: value || null,
-      onChange: (_, newMeta) => onChange(platform, newMeta || undefined).then(() => closeEditor()),
-      open: true,
-    });
+  const {
+    getInputLabelProps,
+    getInputProps,
+    getListboxProps,
+    getOptionProps,
+    groupedOptions,
+    getRootProps,
+  } = useAutocomplete<PlatformModMetadata, false, false, false>({
+    inputValue: inputValue ?? "",
+    onInputChange: (_, newValue) => setInputValue(newValue),
+    filterSelectedOptions: true,
+    filterOptions: ident,
+    getOptionLabel: option => option.modName,
+    getOptionKey: opt => opt.id,
+    isOptionEqualToValue: (opt, value) => opt.id === value.id,
+    options: status.success || status.pending ? options : emptyOptions,
+    getOptionDisabled: () => status.pending,
+    value: value || null,
+    onChange: (_, newMeta) => onChange(platform, newMeta || undefined).then(() => closeEditor()),
+    open: true,
+  });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const { ref, size, color, ...inputProps } = getInputProps();
+  const inputRefs = useMergedRef(inputRef, ref);
 
   return (
     <>
       <Grid container wrap="nowrap" gap={2}>
         <TextField
-          inputRef={ref}
+          inputRef={inputRefs}
           {...inputProps}
           label="Search for a mod..."
           value={inputValue}
           size="small"
           slotProps={{
+            root: {
+              onKeyDown: getRootProps().onKeyDown,
+            },
+            input: { autoFocus: true },
             inputLabel: getInputLabelProps(),
           }}
           sx={{
@@ -140,6 +157,7 @@ export function ModDetailPlatformEditor({
   value,
   closeEditor,
   onChange,
+  allowRemove,
 }: ModDetailPlatformEditorProps) {
   const anchorRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +203,7 @@ export function ModDetailPlatformEditor({
             status,
             inputValue,
             setInputValue,
+            allowRemove,
           }}
         />
       </Popover>

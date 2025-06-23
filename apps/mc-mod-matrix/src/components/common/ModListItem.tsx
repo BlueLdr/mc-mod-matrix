@@ -15,6 +15,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 
+import type { GridProps } from "@mui/material/Grid";
 import type { ModMetadata } from "@mcmm/data";
 import type { TypographyVariant } from "@mui/material/styles";
 import type { ListItemProps } from "@mui/material/ListItem";
@@ -45,6 +46,10 @@ export type ModListItemOwnProps = {
   loading?: boolean;
   contentLeft?: React.ReactNode;
   contentRight?: React.ReactNode;
+  slotProps?: {
+    contentLeft?: GridProps;
+    contentRight?: GridProps;
+  };
 };
 
 export type ModListItemProps = ModListItemOwnProps &
@@ -67,32 +72,42 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
       loading,
       contentLeft,
       contentRight,
+      slotProps,
       ...props
-    },
+    }: ModListItemProps,
     ref,
   ) => {
     const uniqueId = getUniqueIdForModMetadata(mod);
     const iconSize = ICON_SIZE_MAP[size];
     const platformIconSize = (iconSize >= 32 ? 0.5 : 0.625) * ICON_SIZE_MAP[size];
+    const {
+      contentLeft: contentLeftSlotProps,
+      contentRight: contentRightSlotProps,
+      ...otherSlotProps
+    } = slotProps ?? {};
 
     const sx: ModListItemProps["sx"] = theme =>
       mergeDeep(
-        props.onClick
-          ? {
-              cursor: "pointer",
-              "&:not(:hover) .mcmm-ModListItem__alternatives--empty": {
-                display: "none",
-              },
-              "&:hover": {
-                backgroundColor: theme.palette.action.hover,
-              },
-              "&:active": {
-                backgroundColor: theme.palette.grey[900],
-              },
-            }
-          : {},
+        {
+          ...(props.onClick
+            ? {
+                cursor: "pointer",
+                "&:not(:hover) .mcmm-ModListItem__alternatives--empty": {
+                  display: "none",
+                },
+                "&:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+                "&:active": {
+                  backgroundColor: theme.palette.grey[900],
+                },
+              }
+            : {}),
+        },
         typeof props.sx === "function" ? (props.sx(theme) ?? {}) : (props.sx ?? {}),
       );
+
+    const description = mod.platforms.find(p => !!p.modDescription)?.modDescription;
 
     const content = [
       <ListItemIcon
@@ -119,10 +134,9 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
           spacing={4}
           justifyContent="space-between"
           alignItems="center"
-          marginRight={4}
           flexWrap="nowrap"
         >
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} alignItems="center" {...contentLeftSlotProps}>
             <Grid whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden" flex="1 1 auto">
               {mod.name}
             </Grid>
@@ -130,7 +144,14 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
             {loading ? <CircularProgress variant="indeterminate" size={24} /> : null}
           </Grid>
           {(contentRight || showPlatforms) && (
-            <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
+            <Grid
+              container
+              spacing={4}
+              alignItems="center"
+              flexWrap="nowrap"
+              flex="0 0 auto"
+              {...contentRightSlotProps}
+            >
               {contentRight}
               {showPlatforms && (
                 <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
@@ -157,7 +178,7 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
 
     if (Component) {
       return (
-        <Component ref={ref} id={uniqueId} value={uniqueId} {...props} sx={sx}>
+        <Component ref={ref} id={uniqueId} value={uniqueId} title={description} {...props} sx={sx}>
           {content}
         </Component>
       );
@@ -178,6 +199,8 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
             </IconButton>
           ) : undefined
         }
+        title={description}
+        slotProps={otherSlotProps}
         {...props}
         sx={sx}
       >

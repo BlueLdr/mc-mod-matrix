@@ -1,18 +1,14 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type,@typescript-eslint/no-empty-interface */
+
 import type { ThemeAdditions } from "~/theme";
-import type { Colors as McmmColors } from "./theme/colors";
+import type { McmmCommonColors, McmmBackgroundColors } from "./theme/colors";
 
 //================================================
 
 declare module "@mui/material/styles" {
-  interface Theme extends ThemeAdditions {
-    palette: Palette;
-  }
+  interface CommonColors extends McmmCommonColors {}
 
-  interface Palette {
-    common: McmmColors;
-  }
+  interface TypeBackground extends McmmBackgroundColors {}
 
-  interface PaletteOptions {
-    common?: McmmColors;
-  }
+  interface Theme extends ThemeAdditions {}
 }

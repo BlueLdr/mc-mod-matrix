@@ -1,29 +1,27 @@
-export const colorsMeta = {
+import type { PaletteOptions } from "@mui/material/styles";
+
+//================================================
+
+export interface McmmCommonColors {
+  modrinth: string;
+  curseforge: string;
+}
+
+export interface McmmBackgroundColors {
+  layer: string;
+}
+
+export const colors = {
   common: {
-    modrinth: {
-      color: "rgb(27, 217, 106)",
-      label: "Modrinth Logo",
-      labelColor: "black",
-    },
-    curseforge: {
-      color: "rgb(241, 100, 54)",
-      label: "Curseforge Logo",
-      labelColor: "white",
-    },
+    modrinth: "rgb(27, 217, 106)",
+    curseforge: "rgb(241, 100, 54)",
   },
-} as const;
-
-// flatten colorsMeta
-type GetColor<T> = {
-  [C in keyof T]: T[C] extends { color: string } ? [C, T[C]["color"]] : GetColor<T[C]>;
-}[keyof T];
-export type Colors = {
-  [K in GetColor<typeof colorsMeta> as K[0]]: K[1];
-};
-
-export const colors = Object.values(colorsMeta).reduce((acc, colorsObject) => {
-  for (const [colorKey, colorObj] of Object.entries(colorsObject)) {
-    acc[colorKey] = colorObj.color;
-  }
-  return acc;
-}, {} as any) as Colors;
+  primary: {
+    main: "#219bfc",
+  },
+  background: {
+    paper: "#202020",
+    default: "#121212",
+    layer: "rgba(255,255,255,0.04)",
+  },
+} as const satisfies PaletteOptions;

@@ -20,10 +20,7 @@ export const MuiTheme = createMuiThemeForEnvironment({
   spacing: 4,
   palette: {
     mode: "dark",
-    // @ts-expect-error: aug isnt working
-    common: {
-      ...colors,
-    },
+    ...colors,
   },
   typography: {
     htmlFontSize: 16,
@@ -33,6 +30,13 @@ export const MuiTheme = createMuiThemeForEnvironment({
     },
   },
   components: {
+    MuiTooltip: {
+      defaultProps: {
+        arrow: true,
+        placement: "top",
+        enterDelay: 500,
+      },
+    },
     MuiButtonBase: {
       defaultProps: {
         disableRipple: true,
@@ -91,9 +95,11 @@ export const MuiTheme = createMuiThemeForEnvironment({
     },
     MuiMenu: {
       defaultProps: {
-        PaperProps: {
-          variant: "elevation",
-          elevation: 8,
+        slotProps: {
+          paper: {
+            variant: "elevation",
+            elevation: 8,
+          },
         },
         keepMounted: true,
       },
@@ -101,6 +107,29 @@ export const MuiTheme = createMuiThemeForEnvironment({
     MuiMenuItem: {
       defaultProps: {
         disableRipple: true,
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          background: theme.palette.background.paper,
+        }),
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.layer,
+        }),
+      },
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "& .MuiPaper-root": {
+            background: theme.palette.background.layer,
+          },
+        }),
       },
     },
   },
