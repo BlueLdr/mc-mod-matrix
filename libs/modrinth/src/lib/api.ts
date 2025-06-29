@@ -1,6 +1,6 @@
-import { ApiConnector } from "./api-connector";
+import { ApiConnector } from "@mcmm/api";
 
-import type { Modrinth } from "@mcmm/modrinth";
+import type * as Modrinth from "./types";
 
 //================================================
 

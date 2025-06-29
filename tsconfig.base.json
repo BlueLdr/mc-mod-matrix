@@ -19,6 +19,7 @@
       "@mcmm/curseforge": ["libs/curseforge/src/index.ts"],
       "@mcmm/data": ["libs/data/src/index.ts"],
       "@mcmm/modrinth": ["libs/modrinth/src/index.ts"],
+      "@mcmm/platform": ["libs/platform/src/index.ts"],
       "@mcmm/types": ["libs/types/src/index.ts"],
       "@mcmm/utils": ["libs/utils/src/index.ts"]
     }

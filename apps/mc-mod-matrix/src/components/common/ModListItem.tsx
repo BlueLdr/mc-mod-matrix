@@ -1,8 +1,10 @@
 "use client";
 
+import { values } from "lodash";
 import { forwardRef } from "react";
 
-import { CurseforgeIcon, Icon, ModrinthIcon } from "~/components";
+import { getUniqueIdForModMetadata, Platform } from "@mcmm/data";
+import { Icon, PlatformIcon } from "~/components";
 
 import CircularProgress from "@mui/material/CircularProgress";
 import Close from "@mui/icons-material/Close";
@@ -12,11 +14,11 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 
+import type { ModMetadata } from "@mcmm/data";
 import type { TypographyVariant } from "@mui/material/styles";
 import type { ListItemProps } from "@mui/material/ListItem";
 import type MenuItem from "@mui/material/MenuItem";
 import type { MenuItemProps } from "@mui/material/MenuItem";
-import type { ModMetadata } from "@mcmm/data";
 
 //================================================
 
@@ -68,6 +70,7 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
     },
     ref,
   ) => {
+    const uniqueId = getUniqueIdForModMetadata(mod);
     const iconSize = ICON_SIZE_MAP[size];
     const platformIconSize = (iconSize >= 32 ? 0.5 : 0.625) * ICON_SIZE_MAP[size];
     const content = (
@@ -95,27 +98,32 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
             justifyContent="space-between"
             alignItems="center"
             marginRight={4}
+            flexWrap="nowrap"
           >
             <Grid container spacing={2} alignItems="center">
-              {mod.name}
+              <Grid whiteSpace="nowrap" textOverflow="ellipsis" overflow="hidden" flex="1 1 auto">
+                {mod.name}
+              </Grid>
               {contentLeft}
               {loading ? <CircularProgress variant="indeterminate" size={24} /> : null}
             </Grid>
             {(contentRight || showPlatforms) && (
-              <Grid container spacing={4} alignItems="center">
+              <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
                 {contentRight}
                 {showPlatforms && (
-                  <Grid container spacing={4} alignItems="center">
-                    <CurseforgeIcon
-                      modSlug={showPlatforms === "link" ? mod.curseforge?.slug : undefined}
-                      disabled={!mod.curseforge}
-                      size={platformIconSize}
-                    />
-                    <ModrinthIcon
-                      modSlug={showPlatforms === "link" ? mod.modrinth?.slug : undefined}
-                      disabled={!mod.modrinth}
-                      size={platformIconSize}
-                    />
+                  <Grid container spacing={4} alignItems="center" flexWrap="nowrap" flex="0 0 auto">
+                    {values(Platform).map(platform => {
+                      const meta = mod.platforms.get(platform);
+
+                      return (
+                        <PlatformIcon
+                          key={platform}
+                          {...(showPlatforms === "link" && meta ? { meta } : { platform })}
+                          disabled={!meta}
+                          size={platformIconSize}
+                        />
+                      );
+                    })}
                   </Grid>
                 )}
               </Grid>
@@ -127,7 +135,7 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
 
     if (Component) {
       return (
-        <Component ref={ref} id={`${mod.slug}`} value={mod.slug} {...props}>
+        <Component ref={ref} id={uniqueId} value={uniqueId} {...props}>
           {content}
         </Component>
       );

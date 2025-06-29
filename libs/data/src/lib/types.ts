@@ -1,6 +1,5 @@
-import type { VersionSet } from "../version-set";
-import type { CurseforgeModMetadataRaw } from "./curseforge";
-import type { ModrinthModMetadataRaw } from "./modrinth";
+import type { PlatformModMetadataCollection } from "./platform-collection";
+import type { VersionSet } from "./version-set";
 
 //================================================
 
@@ -30,7 +29,7 @@ export interface Mod {
   name: string;
   meta: ModMetadata;
   versions: VersionSet;
-  alternatives?: ModMetadata[];
+  alternatives?: Mod["id"][];
 }
 
 export interface ModVersion {
@@ -53,16 +52,26 @@ export enum Platform {
   "Curseforge" = "Curseforge",
 }
 
-export interface ModMetadata {
+export interface PlatformModMetadata<Id extends string | number = string | number> {
+  platform: Platform;
+  id: Id;
   slug: string;
-  name: string;
-  image: string;
-  curseforge?: CurseforgeModMetadataRaw;
-  modrinth?: ModrinthModMetadataRaw;
+  authorName: string;
+  authorId: Id;
+  modName: string;
+  modDescription: string;
+  thumbnailUrl: string;
 }
 
-export interface ModVersionData extends ModVersion {
-  id: string | number;
+export interface ModMetadata {
+  name: string;
+  image: string;
+  platforms: PlatformModMetadataCollection;
+}
+
+export interface ModVersionData<PlatformMetaId extends string | number = string | number>
+  extends ModVersion {
+  id: PlatformMetaId;
   slug: string;
   image?: string;
 }
@@ -75,7 +84,7 @@ export interface PackSupportMeta {
   pack: Modpack;
   supportedMods: Mod[];
   unsupportedMods: Mod[];
-  supportedAlternativeMods: ModMetadata[];
+  supportedAlternativeMods: Mod[];
   percentage: number;
   percentageWithAlternatives: number;
 }

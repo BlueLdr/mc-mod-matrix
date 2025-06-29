@@ -1,16 +1,15 @@
 import { values } from "lodash";
 
-import { Curseforge } from "@mcmm/curseforge";
+import { ApiConnector, promiseAll } from "@mcmm/api";
 import { ModLoader, Platform } from "@mcmm/data";
 import { awaitTimeout, gameVersionComparator } from "@mcmm/utils";
 import { createDisplayableError } from "@mcmm/types";
 
-import { ApiConnector } from "./api-connector";
-import { promiseAll } from "./utils";
+import * as Curseforge from "./types";
 
 import type { Scalar } from "@mcmm/types";
-import type { ApiResponse } from "./types";
 import type { GameVersion, ModVersion } from "@mcmm/data";
+import type { ApiResponse } from "@mcmm/api";
 
 //================================================
 

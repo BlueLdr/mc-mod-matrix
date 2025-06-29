@@ -10,6 +10,11 @@
     },
     "lint:staged": {
       "cache": true
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["default", "^default"]
     }
   },
   "defaultBase": "main",
@@ -27,6 +32,12 @@
         "buildTargetName": "next:build",
         "devTargetName": "next:dev",
         "serveStaticTargetName": "serve-static"
+      }
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
       }
     }
   ],

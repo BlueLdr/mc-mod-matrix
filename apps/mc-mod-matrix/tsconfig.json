@@ -42,6 +42,9 @@
       "@mcmm/data": [
         "../../libs/data/src/index.ts"
       ],
+      "@mcmm/platform": [
+        "../../libs/platform/src/index.ts"
+      ],
       "@mcmm/utils": [
         "../../libs/utils/src/index.ts"
       ],

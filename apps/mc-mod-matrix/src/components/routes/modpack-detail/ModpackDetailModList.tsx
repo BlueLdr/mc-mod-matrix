@@ -27,20 +27,22 @@ export type ModpackDetailModListProps = {
 
 export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
   const { updatePack } = useContext(DataContext);
-  const { storeMod, getMod, setModAlternatives } = useContext(DataRegistryContext);
+  const { storeMod, setModAlternatives } = useContext(DataRegistryContext);
   const [alternativesTarget, setAlternativesTarget] = useState<Mod>();
 
+  const [editMode, setEditMode] = useState(false);
   const [modList, setModList] = useState(() => pack.mods);
   useEffect(() => {
-    setModList(pack.mods);
+    if (!editMode) {
+      setModList(pack.mods);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pack]);
-
-  const [editMode, setEditMode] = useState(false);
 
   const onClickSave = () => {
     updatePack({
       ...pack,
-      mods: modList.map(mod => getMod(mod.meta.slug)).filter(m => !!m),
+      mods: modList,
     });
     setEditMode(false);
   };
@@ -95,10 +97,10 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
       <Card variant="outlined" sx={{ paddingInline: 4, marginBlock: 4 }}>
         <List>
           {modList.map((item, index) => (
-            <Fragment key={item.meta.slug}>
+            <Fragment key={item.id}>
               {index > 0 && <Divider />}
               <ModListItem
-                key={item.meta.slug}
+                key={item.id}
                 mod={item.meta}
                 showPlatforms="link"
                 sx={{
@@ -108,7 +110,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
                 }}
                 onRemove={
                   editMode
-                    ? mod => setModList(list => list.filter(m => m.meta.slug !== mod.slug))
+                    ? () => setModList(list => list.filter(m => m.id !== item.id))
                     : undefined
                 }
                 contentRight={
@@ -157,7 +159,6 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
         closeModal={() => setAlternativesTarget(undefined)}
         onSave={(mod, alts) => {
           setModAlternatives(mod, alts);
-          updatePack({ ...pack });
         }}
         minVersion={pack.versions.min}
       />

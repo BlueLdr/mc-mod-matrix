@@ -41,12 +41,12 @@ interface UseStorageState {
     key: string,
     initialState: T | (() => T),
     transform?: UseStorageStateTransformer<T, S>,
-  ): [S, Dispatch<SetStateAction<S>>];
+  ): [S, Dispatch<SetStateAction<S>>, () => void];
 
   <T = undefined, S = T>(
     key: string,
     transform?: UseStorageStateTransformer<T, S>,
-  ): [S | undefined, Dispatch<SetStateAction<S | undefined>>];
+  ): [S | undefined, Dispatch<SetStateAction<S | undefined>>, () => void];
 }
 
 export const useStorageState: UseStorageState = <T, S = T>(
@@ -63,6 +63,17 @@ export const useStorageState: UseStorageState = <T, S = T>(
       ? transform.from(rawValue)
       : (rawValue as S | undefined);
   });
+
+  const reload = useCallback(() => {
+    const rawValue = loadStorage(
+      key,
+      typeof initialValue === "function" ? (initialValue as () => T)() : initialValue,
+    );
+    _setValue(
+      transform && rawValue !== undefined ? transform.from(rawValue) : (rawValue as S | undefined),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, transform?.from]);
 
   const setValue = useCallback<Dispatch<SetStateAction<S>>>(
     newState => {
@@ -85,5 +96,5 @@ export const useStorageState: UseStorageState = <T, S = T>(
     [key, transform?.to],
   );
 
-  return [value, setValue] as const;
+  return [value, setValue, reload] as const;
 };
