@@ -1,8 +1,10 @@
 "use client";
 
+import Dexie from "dexie";
+
 import { loadStorage, setStorage } from "~/utils";
 
-import type { DataRegistryStorageState } from "./types.ts";
+import type { DataRegistryDb, DataRegistryStorageState } from "./types";
 
 //================================================
 
@@ -18,3 +20,14 @@ export const loadDataRegistry = () =>
       raw: [],
     },*/
   });
+
+export const loadDataRegistryDb = () => {
+  const dataRegistryDb = new Dexie("DataRegistry") as DataRegistryDb;
+
+  dataRegistryDb.version(1).stores({
+    registry: "&id, dateModified, minGameVersionFetched, meta.slug",
+  });
+  dataRegistryDb.open().catch(e => console.error(e));
+
+  return dataRegistryDb;
+};

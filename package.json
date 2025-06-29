@@ -21,6 +21,8 @@
     "@mui/material": "7.1.0",
     "@mui/material-nextjs": "7.1.0",
     "canvas": "3.1.0",
+    "dexie": "4.0.11",
+    "dexie-react-hooks": "1.1.7",
     "immutable": "5.1.2",
     "lodash": "4.17.21",
     "next": "15.3.2",
@@ -28,7 +30,8 @@
     "react-dom": "19.1.0",
     "react-window": "1.8.11",
     "resemblejs": "5.0.0",
-    "swr": "2.3.3"
+    "swr": "2.3.3",
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "@eslint/compat": "1.1.1",
