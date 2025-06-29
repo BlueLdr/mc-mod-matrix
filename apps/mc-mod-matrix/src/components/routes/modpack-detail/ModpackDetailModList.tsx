@@ -157,7 +157,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
         closeModal={() => setAlternativesTarget(undefined)}
         onSave={(mod, alts) => {
           setModAlternatives(mod, alts);
-          updatePack(pack);
+          updatePack({ ...pack });
         }}
         minVersion={pack.versions.min}
       />

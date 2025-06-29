@@ -1,30 +1,32 @@
 "use client";
 
 import { styled } from "@mui/material/styles";
-import { capitalize } from "lodash";
-import { Fragment, useContext, useMemo, useState } from "react";
-
-import { getPackSupportForConfig } from "@mcmm/data";
-import { gameVersionComparator } from "@mcmm/utils";
-import { DataContext, DataRegistryContext } from "~/context";
+import { capitalize, uniq } from "lodash";
+import { Fragment, useMemo, useState } from "react";
 
 import { ModMatrixItem } from "./ModMatrixItem";
 
+import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Box from "@mui/material/Box";
 import PivotTableChart from "@mui/icons-material/PivotTableChart";
 
 import type { TypographyProps } from "@mui/material/Typography";
-import type { GameVersion, PackSupportMeta, Modpack, ModLoader } from "@mcmm/data";
+import type { PackSupportMeta, ModLoader } from "@mcmm/data";
 
 //================================================
 
-const Matrix = styled(Box)`
+const Matrix = styled(Card)`
   width: fit-content;
   display: inline-grid;
   grid-auto-rows: auto;
-  border: 1px solid ${({ theme }) => theme.palette.grey.A700};
+  overflow: visible;
+`;
+
+const Cell = styled(ModMatrixItem)`
+  &:last-child {
+    border-bottom-right-radius: inherit;
+  }
 `;
 
 const Corner = styled("div")`
@@ -45,69 +47,51 @@ const headerProps: TypographyProps = {
 
 //================================================
 
-type FilteredDataAndCols<T extends ModLoader[] | GameVersion[]> = [
-  data: PackSupportMeta[][],
-  cols: T,
-];
-
 export type ModMatrixProps = {
-  pack: Modpack;
+  data: PackSupportMeta[];
   disablePivot?: boolean;
-  filterItems?: <T extends ModLoader[] | GameVersion[]>(
-    ...args: FilteredDataAndCols<T>
-  ) => FilteredDataAndCols<T>;
   onClickItem?: (item: PackSupportMeta, event: React.MouseEvent<HTMLDivElement>) => void;
 };
 
-export function ModMatrix({ pack, disablePivot, filterItems, onClickItem }: ModMatrixProps) {
-  const {
-    versions: { min: minVersion, max: maxVersion },
-    loaders,
-  } = pack;
-  const { gameVersions } = useContext(DataContext);
-  const { getMod } = useContext(DataRegistryContext);
-  const versions = useMemo(
-    () =>
-      gameVersions.filter(
-        ver =>
-          gameVersionComparator(ver, maxVersion) <= 0 &&
-          gameVersionComparator(ver, minVersion) >= 0,
-      ),
-    [gameVersions, minVersion, maxVersion],
-  );
-
+export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
   const [pivoted, setPivoted] = useState(false);
+
+  const [loaders, versions, itemMap] = useMemo(() => {
+    // @ts-expect-error: initially empty
+    const itemMap: Record<ModLoader, Record<string, PackSupportMeta>> = {};
+    return [
+      uniq(data.map(item => item.loader)),
+      uniq(
+        data.map(item => {
+          itemMap[item.loader] = itemMap[item.loader] ?? {};
+          (itemMap[item.loader] as Record<string, PackSupportMeta>)[item.gameVersion] = item;
+          return item.gameVersion;
+        }),
+      ),
+      itemMap,
+    ];
+  }, [data]);
 
   const rows = pivoted ? versions : loaders;
   const cols = pivoted ? loaders : versions;
-
-  const data = useMemo(
+  const items = useMemo(
     () =>
       // rows first
       rows.map(rowKey =>
         // then columns
-        cols.map(colKey =>
-          getPackSupportForConfig(
-            pack,
-            ...((pivoted ? [rowKey, colKey] : [colKey, rowKey]) as [string, ModLoader]),
-            getMod,
-          ),
+        cols.map(
+          colKey => itemMap[(pivoted ? colKey : rowKey) as ModLoader]?.[pivoted ? rowKey : colKey],
         ),
       ),
-    [rows, cols, pack, pivoted, getMod],
+    [cols, itemMap, pivoted, rows],
   );
-
-  const [filteredData, filteredCols] = useMemo(() => {
-    if (!filterItems) {
-      return [data, cols] as const;
-    }
-    return filterItems(data, cols);
-  }, [cols, data, filterItems]);
 
   return (
     <Matrix
-      gridTemplateColumns={`5rem repeat(${filteredCols.length}, ${cols.length > rows.length ? "5rem" : "8rem"})`}
-      gridTemplateRows={`auto repeat(${filteredData.length}, ${rows.length > cols.length ? "3rem" : "5rem"})`}
+      sx={{
+        gridTemplateColumns: `5rem repeat(${cols.length}, ${cols.length > rows.length ? "5rem" : "8rem"})`,
+        gridTemplateRows: `auto repeat(${items.length}, ${rows.length > cols.length ? "3rem" : "5rem"})`,
+      }}
     >
       <Corner>
         {!disablePivot && (
@@ -116,18 +100,18 @@ export function ModMatrix({ pack, disablePivot, filterItems, onClickItem }: ModM
           </IconButton>
         )}
       </Corner>
-      {filteredCols.map(value => (
+      {cols.map(value => (
         <Typography {...headerProps} key={value}>
           {capitalize(value)}
         </Typography>
       ))}
-      {filteredData.map(items => (
-        <Fragment key={items[0]?.[pivoted ? "gameVersion" : "loader"]}>
+      {items.map(rowItems => (
+        <Fragment key={rowItems[0]?.[pivoted ? "gameVersion" : "loader"]}>
           <Typography {...headerProps} justifyContent="flex-end">
-            {pivoted ? items[0]?.gameVersion : capitalize(items[0]?.loader)}
+            {pivoted ? rowItems[0]?.gameVersion : capitalize(rowItems[0]?.loader)}
           </Typography>
-          {items.map(item => (
-            <ModMatrixItem
+          {rowItems.map(item => (
+            <Cell
               key={`${item.loader}${item.gameVersion}`}
               data={item}
               onClick={onClickItem ? e => onClickItem(item, e) : undefined}

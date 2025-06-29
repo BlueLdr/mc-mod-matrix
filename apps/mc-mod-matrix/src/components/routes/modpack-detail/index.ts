@@ -1,3 +1,3 @@
-export * from "./ModpackDetailModList";
+export * from "./context";
+export * from "./ModpackDetailPage";
 export * from "./ModpackDetailPageHeader";
-export * from "./matrix";
