@@ -4,7 +4,7 @@ import { values, flatten } from "lodash";
 import { useState } from "react";
 
 import { comparator } from "@mcmm/utils";
-import { ModMatrix } from "~/components";
+import { ModMatrix, ModMatrixItemModal } from "~/components";
 import { ModLoader } from "@mcmm/data";
 
 import Switch from "@mui/material/Switch";
@@ -56,6 +56,7 @@ export type ModpackMatrixPageContentProps = { pack: Modpack };
 
 export function ModpackMatrixPageContent({ pack }: ModpackMatrixPageContentProps) {
   const [showAll, setShowAll] = useState(false);
+  const [detailTarget, setDetailTarget] = useState<PackSupportMeta>();
   return (
     <Grid container direction="column" spacing={4} mt={6}>
       <Grid container spacing={8} justifyContent="space-between">
@@ -73,7 +74,11 @@ export function ModpackMatrixPageContent({ pack }: ModpackMatrixPageContentProps
       <ModMatrix
         pack={pack}
         filterItems={showAll ? undefined : filterTop25Percentile}
-        onClickItem={() => undefined}
+        onClickItem={item => setDetailTarget(item)}
+      />
+      <ModMatrixItemModal
+        packSupportMeta={detailTarget}
+        closeModal={() => setDetailTarget(undefined)}
       />
     </Grid>
   );

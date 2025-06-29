@@ -112,32 +112,34 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
                     : undefined
                 }
                 contentRight={
-                  <Grid
-                    maxHeight={24}
-                    className={classNameWithModifiers(
-                      "mcmm-ModListItem__alternatives",
-                      { "--empty": !item.alternatives?.length },
-                      true,
-                    )}
-                  >
-                    <Link
-                      typography="body2"
-                      component="button"
-                      onClick={() => setAlternativesTarget(item)}
-                    >
-                      {!item.alternatives?.length ? (
-                        "+ Add alternatives"
-                      ) : (
-                        <Chip
-                          clickable
-                          variant="outlined"
-                          size="small"
-                          color="info"
-                          label={`${item.alternatives.length} Alternatives`}
-                        />
+                  editMode ? undefined : (
+                    <Grid
+                      maxHeight={24}
+                      className={classNameWithModifiers(
+                        "mcmm-ModListItem__alternatives",
+                        { "--empty": !item.alternatives?.length },
+                        true,
                       )}
-                    </Link>
-                  </Grid>
+                    >
+                      <Link
+                        typography="body2"
+                        component="button"
+                        onClick={() => setAlternativesTarget(item)}
+                      >
+                        {!item.alternatives?.length ? (
+                          "+ Add alternatives"
+                        ) : (
+                          <Chip
+                            clickable
+                            variant="outlined"
+                            size="small"
+                            color="info"
+                            label={`${item.alternatives.length} Alternatives`}
+                          />
+                        )}
+                      </Link>
+                    </Grid>
+                  )
                 }
               />
             </Fragment>
