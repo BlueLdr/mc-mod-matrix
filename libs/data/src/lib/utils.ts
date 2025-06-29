@@ -16,6 +16,12 @@ import type {
 } from "./types";
 import type { Curseforge } from "@mcmm/curseforge";
 
+const MAX_SEARCH_RESULT_COUNT = isNaN(
+  Number(process.env["NEXT_PUBLIC_MCMM_MAX_SEARCH_RESULT_COUNT"]),
+)
+  ? 10
+  : Number(process.env["NEXT_PUBLIC_MCMM_MAX_SEARCH_RESULT_COUNT"]);
+
 //================================================
 
 export const getCurseforgeModMetadata = (mod: Curseforge.Mod): CurseforgeModMetadataRaw => ({
@@ -53,19 +59,35 @@ export const getPackSupportForConfig = (
   pack: Modpack,
   gameVersion: GameVersion,
   loader: ModLoader,
+  getMod: (slugOrId: string | number) => Mod | undefined,
 ): PackSupportMeta => {
   const supportedMods: Mod[] = [];
   const unsupportedMods: Mod[] = [];
+  const supportedAlternativeMods: ModMetadata[] = [];
 
   pack.mods.forEach(mod => {
     if (mod.versions.some(ver => ver.gameVersion === gameVersion && ver.loader === loader)) {
       supportedMods.push(mod);
     } else {
       unsupportedMods.push(mod);
+      if (mod.alternatives?.length) {
+        const altMod = mod.alternatives.find(alt =>
+          getMod(alt.slug)?.versions.some(
+            ver => ver.gameVersion === gameVersion && ver.loader === loader,
+          ),
+        );
+        if (altMod) {
+          supportedAlternativeMods.push(altMod);
+        }
+      }
     }
   });
 
   const percentage = supportedMods.length ? supportedMods.length / pack.mods.length : 0;
+  const percentageWithAlternatives =
+    supportedMods.length || supportedAlternativeMods.length
+      ? (supportedMods.length + supportedAlternativeMods.length) / pack.mods.length
+      : 0;
 
   return {
     gameVersion,
@@ -73,7 +95,9 @@ export const getPackSupportForConfig = (
     pack,
     supportedMods,
     unsupportedMods,
+    supportedAlternativeMods,
     percentage,
+    percentageWithAlternatives,
   };
 };
 
@@ -221,7 +245,10 @@ export const mergeSearchResults = async (
     }
   };
 
-  while (modrinthCopy.length > 0 || curseforgeCopy.length > 0) {
+  while (
+    (modrinthCopy.length > 0 || curseforgeCopy.length > 0) &&
+    unifiedResults.length < MAX_SEARCH_RESULT_COUNT
+  ) {
     let currentModrinthMod = modrinthCopy.shift();
     let currentCurseforgeMod = curseforgeCopy.shift();
 

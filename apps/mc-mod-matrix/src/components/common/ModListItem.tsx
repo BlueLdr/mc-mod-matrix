@@ -4,6 +4,7 @@ import { forwardRef } from "react";
 
 import { CurseforgeIcon, Icon, ModrinthIcon } from "~/components";
 
+import CircularProgress from "@mui/material/CircularProgress";
 import Close from "@mui/icons-material/Close";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
@@ -38,6 +39,9 @@ export type ModListItemOwnProps = {
   mod: ModMetadata;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   showPlatforms?: boolean | "link";
+  loading?: boolean;
+  contentLeft?: React.ReactNode;
+  contentRight?: React.ReactNode;
 };
 
 export type ModListItemProps = ModListItemOwnProps &
@@ -50,13 +54,31 @@ export type ModListItemProps = ModListItemOwnProps &
   );
 
 export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
-  ({ mod, size = "md", showPlatforms, component: Component, onRemove, ...props }, ref) => {
+  (
+    {
+      mod,
+      size = "md",
+      showPlatforms,
+      component: Component,
+      onRemove,
+      loading,
+      contentLeft,
+      contentRight,
+      ...props
+    },
+    ref,
+  ) => {
     const iconSize = ICON_SIZE_MAP[size];
     const platformIconSize = (iconSize >= 32 ? 0.5 : 0.625) * ICON_SIZE_MAP[size];
     const content = (
       <>
-        <ListItemIcon sx={{ marginRight: theme => theme.spacing(2) }}>
-          <Icon size={iconSize} src={mod.image} />
+        <ListItemIcon
+          sx={{
+            marginRight: theme => theme.spacing(2),
+            filter: loading ? "grayscale(1)" : undefined,
+          }}
+        >
+          <Icon size={iconSize} src={mod.image || undefined} />
         </ListItemIcon>
         <ListItemText
           slotProps={{
@@ -73,19 +95,28 @@ export const ModListItem = forwardRef<HTMLLIElement, ModListItemProps>(
             alignItems="center"
             marginRight={4}
           >
-            {mod.name}
-            {showPlatforms && (
-              <Grid container spacing={4}>
-                <CurseforgeIcon
-                  modSlug={showPlatforms === "link" ? mod.curseforge?.slug : undefined}
-                  disabled={!mod.curseforge}
-                  size={platformIconSize}
-                />
-                <ModrinthIcon
-                  modSlug={showPlatforms === "link" ? mod.modrinth?.slug : undefined}
-                  disabled={!mod.modrinth}
-                  size={platformIconSize}
-                />
+            <Grid container spacing={2} alignItems="center">
+              {mod.name}
+              {contentLeft}
+              {loading ? <CircularProgress variant="indeterminate" size={24} /> : null}
+            </Grid>
+            {(contentRight || showPlatforms) && (
+              <Grid container spacing={4} alignItems="center">
+                {contentRight}
+                {showPlatforms && (
+                  <Grid container spacing={4} alignItems="center">
+                    <CurseforgeIcon
+                      modSlug={showPlatforms === "link" ? mod.curseforge?.slug : undefined}
+                      disabled={!mod.curseforge}
+                      size={platformIconSize}
+                    />
+                    <ModrinthIcon
+                      modSlug={showPlatforms === "link" ? mod.modrinth?.slug : undefined}
+                      disabled={!mod.modrinth}
+                      size={platformIconSize}
+                    />
+                  </Grid>
+                )}
               </Grid>
             )}
           </Grid>

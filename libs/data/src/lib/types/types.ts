@@ -28,6 +28,7 @@ export interface Mod {
   name: string;
   meta: ModMetadata;
   versions: VersionSet;
+  alternatives?: ModMetadata[];
 }
 
 export interface ModVersion {
@@ -72,5 +73,7 @@ export interface PackSupportMeta {
   pack: Modpack;
   supportedMods: Mod[];
   unsupportedMods: Mod[];
+  supportedAlternativeMods: ModMetadata[];
   percentage: number;
+  percentageWithAlternatives: number;
 }

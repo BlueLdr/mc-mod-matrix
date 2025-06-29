@@ -83,8 +83,9 @@ export class DataRegistry {
     const existingEntryHasAllData =
       existingEntry &&
       ((existingEntry.data.meta.modrinth && !meta.curseforge) ||
-        (!!existingEntry.minGameVersionFetched &&
-          gameVersionComparator(existingEntry.minGameVersionFetched, minGameVersion) <= 0));
+        (existingEntry.data.meta.curseforge && !meta.modrinth)) &&
+      !!existingEntry.minGameVersionFetched &&
+      gameVersionComparator(existingEntry.minGameVersionFetched, minGameVersion) <= 0;
 
     if (existingEntryHasAllData && Date.now() - existingEntry.dateModified < this.cacheLifespan) {
       return Promise.resolve(existingEntry.data);
@@ -130,6 +131,29 @@ export class DataRegistry {
   public forceRefresh() {}
 
   //================================================
+
+  public setModAlternatives(mod: Mod, alternatives: ModMetadata[]) {
+    const entry = this.registry.get(mod.meta.slug);
+    if (
+      !entry ||
+      (!alternatives.length && !entry.data.alternatives) ||
+      JSON.stringify(alternatives) === JSON.stringify(entry.data.alternatives)
+    ) {
+      return;
+    }
+    const newData = { ...entry.data };
+
+    if (!alternatives.length) {
+      delete newData.alternatives;
+    } else {
+      newData.alternatives = alternatives;
+    }
+
+    this.registry = this.registry.set(entry.data.meta.slug, {
+      ...entry,
+      data: newData,
+    });
+  }
 
   //#region Curseforge-specific =====================================
   /*

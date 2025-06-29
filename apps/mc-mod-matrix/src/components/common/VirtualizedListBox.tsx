@@ -60,10 +60,11 @@ function VirtualizedListboxComponent(
   props: React.HTMLAttributes<HTMLElement> & {
     size?: number;
     renderRow: <T>(props: ListChildComponentProps<T>) => React.ReactNode;
+    visibleRowCount?: number;
   },
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
-  const { children, renderRow = defaultRenderRow, size, ...other } = props;
+  const { children, renderRow = defaultRenderRow, size, visibleRowCount = 10, ...other } = props;
   const itemData: React.ReactElement[] = [];
   (children as React.ReactElement[]).forEach(
     (item: React.ReactElement & { children?: React.ReactElement[] }) => {
@@ -92,8 +93,8 @@ function VirtualizedListboxComponent(
   };
 
   const getHeight = () => {
-    if (itemCount > 8) {
-      return 8 * itemSize;
+    if (itemCount > visibleRowCount) {
+      return visibleRowCount * itemSize;
     }
     return itemData.map(getChildSize).reduce((a, b) => a + b, 0);
   };

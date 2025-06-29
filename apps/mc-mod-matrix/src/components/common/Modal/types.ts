@@ -26,7 +26,7 @@ export interface ModalProps extends DialogProps {
    */
   cancelButton?: React.ReactElement<ButtonProps>;
   /** Text to display as the modal title */
-  titleText?: string;
+  titleText?: React.ReactNode;
   /** If `true`, the "X" close button will be hidden */
   hideCloseButton?: boolean;
 }

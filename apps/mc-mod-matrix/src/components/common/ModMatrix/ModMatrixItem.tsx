@@ -46,7 +46,10 @@ export type ModMatrixItemProps = {
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export function ModMatrixItem({ data, ...props }: ModMatrixItemProps) {
-  const { percentage, supportedMods } = data;
+  const { percentage, supportedMods, percentageWithAlternatives, supportedAlternativeMods } = data;
+
+  const usesAlternatives = percentageWithAlternatives > percentage;
+  const modCount = supportedMods.length + (usesAlternatives ? supportedAlternativeMods.length : 0);
 
   return (
     <Component
@@ -56,7 +59,8 @@ export function ModMatrixItem({ data, ...props }: ModMatrixItemProps) {
       }}
       interactive={!!props.onClick}
     >
-      {supportedMods.length}
+      {modCount}
+      {usesAlternatives ? <Box sx={{ opacity: 0.5 }}>*</Box> : ""}
     </Component>
   );
 }
