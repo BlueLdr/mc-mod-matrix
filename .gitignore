@@ -42,7 +42,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+**/public/workers/worker.js
 
 .nx/cache
 .nx/workspace-data

@@ -6,8 +6,20 @@
   "tags": [],
   "// targets": "to see all targets run: nx show project mc-mod-matrix --web",
   "targets": {
+    "start": {
+      "executor": "@nx/next:server",
+      "options": {
+        "defaultConfiguration": "production",
+        "buildTarget": "mc-mod-matrix:build:production",
+        "port": 3000,
+        "dev": false
+      }
+    },
     "build": {
       "executor": "@nx/next:build",
+      "dependsOn": [
+        "worker"
+      ],
       "outputs": [
         "{options.outputPath}"
       ],
@@ -62,6 +74,35 @@
       "outputs": [
         "{options.outputFile}"
       ]
+    },
+    "worker": {
+      "executor": "@nx/webpack:webpack",
+      "options": {
+        "webpackConfig": "apps/mc-mod-matrix/webpack.worker.config.js",
+        "tsConfig": "apps/mc-mod-matrix/tsconfig.worker.json",
+        "outputPath": "apps/mc-mod-matrix/public/workers",
+        "outputFileName": "worker.js",
+        "main": "apps/mc-mod-matrix/src/data/registry/data-registry.worker.ts"
+      },
+      "configurations": {
+        "development": {
+          "options": {
+            "sourceMap": true,
+            "optimization": false,
+            "watch": true,
+            "mode": "development"
+          }
+        },
+        "production": {
+          "options": {
+            "sourceMap": false,
+            "optimization": true,
+            "watch": false,
+            "mode": "production"
+          }
+        }
+      },
+      "defaultConfiguration": "development"
     }
   }
 }

@@ -29,12 +29,12 @@ export function ModDetailModal() {
 
   const alternativesHandleRef = useRef<ModDetailAlternativesSectionHandle | null>(null);
 
-  const { storeMod, dataRegistry } = useContext(DataRegistryContext);
+  const { dataRegistry } = useContext(DataRegistryContext);
 
   const minVersion = useMinVersion(mod);
   const onSave = useCallback(
     (platform: Platform, meta: PlatformModMetadata | undefined) => {
-      if (!mod || !minVersion) {
+      if (!mod || !minVersion || !dataRegistry) {
         return Promise.reject();
       }
       if (!meta) {
@@ -45,10 +45,10 @@ export function ModDetailModal() {
           platforms: new PlatformModMetadataCollection(...mod.platforms),
         };
         newMeta.platforms.set(meta);
-        return storeMod(newMeta, minVersion);
+        return dataRegistry.storeMod(newMeta, minVersion);
       }
     },
-    [mod, minVersion, dataRegistry, storeMod],
+    [mod, minVersion, dataRegistry],
   );
 
   return (

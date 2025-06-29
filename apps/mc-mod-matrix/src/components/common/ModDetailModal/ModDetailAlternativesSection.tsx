@@ -34,14 +34,13 @@ export function ModDetailAlternativesSection({
   handleRef,
   mod,
 }: ModDetailAlternativesSectionProps) {
-  const { storeMod, setModAlternatives } = useContext(DataRegistryContext);
+  const { dataRegistry } = useContext(DataRegistryContext);
   const [alternatives, setAlternatives] = useState(mod?.alternatives ?? []);
 
   const [loadingMod, setLoadingMod] = useState<ModMetadata>();
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { dataRegistry } = useContext(DataRegistryContext);
   const allMods = useAllModsMap();
 
   const minVersion = useMinVersion(mod);
@@ -85,7 +84,7 @@ export function ModDetailAlternativesSection({
                   mod
                     ? () => {
                         setSaving(true);
-                        setModAlternatives(mod, alternatives).then(() => {
+                        dataRegistry?.setModAlternatives(mod, alternatives).then(() => {
                           setSaving(false);
                           setEditMode(false);
                         });
@@ -124,7 +123,7 @@ export function ModDetailAlternativesSection({
                   return;
                 }
                 setLoadingMod(details.option);
-                storeMod(details.option, minVersion).then(mod => {
+                dataRegistry?.storeMod(details.option, minVersion).then(mod => {
                   if (mod) {
                     setAlternatives(prevValue => [...prevValue, mod.id]);
                     setLoadingMod(undefined);

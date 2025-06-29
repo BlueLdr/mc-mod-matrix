@@ -14,8 +14,8 @@ import type { ApiResponse } from "@mcmm/api";
 //================================================
 
 const CURSEFORGE_BASE_URL =
-  "window" in global
-    ? `${window.location.origin}/api/curseforge/`
+  typeof globalThis !== "undefined" && ("window" in globalThis || "location" in globalThis)
+    ? `${location.origin}/api/curseforge/`
     : (process.env["MCMM_CURSEFORGE_API_URL"] ?? "https://api.curseforge.com/");
 
 export class CurseforgeApi extends ApiConnector {

@@ -81,11 +81,14 @@ export class PlatformPluginManager {
 
   //================================================
 
-  getModVersions(meta: ModMetadata, minGameVersion: GameVersion): Promise<ApiResponse<VersionSet>> {
+  getModVersions(
+    platforms: ModMetadata["platforms"],
+    minGameVersion: GameVersion,
+  ): Promise<ApiResponse<VersionSet>> {
     // @ts-expect-error: initially empty
     const promises: Record<Platform, Promise<ApiResponse<VersionSet>>> = {};
     this.plugins.forEach(plugin => {
-      const platformMeta = meta.platforms.get(plugin.platformName);
+      const platformMeta = platforms.get(plugin.platformName);
       if (platformMeta) {
         promises[plugin.platformName] = plugin.getModVersions(platformMeta, minGameVersion);
       }
@@ -103,6 +106,22 @@ export class PlatformPluginManager {
         error: null,
       };
     });
+  }
+
+  getModVersionsForPlatform(
+    meta: PlatformModMetadata,
+    minGameVersion: GameVersion,
+  ): Promise<ApiResponse<VersionSet>> {
+    const plugin = this.plugins.find(p => p.platformName === meta.platform);
+    if (!plugin) {
+      return Promise.resolve({
+        data: null,
+        error: createDisplayableError(
+          new Error(`Tried to fetch versions for invalid platform "${meta.platform}"`),
+        ),
+      });
+    }
+    return plugin.getModVersions(meta, minGameVersion);
   }
 
   //================================================
