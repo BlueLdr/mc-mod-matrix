@@ -12,7 +12,7 @@ import { platformManager } from "~/data";
 
 import { loadDataRegistry, loadDataRegistryDb } from "./storage";
 
-import type { PlatformModMetadata, GameVersion, Mod, ModMetadata } from "@mcmm/data";
+import type { PlatformModMetadata, GameVersion, Mod, ModMetadata, Platform } from "@mcmm/data";
 import type {
   DataRegistryDb,
   DataRegistryDbEntry,
@@ -88,7 +88,7 @@ export class DataRegistry {
   }
 
   public async getModById(modId: string) {
-    const entry = await this._db.registry.where("id").equals(modId).first();
+    const entry = await this._db.registry.get(modId);
     return entry ? DataRegistry.parseDbEntry(entry) : undefined;
   }
 
@@ -158,6 +158,54 @@ export class DataRegistry {
     return mod;
   }
 
+  public async removePlatformFromMod(id: string, platform: Platform) {
+    const entry = await this.getModById(id);
+    if (!entry) {
+      return;
+    }
+    const newEntry: DataRegistryEntry = {
+      ...entry,
+      data: {
+        ...entry.data,
+        meta: {
+          ...entry.data.meta,
+          platforms: new PlatformModMetadataCollection(...entry.data.meta.platforms),
+        },
+      },
+    };
+    newEntry.data.meta.platforms.remove(platform);
+    await this._db.registry.put(DataRegistry.createDbEntry(newEntry), id);
+  }
+
+  public async updateModRootMeta(
+    id: string,
+    property: keyof Pick<ModMetadata, "name" | "image">,
+    platform: Platform,
+  ) {
+    const entry = await this.getModById(id);
+    if (!entry) {
+      return;
+    }
+    const targetMeta = entry.data.meta.platforms.get(platform);
+    if (!targetMeta) {
+      return;
+    }
+    const newEntry: DataRegistryEntry = {
+      ...entry,
+      data: {
+        ...entry.data,
+        meta: {
+          ...entry.data.meta,
+          [property]: targetMeta[property === "image" ? "thumbnailUrl" : "modName"],
+        },
+      },
+    };
+    if (property === "name") {
+      newEntry.data.name = targetMeta.modName;
+    }
+    await this._db.registry.put(DataRegistry.createDbEntry(newEntry), id);
+  }
+
   //================================================
 
   public forceRefresh() {}
@@ -181,7 +229,8 @@ export class DataRegistry {
       newData.data.alternatives = alternatives;
     }
 
-    return this.db.registry.put(DataRegistry.createDbEntry(newData), mod.id);
+    await this.db.registry.put(DataRegistry.createDbEntry(newData), mod.id);
+    return;
   }
 
   //#region Curseforge-specific =====================================

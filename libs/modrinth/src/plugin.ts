@@ -20,6 +20,7 @@ export class ModrinthPlatformPlugin
   implements PlatformPlugin<ModrinthPlatformModMetadata, ModrinthPlatformModMetadata["project_id"]>
 {
   platformName = Platform.Modrinth;
+  modUrlBase = "https://modrinth.com/mod/";
 
   toModMetadata = (
     record: ModrinthPlatformModMetadata,

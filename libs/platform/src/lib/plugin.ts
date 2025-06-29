@@ -14,6 +14,7 @@ export abstract class PlatformPlugin<
   IdType extends string | number = string | number,
 > {
   public abstract readonly platformName: Platform;
+  public abstract readonly modUrlBase: string;
 
   public abstract toModMetadata(record: PlatformMeta): PlatformModMetadata<IdType>;
 

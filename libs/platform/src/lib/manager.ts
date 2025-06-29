@@ -33,21 +33,34 @@ export class PlatformPluginManager {
 
   plugins: PlatformPlugin<unknown>[];
 
+  getModLink(meta: PlatformModMetadata) {
+    const plugin = this.plugins.find(p => p.platformName === meta.platform);
+    if (plugin) {
+      return new URL(meta.slug, plugin.modUrlBase).toString();
+    }
+    return undefined;
+  }
+
+  //================================================
+
   searchMods(
     searchText: string,
     isSameMod: (a: PlatformModMetadata, b: PlatformModMetadata) => Promise<boolean>,
     getModFromRegistry: (meta: PlatformModMetadata) => Promise<Mod | undefined>,
+    platforms?: Platform[],
   ): Promise<ApiResponse<ModMetadata[]>> {
     const promises: Record<string, Promise<ApiResponse<PlatformModMetadata[]>>> = {};
-    this.plugins.forEach(plugin => {
-      promises[plugin.platformName] = plugin.searchMods(searchText).then(({ data, error }) => {
-        if (error) {
-          console.error("searchMods", plugin.platformName, error);
-          return { data: null, error };
-        }
-        return { data: data?.map(plugin.toModMetadata), error: null };
+    this.plugins
+      .filter(plugin => !platforms || platforms.includes(plugin.platformName))
+      .forEach(plugin => {
+        promises[plugin.platformName] = plugin.searchMods(searchText).then(({ data, error }) => {
+          if (error) {
+            console.error("searchMods", plugin.platformName, error);
+            return { data: null, error };
+          }
+          return { data: data?.map(plugin.toModMetadata), error: null };
+        });
       });
-    });
 
     return promiseAll(promises)
       .then(async ({ data, error }) => {
@@ -218,7 +231,7 @@ export class PlatformPluginManager {
     for (const platformMeta of result.platforms) {
       const id = getUniqueIdForPlatformModMeta(platformMeta);
       const map = data[platformMeta.platform];
-      map.delete(id);
+      map?.delete(id);
     }
   }
 }

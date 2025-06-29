@@ -20,6 +20,7 @@ export class CurseforgePlatformPlugin
   implements PlatformPlugin<CurseforgePlatformModMetadata, CurseforgePlatformModMetadata["id"]>
 {
   platformName = Platform.Curseforge;
+  modUrlBase = "https://www.curseforge.com/minecraft/mc-mods/";
 
   toModMetadata = (
     record: CurseforgePlatformModMetadata,

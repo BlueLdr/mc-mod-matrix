@@ -1,12 +1,7 @@
 "use client";
 
-import { debounce } from "lodash";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-
 import { getUniqueIdForModMetadata } from "@mcmm/data";
-import { DataRegistryContext } from "~/context";
-import { isSameMod, platformManager } from "~/data";
-import { useApiRequest } from "~/utils";
+import { useModSearch } from "~/data-utils";
 
 import { ModListItem } from "./ModListItem";
 import { VirtualizedListbox } from "./VirtualizedListBox";
@@ -77,38 +72,7 @@ export function ModPicker(props: ModPickerProps) {
 
   // }, [])
 
-  const [inputValue, setInputValue] = useState("");
-  const [searchString, setSearchString] = useState("");
-  const { dataRegistry } = useContext(DataRegistryContext);
-  const searchMods = useCallback(
-    async (text: string) => {
-      const result = await platformManager.searchMods(
-        text,
-        isSameMod,
-        async meta => (await dataRegistry.getModByPlatformMeta(meta))?.data,
-      );
-      return result;
-    },
-    [dataRegistry],
-  );
-
-  const [fetchOptions, options = emptyOptions, status, reset] = useApiRequest(searchMods, true);
-
-  const debouncedSearch = useMemo(() => debounce(setSearchString, 500, { trailing: true }), []);
-  useEffect(() => {
-    if (inputValue.trim()) {
-      debouncedSearch(inputValue.trim());
-    }
-  }, [debouncedSearch, inputValue]);
-
-  useEffect(() => {
-    if (searchString) {
-      fetchOptions(searchString);
-    } else {
-      reset(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchString]);
+  const [inputValue, setInputValue, options, status, resetSearch] = useModSearch();
 
   return (
     <Autocomplete<ModMetadata, true, true, false>
@@ -124,7 +88,7 @@ export function ModPicker(props: ModPickerProps) {
       isOptionEqualToValue={(opt, value) =>
         opt.platforms.every(meta => meta.id === value.platforms.get(meta.platform)?.id)
       }
-      options={status.success || status.pending ? options : emptyOptions}
+      options={status.success || status.pending ? (options ?? emptyOptions) : emptyOptions}
       renderOption={renderOption}
       getOptionDisabled={() => status.pending}
       disableClearable
@@ -136,8 +100,7 @@ export function ModPicker(props: ModPickerProps) {
         <TextField {...params} label="Search for a mod..." value={inputValue} />
       )}
       onChange={(...args) => {
-        setInputValue("");
-        setSearchString("");
+        resetSearch();
         if (args[2] === "removeOption") {
           return;
         }

@@ -2,6 +2,8 @@
 
 import { styled } from "@mui/material/styles";
 
+import { platformManager } from "~/data";
+
 import { SvgIcon } from "./svg-icon";
 
 import type { Platform, PlatformModMetadata } from "@mcmm/data";
@@ -40,7 +42,7 @@ export const PlatformIcon = ({ platform, meta, ...props }: PlatformIconProps) =>
   );
   if (meta) {
     return (
-      <Link href={`https://modrinth.com/mod/${meta.slug}`} target="_blank">
+      <Link href={platformManager.getModLink(meta)} target="_blank">
         {icon}
       </Link>
     );

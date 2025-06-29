@@ -107,6 +107,7 @@ export function ModpackSupportIssuesList({
                     }
                     key={item.id}
                     mod={item.meta}
+                    onClick={onClickItem ? e => onClickItem(item, e) : undefined}
                     contentRight={
                       !separateAltModsList && mainToAltMapping[item.id] ? (
                         <Typography fontStyle="normal" variant="caption" color="textPrimary">

@@ -14,7 +14,7 @@ const dataRegistry = new DataRegistry();
 export const DataRegistryContext = createContext<DataRegistryContextState>({
   dataRegistry: dataRegistry,
   storeMod: () => Promise.reject(),
-  setModAlternatives: () => undefined,
+  setModAlternatives: () => Promise.reject("Uninitialized"),
   forceRefresh: () => undefined,
 });
 
