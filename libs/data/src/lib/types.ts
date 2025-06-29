@@ -1,42 +1,7 @@
-import type { PlatformModMetadataCollection } from "./platform-collection";
 import type { VersionSet } from "./version-set";
+import type { PlatformModMetadataCollection } from "./platform-collection";
 
-//================================================
-
-export interface StoredModpack {
-  name: string;
-  mods: string[];
-  versions: {
-    min: GameVersion;
-    max: GameVersion;
-  };
-  loaders: ModLoader[];
-}
-
-export interface Modpack {
-  name: string;
-  mods: Mod[];
-  versions: {
-    min: GameVersion;
-    max: GameVersion;
-  };
-  loaders: ModLoader[];
-  pinnedVersions?: Pick<ModVersion, "gameVersion" | "loader">[];
-}
-
-export interface Mod {
-  id: string; // guid
-  name: string;
-  meta: ModMetadata;
-  versions: VersionSet;
-  alternatives?: Mod["id"][];
-}
-
-export interface ModVersion {
-  gameVersion: GameVersion;
-  loader: ModLoader;
-  platform: Platform;
-}
+//================== VERSIONS ====================
 
 export type GameVersion = string;
 
@@ -46,6 +11,17 @@ export enum ModLoader {
   "Forge" = "forge",
   "Quilt" = "quilt",
 }
+
+export interface PlatformModVersion {
+  gameVersion: GameVersion;
+  loader: ModLoader;
+}
+
+export interface ModVersion extends PlatformModVersion {
+  platform: Platform;
+}
+
+//=================== PLATFORMS =================
 
 export enum Platform {
   "Modrinth" = "Modrinth",
@@ -61,22 +37,41 @@ export interface PlatformModMetadata<Id extends string | number = string | numbe
   modName: string;
   modDescription: string;
   thumbnailUrl: string;
+  lastUpdated?: number;
 }
+
+//==================== MODS ======================
 
 export interface ModMetadata {
   name: string;
   image: string;
   platforms: PlatformModMetadataCollection;
+  // platforms: PlatformModMetadata[];
+  minGameVersionFetched: string | undefined;
 }
 
-export interface ModVersionData<PlatformMetaId extends string | number = string | number>
-  extends ModVersion {
-  id: PlatformMetaId;
-  slug: string;
-  image?: string;
+export interface Mod extends ModMetadata {
+  id: string;
+  alternatives: Mod["id"][];
+  versions: VersionSet;
 }
 
-export type ModVersionDataMap = Record<GameVersion, Partial<Record<ModLoader, ModVersionData>>>;
+//==================== PACKS =====================
+
+export interface Modpack {
+  name: string;
+  mods: Mod[];
+  versions: {
+    min: GameVersion;
+    max: GameVersion;
+  };
+  loaders: ModLoader[];
+  pinnedVersions?: Pick<ModVersion, "gameVersion" | "loader">[];
+}
+
+export interface StoredModpack extends Omit<Modpack, "mods"> {
+  mods: Mod["id"][];
+}
 
 export interface PackSupportMeta {
   gameVersion: GameVersion;
@@ -88,3 +83,11 @@ export interface PackSupportMeta {
   percentage: number;
   percentageWithAlternatives: number;
 }
+
+//================================================
+
+export type MigrationMap = {
+  PlatformModMetadata: PlatformModMetadata;
+  ModMetadata: ModMetadata;
+  Mod: Mod;
+};

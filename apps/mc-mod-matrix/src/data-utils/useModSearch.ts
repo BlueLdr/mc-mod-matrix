@@ -25,7 +25,7 @@ export const useModSearch = ({ debounceDelay, platforms }: UseModSearchOptions =
       platformManager.searchMods(
         text,
         isSameMod,
-        async meta => (await dataRegistry.getModByPlatformMeta(meta))?.data,
+        async meta => await dataRegistry?.helper.getModByPlatformMeta(meta),
         platforms,
       ),
     [dataRegistry, platforms],

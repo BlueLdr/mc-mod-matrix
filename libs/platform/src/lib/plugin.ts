@@ -1,11 +1,5 @@
 import type { ApiResponse } from "@mcmm/api";
-import type {
-  GameVersion,
-  ModVersionData,
-  Platform,
-  PlatformModMetadata,
-  VersionSet,
-} from "@mcmm/data";
+import type { GameVersion, Platform, PlatformModMetadata, VersionSet } from "@mcmm/data";
 
 //================================================
 
@@ -15,6 +9,7 @@ export abstract class PlatformPlugin<
 > {
   public abstract readonly platformName: Platform;
   public abstract readonly modUrlBase: string;
+  public abstract readonly idType: "string" | "number";
 
   public abstract toModMetadata(record: PlatformMeta): PlatformModMetadata<IdType>;
 
@@ -25,5 +20,5 @@ export abstract class PlatformPlugin<
   public abstract getModVersions(
     meta: PlatformModMetadata,
     minGameVersion: GameVersion,
-  ): Promise<ApiResponse<VersionSet<ModVersionData>>>;
+  ): Promise<ApiResponse<VersionSet>>;
 }

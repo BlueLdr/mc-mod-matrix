@@ -1,3 +1,7 @@
+"use client";
+
+import { pick } from "lodash";
+
 import { promiseAll } from "@mcmm/api";
 import {
   getUniqueIdForPlatformModMeta,
@@ -5,16 +9,9 @@ import {
   VersionSet,
 } from "@mcmm/data";
 import { createDisplayableError } from "@mcmm/types";
-import { comparator } from "@mcmm/utils";
+import { comparator, makeRecordFromEntries } from "@mcmm/utils";
 
-import type {
-  GameVersion,
-  ModMetadata,
-  ModVersionData,
-  PlatformModMetadata,
-  Mod,
-  Platform,
-} from "@mcmm/data";
+import type { GameVersion, ModMetadata, PlatformModMetadata, Mod, Platform } from "@mcmm/data";
 import type { ApiResponse } from "@mcmm/api";
 import type { PlatformPlugin } from "./plugin";
 
@@ -84,12 +81,9 @@ export class PlatformPluginManager {
 
   //================================================
 
-  getModVersions(
-    meta: ModMetadata,
-    minGameVersion: GameVersion,
-  ): Promise<ApiResponse<VersionSet<ModVersionData>>> {
+  getModVersions(meta: ModMetadata, minGameVersion: GameVersion): Promise<ApiResponse<VersionSet>> {
     // @ts-expect-error: initially empty
-    const promises: Record<Platform, Promise<ApiResponse<VersionSet<ModVersionData>>>> = {};
+    const promises: Record<Platform, Promise<ApiResponse<VersionSet>>> = {};
     this.plugins.forEach(plugin => {
       const platformMeta = meta.platforms.get(plugin.platformName);
       if (platformMeta) {
@@ -113,11 +107,15 @@ export class PlatformPluginManager {
 
   //================================================
 
-  getModMetadataFromPlatformMetaSet(metaSet: PlatformModMetadata[]): ModMetadata {
+  getModMetadataFromPlatformMetaSet(
+    metaSet: PlatformModMetadata[],
+    minGameVersionFetched?: GameVersion,
+  ): ModMetadata {
     return {
       name: metaSet[0].modName,
       image: metaSet.find(meta => !!meta.thumbnailUrl)?.thumbnailUrl ?? "",
       platforms: new PlatformModMetadataCollection(...metaSet),
+      minGameVersionFetched,
     };
   }
 
@@ -141,12 +139,12 @@ export class PlatformPluginManager {
   ) {
     const platformCount = Object.keys(data).length;
 
-    const mappedData = Object.fromEntries(
+    const mappedData = makeRecordFromEntries(
       Object.entries(data).map(([key, list]) => [
         key as Platform,
         new Map(list.map(item => [getUniqueIdForPlatformModMeta(item), item])),
       ]),
-    ) as Record<Platform, Map<string, PlatformModMetadata>>;
+    );
 
     const results: [index: number, meta: ModMetadata][] = [];
     let shouldStop = false;
@@ -160,12 +158,12 @@ export class PlatformPluginManager {
         const [itemId, item] = entry;
         map.delete(itemId);
 
-        const arrayDict = Object.fromEntries(
+        const arrayDict = makeRecordFromEntries(
           Object.entries(mappedData).map(([key, map]) => [
             key as Platform,
             Array.from(map.values()),
           ]),
-        ) as Record<Platform, PlatformModMetadata[]>;
+        );
         const modMetadata = await this.processSearchResult(
           item,
           arrayDict,
@@ -199,7 +197,7 @@ export class PlatformPluginManager {
   ): Promise<ModMetadata> {
     const existingRegistryEntry = await getModFromRegistry(item);
     if (existingRegistryEntry) {
-      return existingRegistryEntry.meta;
+      return pick(existingRegistryEntry, ["name", "image", "platforms", "minGameVersionFetched"]);
     }
 
     const map = new Map<Platform, PlatformModMetadata>([[item.platform, item]]);

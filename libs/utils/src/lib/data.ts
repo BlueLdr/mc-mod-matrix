@@ -40,3 +40,10 @@ export const gameVersionComparator = (a: string, b: string) => {
   const result = Number(aMinor) - Number(bMinor) || Number(aPatch) - Number(bPatch);
   return isNaN(result) ? 0 : result;
 };
+
+export const getMinGameVersion = (a: string, b: string) =>
+  gameVersionComparator(a, b) > 0 ? b : a;
+
+export const makeRecordFromEntries = <Key extends string | number, Value>(
+  entries: [Key, Value][],
+) => Object.fromEntries(entries) as Record<Key, Value>;

@@ -34,6 +34,7 @@ function Picker({
   setInputValue,
   platform,
   closeEditor,
+  allowRemove,
 }: ModDetailPlatformEditorProps & {
   options: PlatformModMetadata[];
   status: RequestStatus;
@@ -42,7 +43,7 @@ function Picker({
 }) {
   const { getInputLabelProps, getInputProps, getListboxProps, getOptionProps, groupedOptions } =
     useAutocomplete<PlatformModMetadata, false, false, false>({
-      inputValue,
+      inputValue: inputValue ?? "",
       onInputChange: (_, newValue) => setInputValue(newValue),
       filterSelectedOptions: true,
       filterOptions: ident,
@@ -74,15 +75,17 @@ function Picker({
             flex: "1 1 100%",
           }}
         />
-        <Button
-          variant="outlined"
-          size="small"
-          color="primary"
-          sx={{ flex: "0 0 auto" }}
-          onClick={() => onChange(platform, undefined).then(() => closeEditor())}
-        >
-          Remove
-        </Button>
+        {allowRemove && (
+          <Button
+            variant="outlined"
+            size="small"
+            color="primary"
+            sx={{ flex: "0 0 auto" }}
+            onClick={() => onChange(platform, undefined).then(() => closeEditor())}
+          >
+            Remove
+          </Button>
+        )}
       </Grid>
       <MenuList
         {...getListboxProps()}
@@ -129,6 +132,7 @@ export type ModDetailPlatformEditorProps = {
   value: PlatformModMetadata | undefined;
   onChange: (platform: Platform, newMeta: PlatformModMetadata | undefined) => Promise<unknown>;
   closeEditor: () => void;
+  allowRemove?: boolean;
 };
 
 export function ModDetailPlatformEditor({

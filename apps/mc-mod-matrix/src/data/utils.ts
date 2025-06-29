@@ -83,6 +83,8 @@ export const isSameMod = async (modA: PlatformModMetadata, modB: PlatformModMeta
     (areModMetaValuesEqual(a.slug, b.slug) || areModMetaValuesEqual(a.modName, b.modName)) &&
     (areModMetaValuesEqual(a.authorName, b.authorName) ||
       areModMetaValuesEqual(`${a.authorId}`, `${b.authorId}`) ||
+      areModMetaValuesEqual(`${a.authorId}`, `${b.authorName}`) ||
+      areModMetaValuesEqual(`${a.authorName}`, `${b.authorId}`) ||
       (!!a.thumbnailUrl &&
         !!(await areThumbnailsSameClientSide(a.thumbnailUrl, b.thumbnailUrl).catch(err => {
           console.error(err);

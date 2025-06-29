@@ -106,7 +106,7 @@ export function ModpackSupportIssuesList({
                         : undefined
                     }
                     key={item.id}
-                    mod={item.meta}
+                    mod={item}
                     onClick={onClickItem ? e => onClickItem(item, e) : undefined}
                     contentRight={
                       !separateAltModsList && mainToAltMapping[item.id] ? (
@@ -137,7 +137,7 @@ export function ModpackSupportIssuesList({
                   {index > 0 && <Divider />}
                   <ModListItem
                     key={item.id}
-                    mod={item.meta}
+                    mod={item}
                     contentRight={
                       <Typography variant="caption" color="textDisabled">
                         {altToMainMapping?.[item.id]?.name}

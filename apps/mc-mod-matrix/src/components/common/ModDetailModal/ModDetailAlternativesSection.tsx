@@ -44,14 +44,14 @@ export function ModDetailAlternativesSection({
   const { dataRegistry } = useContext(DataRegistryContext);
   const allMods = useAllModsMap();
 
-  const minVersion = useMinVersion(mod, dataRegistry);
+  const minVersion = useMinVersion(mod);
 
   useEffect(() => {
     setAlternatives(mod?.alternatives ?? []);
   }, [mod]);
 
   const value = useMemo(
-    () => alternatives.map(id => allMods?.get(id)?.meta).filter(item => !!item),
+    () => alternatives.map(id => allMods?.get(id)).filter(item => !!item),
     [allMods, alternatives],
   );
 
@@ -119,8 +119,8 @@ export function ModDetailAlternativesSection({
             onChange={async (_, newValue, __, details) => {
               if (details?.option) {
                 if (!newValue.includes(details.option)) {
-                  const removedMod = await dataRegistry.getModByMeta(details.option);
-                  setAlternatives(prevValue => prevValue.filter(id => id !== removedMod?.modId));
+                  const removedMod = await dataRegistry?.helper.getModByMeta(details.option);
+                  setAlternatives(prevValue => prevValue.filter(id => id !== removedMod?.id));
                   return;
                 }
                 setLoadingMod(details.option);
@@ -155,8 +155,8 @@ export function ModDetailAlternativesSection({
                         onRemove={
                           editMode
                             ? async modMeta => {
-                                const mod = await dataRegistry.getModByMeta(modMeta);
-                                setAlternatives(list => list.filter(id => id !== mod?.modId));
+                                const mod = await dataRegistry?.helper.getModByMeta(modMeta);
+                                setAlternatives(list => list.filter(id => id !== mod?.id));
                               }
                             : undefined
                         }

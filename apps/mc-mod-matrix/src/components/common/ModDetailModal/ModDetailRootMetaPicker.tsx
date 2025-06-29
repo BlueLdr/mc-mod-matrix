@@ -38,15 +38,15 @@ export function ModDetailRootMetaPicker({
   if (!mod) {
     return null;
   }
-  if (property === "name" && mod.meta.platforms.every(meta => meta.modName === mod.name)) {
+  if (property === "name" && mod.platforms.every(meta => meta.modName === mod.name)) {
     return mod.name;
   }
 
-  const value = mod.meta.platforms.find(p => p[PROPERTY_MAP[property]] === mod.meta[property]);
+  const value = mod.platforms.find(p => p[PROPERTY_MAP[property]] === mod[property]);
   const renderIcon = (value: string) => <Icon size={size} src={value} />;
 
-  if (property === "image" && mod.meta.platforms.length === 1) {
-    return renderIcon(mod.meta.image);
+  if (property === "image" && mod.platforms.length === 1) {
+    return renderIcon(mod.image);
   }
 
   return (
@@ -59,9 +59,9 @@ export function ModDetailRootMetaPicker({
       onClose={() => setOpen(false)}
       renderValue={() =>
         property === "image" ? (
-          renderIcon(mod?.meta?.[property])
+          renderIcon(mod?.[property])
         ) : (
-          <Typography variant="h6">{mod?.meta.name}</Typography>
+          <Typography variant="h6">{mod?.name}</Typography>
         )
       }
       value={value?.platform ?? null}
@@ -69,7 +69,7 @@ export function ModDetailRootMetaPicker({
         if (!event.target.value) {
           return;
         }
-        dataRegistry.updateModRootMeta(mod.id, property, event.target.value as Platform);
+        dataRegistry?.updateModRootMeta(mod.id, property, event.target.value as Platform);
       }}
       MenuProps={{
         slotProps: {
@@ -117,7 +117,7 @@ export function ModDetailRootMetaPicker({
         },
       }}
     >
-      {mod.meta.platforms.map(meta =>
+      {mod.platforms.map(meta =>
         property === "image" ? (
           <MenuItem key={meta.platform} value={meta.platform} sx={{ p: 2 }}>
             <Grid

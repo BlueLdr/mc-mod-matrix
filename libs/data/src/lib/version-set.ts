@@ -2,7 +2,7 @@ import { values } from "lodash";
 
 import { ModLoader } from "./types";
 
-import type { GameVersion, ModVersion, ModVersionData } from "./types";
+import type { GameVersion, ModVersion } from "./types";
 
 //================================================
 
@@ -10,7 +10,7 @@ const loaderValues = values(ModLoader);
 const isLoader = (value: GameVersion | ModVersion): value is ModLoader =>
   loaderValues.includes(value as ModLoader);
 
-export class VersionSet<T extends ModVersion | ModVersionData = ModVersion> extends Array<T> {
+export class VersionSet<T extends ModVersion = ModVersion> extends Array<T> {
   public get(param: GameVersion | ModLoader) {
     const key = isLoader(param) ? "loader" : "gameVersion";
     return new VersionSet<T>(...this.filter(v => v[key] === param));

@@ -4,6 +4,7 @@ import { entries } from "lodash";
 import { useContext } from "react";
 import { useRouter } from "next/navigation";
 
+import { makeRecordFromEntries } from "@mcmm/utils";
 import { ModLoader } from "@mcmm/data";
 import { useStateObject } from "~/utils";
 import { CreatePackModalContext, DataContext } from "~/context";
@@ -29,7 +30,7 @@ import type { Modpack } from "@mcmm/data";
 const CREATE_PACK_FORM_ID = "create-pack-form";
 
 const modLoaderEntries = entries(ModLoader);
-const modLoaderLabels = Object.fromEntries(
+const modLoaderLabels = makeRecordFromEntries(
   modLoaderEntries.map(([label, value]) => [value, label] as const),
 );
 

@@ -31,18 +31,18 @@ export function ModDetailModal() {
 
   const { storeMod, dataRegistry } = useContext(DataRegistryContext);
 
-  const minVersion = useMinVersion(mod, dataRegistry);
+  const minVersion = useMinVersion(mod);
   const onSave = useCallback(
     (platform: Platform, meta: PlatformModMetadata | undefined) => {
       if (!mod || !minVersion) {
         return Promise.reject();
       }
       if (!meta) {
-        return dataRegistry.removePlatformFromMod(mod.id, platform);
+        return dataRegistry?.helper.removePlatformFromMod(mod.id, platform) ?? Promise.reject();
       } else {
         const newMeta = {
-          ...mod.meta,
-          platforms: new PlatformModMetadataCollection(...mod.meta.platforms),
+          ...mod,
+          platforms: new PlatformModMetadataCollection(...mod.platforms),
         };
         newMeta.platforms.set(meta);
         return storeMod(newMeta, minVersion);
@@ -77,10 +77,11 @@ export function ModDetailModal() {
       >
         {values(Platform).map(platform => (
           <ModDetailPlatformItem
-            meta={mod?.meta.platforms.get(platform)}
+            meta={mod?.platforms.get(platform)}
             platform={platform}
             key={platform}
             onSave={onSave}
+            allowRemove={(mod?.platforms.length ?? 0) > 1}
           />
         ))}
       </Grid>

@@ -22,9 +22,15 @@ export type ModDetailPlatformItemProps = {
   meta: PlatformModMetadata | undefined;
   platform: Platform;
   onSave?: (platform: Platform, newMeta: PlatformModMetadata | undefined) => Promise<unknown>;
+  allowRemove?: boolean;
 };
 
-export function ModDetailPlatformItem({ meta, platform, onSave }: ModDetailPlatformItemProps) {
+export function ModDetailPlatformItem({
+  meta,
+  platform,
+  onSave,
+  allowRemove,
+}: ModDetailPlatformItemProps) {
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
@@ -80,6 +86,7 @@ export function ModDetailPlatformItem({ meta, platform, onSave }: ModDetailPlatf
             value={meta}
             onChange={onSave}
             closeEditor={() => setEditMode(false)}
+            allowRemove={allowRemove}
           />
         ) : (
           <ModDetailPlatformItemContent meta={meta} link />
