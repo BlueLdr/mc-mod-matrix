@@ -5,6 +5,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 
 import { comparator } from "@mcmm/utils";
 import {
+  MatrixOverflowContainer,
   ModMatrix,
   ModMatrixItemModal,
   ModpackDetailPageContext,
@@ -121,6 +122,10 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
     [pack.pinnedVersions, packSupportMetaList],
   );
 
+  const matrix = (
+    <ModMatrix key="matrix" data={filteredList} onClickItem={item => setDetailTarget(item)} />
+  );
+
   return (
     <Grid container direction="column" spacing={4} mt={6} ref={ref}>
       <Grid container spacing={8} justifyContent="space-between">
@@ -148,8 +153,14 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
               }
         }
       >
-        <Grid flex="1 0 0" minWidth="min-content">
-          <ModMatrix data={filteredList} onClickItem={item => setDetailTarget(item)} />
+        <Grid
+          flex="1 0 0"
+          maxWidth="100%"
+          minWidth="100%"
+          display="grid"
+          gridTemplateColumns="minmax(0, 1fr)"
+        >
+          <MatrixOverflowContainer>{matrix}</MatrixOverflowContainer>
         </Grid>
         <Grid
           container

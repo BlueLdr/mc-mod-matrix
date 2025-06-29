@@ -89,12 +89,13 @@ export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
 
   return (
     <Matrix
+      className="mcmm-Matrix"
       sx={{
         gridTemplateColumns: `5rem repeat(${cols.length}, ${cols.length > rows.length ? "5rem" : "8rem"})`,
         gridTemplateRows: `auto repeat(${items.length}, ${rows.length > cols.length ? "3rem" : "5rem"})`,
       }}
     >
-      <Corner>
+      <Corner className="mcmm-Matrix__header mcmm-Matrix__header--top mcmm-Matrix__header--left">
         {!disablePivot && (
           <IconButton onClick={() => setPivoted(!pivoted)}>
             <PivotTableChart />
@@ -102,13 +103,21 @@ export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
         )}
       </Corner>
       {cols.map(value => (
-        <Typography {...headerProps} key={value}>
+        <Typography
+          {...headerProps}
+          className="mcmm-Matrix__header mcmm-Matrix__header--top"
+          key={value}
+        >
           {capitalize(value)}
         </Typography>
       ))}
-      {items.map(rowItems => (
+      {items.map((rowItems, i) => (
         <Fragment key={rowItems[0]?.[pivoted ? "gameVersion" : "loader"]}>
-          <Typography {...headerProps} justifyContent="flex-end">
+          <Typography
+            {...headerProps}
+            className={`mcmm-Matrix__header mcmm-Matrix__header--left${i === items.length - 1 ? " mcmm-Matrix__header--bottom" : ""}`}
+            justifyContent="flex-end"
+          >
             {pivoted ? rowItems[0]?.gameVersion : capitalize(rowItems[0]?.loader)}
           </Typography>
           {rowItems.map(item => (
