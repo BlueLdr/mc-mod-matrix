@@ -80,7 +80,7 @@ export function ModpackSupportIssuesList({
         </Grid>
       )}
       {unsupportedCount > 0 && (
-        <Grid container direction="column" spacing={2}>
+        <Grid container direction="column" spacing={2} maxWidth="100%">
           <Grid container spacing={2} alignItems="center" justifyContent="space-between">
             <Grid container spacing={2} alignItems="center">
               <Typography variant="body1">Unsupported Mods</Typography>
@@ -91,7 +91,7 @@ export function ModpackSupportIssuesList({
             )}
           </Grid>
 
-          <Card variant="outlined" sx={{ paddingInline: 4 }}>
+          <Card variant="outlined" sx={{ maxWidth: "100%" }}>
             <List>
               {unsupportedMods?.map((item, index) => (
                 <Fragment key={item.id}>
@@ -100,17 +100,36 @@ export function ModpackSupportIssuesList({
                     sx={
                       mainToAltMapping[item.id]
                         ? {
-                            fontStyle: mainToAltMapping[item.id] ? "italic" : undefined,
+                            fontStyle: "italic",
                             color: theme => theme.palette.text.disabled,
+                            paddingInline: 4,
                           }
-                        : undefined
+                        : { paddingInline: 4 }
                     }
                     key={item.id}
                     mod={item}
                     onClick={onClickItem ? e => onClickItem(item, e) : undefined}
+                    slotProps={{
+                      contentRight: {
+                        flex: "1 1 auto",
+                        justifyContent: "flex-end",
+                      },
+                      contentLeft: {
+                        flex: "1 1 auto",
+                      },
+                    }}
                     contentRight={
                       !separateAltModsList && mainToAltMapping[item.id] ? (
-                        <Typography fontStyle="normal" variant="caption" color="textPrimary">
+                        <Typography
+                          fontStyle="normal"
+                          variant="caption"
+                          color="textPrimary"
+                          sx={{
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
                           {mainToAltMapping[item.id].name}
                         </Typography>
                       ) : undefined
@@ -124,13 +143,13 @@ export function ModpackSupportIssuesList({
         </Grid>
       )}
       {supportedAltCount > 0 && separateAltModsList && (
-        <Grid container direction="column" spacing={2}>
+        <Grid container direction="column" spacing={2} maxWidth="100%">
           <Grid container spacing={2} alignItems="center">
             <Typography variant="body1">Alternative Mods</Typography>
             <Typography variant="overline">{supportedAltCount}</Typography>
           </Grid>
 
-          <Card variant="outlined" sx={{ paddingInline: 4 }}>
+          <Card variant="outlined" sx={{ maxWidth: "100%" }}>
             <List>
               {packSupportMeta.supportedAlternativeMods.map((item, index) => (
                 <Fragment key={item.id}>
@@ -138,8 +157,13 @@ export function ModpackSupportIssuesList({
                   <ModListItem
                     key={item.id}
                     mod={item}
+                    sx={{ paddingInline: 4 }}
                     contentRight={
-                      <Typography variant="caption" color="textDisabled">
+                      <Typography
+                        variant="caption"
+                        color="textDisabled"
+                        sx={{ overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+                      >
                         {altToMainMapping?.[item.id]?.name}
                       </Typography>
                     }

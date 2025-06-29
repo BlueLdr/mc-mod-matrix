@@ -21,6 +21,7 @@ const Matrix = styled(Card)`
   display: inline-grid;
   grid-auto-rows: auto;
   overflow: visible;
+  border: 1px solid ${({ theme }) => theme.palette.divider};
 `;
 
 const Cell = styled(ModMatrixItem)`

@@ -2,9 +2,10 @@
 
 import { Fragment, useContext, useEffect, useState } from "react";
 
-import { classNameWithModifiers } from "@mcmm/utils";
+import { classNameWithModifiers, pluralize } from "@mcmm/utils";
 import { ModListItem, ModPicker } from "~/components";
-import { DataContext, DataRegistryContext, ModDetailModalContext } from "~/context";
+import { DataContext, DataRegistryContext } from "~/context";
+import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamSetter } from "~/utils";
 
 import Divider from "@mui/material/Divider";
 import Card from "@mui/material/Card";
@@ -13,7 +14,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
-import Link from "@mui/material/Link";
 import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 
@@ -26,7 +26,7 @@ export type ModpackDetailModListProps = {
 };
 
 export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
-  const { setModDetailTarget } = useContext(ModDetailModalContext);
+  const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM);
   const { updatePack } = useContext(DataContext);
   const { dataRegistry } = useContext(DataRegistryContext);
 
@@ -77,6 +77,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
       </Grid>
       {editMode && (
         <ModPicker
+          open
           size="small"
           value={modList}
           onChange={(_, newValue, __, details) => {
@@ -92,7 +93,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
           }}
         />
       )}
-      <Card variant="outlined" sx={{ paddingInline: 4, marginBlock: 4 }}>
+      <Card sx={{ marginBlock: 4 }}>
         <List>
           {modList.map((item, index) => (
             <Fragment key={item.id}>
@@ -102,6 +103,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
                 mod={item}
                 showPlatforms="link"
                 onClick={() => setModDetailTarget(item.id)}
+                sx={{ paddingLeft: 4, paddingRight: editMode ? 12 : 4 }}
                 onRemove={
                   editMode
                     ? () => setModList(list => list.filter(m => m.id !== item.id))
@@ -117,16 +119,12 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
                         true,
                       )}
                     >
-                      {!item.alternatives?.length ? (
-                        <Link typography="body2" component="button">
-                          + Add alternatives
-                        </Link>
-                      ) : (
+                      {!!item.alternatives?.length && (
                         <Chip
                           variant="outlined"
                           size="small"
-                          color="info"
-                          label={`${item.alternatives.length} Alternatives`}
+                          color="primary"
+                          label={`${item.alternatives.length} ${pluralize("Alternative", item.alternatives.length)}`}
                         />
                       )}
                     </Grid>

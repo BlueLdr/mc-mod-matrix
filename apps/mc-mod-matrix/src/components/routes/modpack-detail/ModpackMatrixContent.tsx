@@ -9,11 +9,19 @@ import {
   ModMatrixItemModal,
   ModpackDetailPageContext,
   ModpackSupportIssuesList,
+  Unpin,
 } from "~/components";
-import { DataContext, ModDetailModalContext } from "~/context";
+import { DataContext } from "~/context";
 import { usePackSupportMetaList } from "~/data-utils";
-import { useMounted, useResizeObserver } from "~/utils";
+import {
+  MOD_DETAIL_MODAL_SEARCH_PARAM,
+  useMounted,
+  useResizeObserver,
+  useSearchParamSetter,
+} from "~/utils";
 
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardHeader from "@mui/material/CardHeader";
@@ -44,7 +52,7 @@ export type ModpackMatrixContentProps = { pack: Modpack };
 
 export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
   const { updatePack } = useContext(DataContext);
-  const { setModDetailTarget } = useContext(ModDetailModalContext);
+  const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM, true);
   const { setIsSingleColumn, isSingleColumn } = useContext(ModpackDetailPageContext);
 
   const ref = useRef<HTMLDivElement>(null);
@@ -92,6 +100,15 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
     }
   }, [filteredList, pack, updatePack]);
 
+  const unpinVersion = (item: PackSupportMeta) => {
+    updatePack({
+      ...pack,
+      pinnedVersions: (pack.pinnedVersions ?? []).filter(
+        v => v.gameVersion !== item.gameVersion || v.loader !== item.loader,
+      ),
+    });
+  };
+
   const pinnedItems = useMemo(
     () =>
       pack.pinnedVersions
@@ -118,20 +135,55 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
         </Typography>
         {/*</Grid>*/}
       </Grid>
-      <Grid container spacing={4} flexWrap="wrap" direction={isSingleColumn ? undefined : "column"}>
+      <Grid
+        container
+        spacing={4}
+        maxWidth="100%"
+        sx={
+          isSingleColumn
+            ? {}
+            : {
+                flexWrap: "wrap",
+                flexDirection: "column",
+              }
+        }
+      >
         <Grid flex="1 0 0" minWidth="min-content">
           <ModMatrix data={filteredList} onClickItem={item => setDetailTarget(item)} />
         </Grid>
         <Grid
           container
           display="grid"
-          flex="1 0 max(50%, 400px)"
+          flex={isSingleColumn ? "1 0 max(50%, 400px)" : undefined}
           spacing={4}
           gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+          gridAutoRows="minmax(0, min-content)"
+          maxWidth="100%"
         >
           {pinnedItems?.map(item => (
-            <Card key={`${item.loader}${item.gameVersion}`}>
-              <CardHeader title={`${capitalize(item.loader)} ${item.gameVersion}`} />
+            <Card
+              key={`${item.loader}${item.gameVersion}`}
+              sx={{
+                maxWidth: "100%",
+                "& .MuiPaper-root": { backgroundColor: theme => theme.palette.background.layer },
+              }}
+            >
+              <CardHeader
+                title={`${capitalize(item.loader)} ${item.gameVersion}`}
+                action={
+                  <Tooltip title="Unpin this version">
+                    <IconButton onClick={() => unpinVersion(item)}>
+                      <Unpin
+                        sx={{
+                          "&:not(:hover):not(:active)": {
+                            color: theme => theme.palette.action.disabled,
+                          },
+                        }}
+                      />
+                    </IconButton>
+                  </Tooltip>
+                }
+              />
               <CardContent>
                 <ModpackSupportIssuesList
                   packSupportMeta={item}

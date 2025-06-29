@@ -66,7 +66,7 @@ export interface Modpack {
     max: GameVersion;
   };
   loaders: ModLoader[];
-  pinnedVersions?: Pick<ModVersion, "gameVersion" | "loader">[];
+  pinnedVersions?: PlatformModVersion[];
 }
 
 export interface StoredModpack extends Omit<Modpack, "mods"> {

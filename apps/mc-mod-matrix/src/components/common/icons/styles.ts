@@ -1,5 +1,5 @@
 import type { IconProps } from "./icon";
-import type { StyleProps } from "~/theme";
+import type { SxStyleProps } from "~/theme";
 
 //================================================
 
@@ -9,4 +9,4 @@ export const iconBaseStyles = ({ size = 32, disabled }: IconProps) =>
     height: `${size}px`,
     filter: disabled ? `grayscale(1)` : undefined,
     opacity: disabled ? 0.2 : undefined,
-  }) satisfies StyleProps;
+  }) satisfies SxStyleProps;

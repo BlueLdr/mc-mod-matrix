@@ -34,7 +34,7 @@ export function ModpackDetailPageHeader() {
       ref={ref}
       style={rootStyle}
       sx={{
-        backgroundColor: theme => theme.palette.background.paper,
+        backgroundColor: theme => theme.palette.background.default,
         zIndex: 100,
         padding: theme => theme.spacing(4),
         paddingBottom: 0,

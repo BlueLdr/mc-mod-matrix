@@ -13,17 +13,16 @@ import DialogActions from "@mui/material/DialogActions";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 
-import type { StyleProps } from "~/theme";
+import type { SxStyleProps } from "~/theme";
 import type { ModalProps } from "./types";
 
 //================================================
 
 const headerStyle = {
-  backgroundColor: theme => theme.palette.grey["800"],
   borderBottom: theme => `1px solid ${theme.palette.grey["600"]}`,
   marginBottom: theme => theme.spacing(4),
   alignItems: "center",
-} satisfies StyleProps;
+} satisfies SxStyleProps;
 
 const CloseButton = styled(IconButton)`
   padding: ${({ theme }) => theme.spacing(2)};
@@ -75,16 +74,17 @@ export const Modal: React.FC<ModalProps> = ({
       fullWidth={fullWidth}
       maxWidth={maxWidth}
       onClose={onClose}
-      PaperProps={{
-        elevation: 24,
-        ...(props.PaperProps ?? {}),
+      slotProps={{
+        paper: {
+          elevation: 24,
+          ...(props.PaperProps ?? {}),
+        },
       }}
       id={id}
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-description`}
     >
       {(!hideCloseButton || !!titleText) && (
-        // @ts-expect-error: aug isnt working
         <DialogTitle component="div" id={`${id}-title`} sx={titleText ? headerStyle : undefined}>
           <Grid container justifyContent="space-between" alignItems="center" spacing={4}>
             <Grid>{titleText}</Grid>

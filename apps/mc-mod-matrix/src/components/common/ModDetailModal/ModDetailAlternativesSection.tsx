@@ -7,6 +7,7 @@ import { ModListItem, ModPicker } from "~/components";
 import { DataRegistryContext } from "~/context";
 import { useAllModsMap } from "~/data-utils";
 import { useMinVersion } from "~/data-utils/useMinVersion";
+import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamSetter } from "~/utils";
 
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -35,6 +36,7 @@ export function ModDetailAlternativesSection({
   mod,
 }: ModDetailAlternativesSectionProps) {
   const { dataRegistry } = useContext(DataRegistryContext);
+  const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM);
   const [alternatives, setAlternatives] = useState(mod?.alternatives ?? []);
 
   const [loadingMod, setLoadingMod] = useState<ModMetadata>();
@@ -46,7 +48,10 @@ export function ModDetailAlternativesSection({
   const minVersion = useMinVersion(mod);
 
   useEffect(() => {
-    setAlternatives(mod?.alternatives ?? []);
+    if (!editMode) {
+      setAlternatives(mod?.alternatives ?? []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mod]);
 
   const value = useMemo(
@@ -134,7 +139,7 @@ export function ModDetailAlternativesSection({
           />
         )}
         {
-          <Card variant="outlined" sx={{ paddingInline: 4 }}>
+          <Card sx={{ paddingInline: 4 }}>
             {value.length > 0 ? (
               <List>
                 {value.map((item, index) => {
@@ -146,19 +151,22 @@ export function ModDetailAlternativesSection({
                         key={metaId}
                         mod={item}
                         showPlatforms="link"
+                        onClick={() => setModDetailTarget(item.id)}
                         sx={{
                           "&:not(:hover) .mcmm-ModListItem__alternatives--empty": {
                             display: "none",
                           },
                         }}
-                        onRemove={
-                          editMode
-                            ? async modMeta => {
+                        {...(editMode
+                          ? {
+                              onRemove: async modMeta => {
                                 const mod = await dataRegistry?.helper.getModByMeta(modMeta);
                                 setAlternatives(list => list.filter(id => id !== mod?.id));
-                              }
-                            : undefined
-                        }
+                              },
+                            }
+                          : {
+                              link: item.id,
+                            })}
                       />
                     </Fragment>
                   );

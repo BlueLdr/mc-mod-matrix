@@ -5,8 +5,8 @@ import { useCallback, useContext, useRef } from "react";
 
 import { Platform, PlatformModMetadataCollection } from "@mcmm/data";
 import { useAllModsMap, useMinVersion } from "~/data-utils";
-import { useModalTarget } from "~/utils";
-import { DataRegistryContext, ModDetailModalContext } from "~/context";
+import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamRoutedModal } from "~/utils";
+import { DataRegistryContext } from "~/context";
 import { Modal } from "~/components";
 
 import { ModDetailRootMetaPicker } from "./ModDetailRootMetaPicker";
@@ -21,11 +21,13 @@ import type { ModDetailAlternativesSectionHandle } from "./ModDetailAlternatives
 //================================================
 
 export function ModDetailModal() {
-  const { modDetailTarget, setModDetailTarget } = useContext(ModDetailModalContext);
   const allMods = useAllModsMap();
-  const target = modDetailTarget ? allMods?.get(modDetailTarget) : undefined;
 
-  const [open, mod, TransitionProps] = useModalTarget(target);
+  const [, mod, modalProps] = useSearchParamRoutedModal(
+    MOD_DETAIL_MODAL_SEARCH_PARAM,
+    id => allMods?.get(id),
+    true,
+  );
 
   const alternativesHandleRef = useRef<ModDetailAlternativesSectionHandle | null>(null);
 
@@ -54,17 +56,13 @@ export function ModDetailModal() {
   return (
     <Modal
       id={mod?.id ?? "modDetailModal"}
-      open={open}
-      onClose={() => setModDetailTarget(undefined)}
+      {...modalProps}
       titleText={
         <Grid container spacing={2} alignItems="center">
           <ModDetailRootMetaPicker mod={mod} property="image" />
           <ModDetailRootMetaPicker mod={mod} property="name" />
         </Grid>
       }
-      slotProps={{
-        transition: TransitionProps,
-      }}
     >
       <Grid
         container
