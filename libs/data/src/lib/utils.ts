@@ -23,17 +23,14 @@ export const getPackSupportForConfig = (
   const supportedAlternativeMods: Mod[] = [];
 
   for (const mod of pack.mods) {
-    if (mod.versions.some(ver => ver.gameVersion === gameVersion && ver.loader === loader)) {
+    if (mod.versions.has({ gameVersion, loader })) {
       supportedMods.push(mod);
     } else {
       unsupportedMods.push(mod);
       if (mod.alternatives?.length) {
         const altModMeta = mod.alternatives.reduce<Mod | undefined>((match, alt) => {
           const altMod = getMod(alt);
-          return match ||
-            altMod?.versions?.some(ver => ver.gameVersion === gameVersion && ver.loader === loader)
-            ? altMod
-            : match;
+          return match || altMod?.versions?.has({ gameVersion, loader }) ? altMod : match;
         }, undefined);
         if (altModMeta) {
           supportedAlternativeMods.push(altModMeta);

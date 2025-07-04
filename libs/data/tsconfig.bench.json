@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "module": "commonjs",
+    "moduleResolution": "node10",
+    "types": [
+      "node"
+    ],
+    "verbatimModuleSyntax": false
+  },
+  "include": [
+    "test/**/*.bench.ts",
+    "test/**/*.d.ts"
+  ]
+}
