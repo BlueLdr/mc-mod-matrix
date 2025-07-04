@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { createContext, useCallback, useMemo } from "react";
+import { createContext, useCallback, useEffect, useMemo } from "react";
 
 import { loadStorage, useStorageState } from "~/utils";
 
@@ -30,6 +30,17 @@ export const StorageContext = createContext<StoredDataState>({
 export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
   const { name: currentPackName } = useParams<{ name: string }>();
   const [packs, setPacks_, reloadStorage] = useStorageState(STORAGE_KEY, storedList);
+
+  useEffect(() => {
+    if (!packs) {
+      const existingData = localStorage.getItem(STORAGE_KEY);
+      if (existingData) {
+        localStorage.setItem(`${STORAGE_KEY}-backup-${Date.now()}`, existingData);
+      }
+      setPacks([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setPacks = useCallback(
     (newState: React.SetStateAction<StoredModpack[]>) => {
