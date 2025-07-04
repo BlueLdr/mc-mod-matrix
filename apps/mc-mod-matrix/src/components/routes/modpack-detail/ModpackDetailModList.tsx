@@ -4,7 +4,7 @@ import { Fragment, useContext, useEffect, useState } from "react";
 
 import { classNameWithModifiers, pluralize } from "@mcmm/utils";
 import { ModListItem, ModPicker } from "~/components";
-import { DataContext, DataRegistryContext } from "~/context";
+import { DataRegistryContext, StorageContext } from "~/context";
 import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamSetter } from "~/utils";
 
 import Divider from "@mui/material/Divider";
@@ -27,7 +27,7 @@ export type ModpackDetailModListProps = {
 
 export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
   const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM);
-  const { updatePack } = useContext(DataContext);
+  const { updatePack } = useContext(StorageContext);
   const { dataRegistry } = useContext(DataRegistryContext);
 
   const [editMode, setEditMode] = useState(false);

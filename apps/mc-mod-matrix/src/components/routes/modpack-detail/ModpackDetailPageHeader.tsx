@@ -4,7 +4,7 @@ import { capitalize } from "lodash";
 import { useContext, useRef } from "react";
 
 import { LoaderIcon, ModpackDetailPageContext, ScrollNavContext } from "~/components";
-import { DataContext } from "~/context";
+import { StorageContext } from "~/context";
 import { useStackedStickyElement } from "~/utils";
 
 import Box from "@mui/material/Box";
@@ -18,7 +18,7 @@ import Tab from "@mui/material/Tab";
 //================================================
 
 export function ModpackDetailPageHeader() {
-  const { currentPack: pack } = useContext(DataContext);
+  const { currentPack: pack } = useContext(StorageContext);
   const { currentAnchor } = useContext(ScrollNavContext);
   const { isSingleColumn } = useContext(ModpackDetailPageContext);
 

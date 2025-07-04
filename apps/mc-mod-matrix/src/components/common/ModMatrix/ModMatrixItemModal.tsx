@@ -4,7 +4,8 @@ import { capitalize } from "lodash";
 import { useContext } from "react";
 
 import { Modal, ModpackSupportIssuesList, Unpin } from "~/components";
-import { DataContext } from "~/context";
+import { StorageContext } from "~/context";
+import { useCurrentPackWithData } from "~/data-utils";
 import { useModalTarget } from "~/utils";
 
 import IconButton from "@mui/material/IconButton";
@@ -27,7 +28,8 @@ export function ModMatrixItemModal({
   closeModal,
   separateAltModsList,
 }: ModMatrixItemModalProps) {
-  const { updatePack, currentPack } = useContext(DataContext);
+  const { updatePack } = useContext(StorageContext);
+  const currentPack = useCurrentPackWithData();
   const [open, packSupportMeta, TransitionProps] = useModalTarget(target);
 
   const isPinned =

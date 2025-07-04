@@ -13,7 +13,7 @@ import {
   ModpackSupportIssuesList,
   Unpin,
 } from "~/components";
-import { DataContext } from "~/context";
+import { StorageContext } from "~/context";
 import { usePackSupportMetaList } from "~/data-utils";
 import {
   MOD_DETAIL_MODAL_SEARCH_PARAM,
@@ -54,7 +54,7 @@ const filterTopPercentile = (data: PackSupportMeta[], percentile = 25): PackSupp
 export type ModpackMatrixContentProps = { pack: Modpack };
 
 export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
-  const { updatePack } = useContext(DataContext);
+  const { updatePack } = useContext(StorageContext);
   const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM, true);
   const { setIsSingleColumn, isSingleColumn } = useContext(ModpackDetailPageContext);
 
@@ -219,13 +219,9 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
                 </Card>
               ))
             ) : (
-              <Card sx={{ height: theme => theme.spacing(50) }}>
-                <Grid container alignItems="center" justifyContent="center" height="100%">
-                  <Typography variant="body2" color="textDisabled">
-                    Pin a version from the matrix to have it appear here.
-                  </Typography>
-                </Grid>
-              </Card>
+              <EmptyViewCard sx={{ height: theme => theme.spacing(50), gridColumn: "span 2" }}>
+                Pin a version from the matrix to have it appear here.
+              </EmptyViewCard>
             )}
           </Grid>
         </Grid>

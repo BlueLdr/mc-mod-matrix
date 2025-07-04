@@ -30,7 +30,7 @@ export const getPackSupportForConfig = (
       if (mod.alternatives?.length) {
         const altModMeta = mod.alternatives.reduce<Mod | undefined>((match, alt) => {
           const altMod = getMod(alt);
-          return match || altMod?.versions?.has({ gameVersion, loader }) ? altMod : match;
+          return match || (altMod?.versions?.has({ gameVersion, loader }) ? altMod : match);
         }, undefined);
         if (altModMeta) {
           supportedAlternativeMods.push(altModMeta);

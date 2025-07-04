@@ -2,7 +2,7 @@
 
 import { use, useContext } from "react";
 
-import { DataContext, DataRegistryContext } from "~/context";
+import { DataRegistryContext, StorageContext } from "~/context";
 
 import type { Mod } from "@mcmm/data";
 
@@ -10,7 +10,7 @@ import type { Mod } from "@mcmm/data";
 
 export const useMinVersion = (mod: Mod | undefined) => {
   const { dataRegistry } = useContext(DataRegistryContext);
-  const { currentPack } = useContext(DataContext);
+  const { currentPack } = useContext(StorageContext);
 
   if (currentPack) {
     return currentPack.versions.min;

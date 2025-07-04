@@ -230,6 +230,15 @@ export class DataRegistryHelper {
     }
   }
 
+  public async getModsByIds(ids: string[]) {
+    const entries = await this.db.mods.bulkGet(ids).then(mods => mods.filter(m => !!m));
+    const mods: Mod[] = [];
+    for (const entry of entries) {
+      mods.push(await this.parseModDbEntry(entry));
+    }
+    return mods;
+  }
+
   //================================================
 
   public async updateModMeta(

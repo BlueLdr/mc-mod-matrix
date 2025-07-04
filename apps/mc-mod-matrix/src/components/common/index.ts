@@ -6,6 +6,7 @@ export * from "./Modal";
 export * from "./ModDetailModal";
 export * from "./ModListItem";
 export * from "./ModMatrix";
+export * from "./ModPackList";
 export * from "./ModPicker";
 export * from "./ModpackSupportIssuesList";
 export * from "./VirtualizedListBox";

@@ -4,8 +4,7 @@ import { Fragment, useContext, useEffect, useImperativeHandle, useMemo, useState
 
 import { getUniqueIdForModMetadata } from "@mcmm/data";
 import { ModListItem, ModPicker } from "~/components";
-import { DataRegistryContext } from "~/context";
-import { useAllModsMap } from "~/data-utils";
+import { DataContext, DataRegistryContext } from "~/context";
 import { useMinVersion } from "~/data-utils/useMinVersion";
 import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamSetter } from "~/utils";
 
@@ -43,7 +42,7 @@ export function ModDetailAlternativesSection({
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const allMods = useAllModsMap();
+  const { allMods } = useContext(DataContext);
 
   const minVersion = useMinVersion(mod);
 

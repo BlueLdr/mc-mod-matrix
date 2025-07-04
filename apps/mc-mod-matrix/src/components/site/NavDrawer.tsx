@@ -1,11 +1,10 @@
 "use client";
 
 import { useContext } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
 
-import { useStorageState } from "~/utils";
-import { CreatePackModalContext, DataContext } from "~/context";
+import { ModPackList } from "~/components";
+import { NAV_DRAWER_OPEN_STORAGE_KEY, useStorageState } from "~/utils";
+import { CreatePackModalContext } from "~/context";
 
 import { CreatePackModal } from "./CreatePackModal";
 
@@ -13,38 +12,41 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Add from "@mui/icons-material/Add";
 import Divider from "@mui/material/Divider";
-import ListItemButton from "@mui/material/ListItemButton";
 import Button from "@mui/material/Button";
 import Drawer from "@mui/material/Drawer";
 import Grid from "@mui/material/Grid";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
 import Typography from "@mui/material/Typography";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import Menu from "@mui/icons-material/Menu";
 
 //================================================
 
-const NAV_DRAWER_OPEN_STORAGE_KEY = "nav-drawer-open";
+export type NavDrawerProps = { initialOpen?: boolean };
 
-export function NavDrawer() {
-  const params = useParams<{ name: string }>();
-  const { packs } = useContext(DataContext);
-  const [open, setOpen] = useStorageState(NAV_DRAWER_OPEN_STORAGE_KEY, true);
+export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
   const { setOpen: setCreateModalOpen } = useContext(CreatePackModalContext);
+  const [open, setOpen] = useStorageState(NAV_DRAWER_OPEN_STORAGE_KEY, initialOpen);
+
+  const setDrawerOpen = (value: boolean) => {
+    setOpen(value);
+    fetch("/api/nav", {
+      method: "POST",
+      body: JSON.stringify({ open: value }),
+    });
+  };
 
   return (
     <>
       {!open && (
         <Box position="fixed" top={8} left={8}>
-          <IconButton onClick={() => setOpen(true)} size="small">
+          <IconButton onClick={() => setDrawerOpen(true)} size="small">
             <Menu />
           </IconButton>
         </Box>
       )}
       <Drawer
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => setDrawerOpen(false)}
         className={`mcmm-NavDrawer mcmm-NavDrawer--${open ? "open" : "closed"}`}
         variant="persistent"
         anchor="left"
@@ -62,7 +64,7 @@ export function NavDrawer() {
       >
         <Grid container padding={4} justifyContent="space-between" alignItems="center">
           <Typography variant="h5">MC Mod Matrix</Typography>
-          <IconButton onClick={() => setOpen(false)}>
+          <IconButton onClick={() => setDrawerOpen(false)}>
             <ArrowBack />
           </IconButton>
         </Grid>
@@ -80,19 +82,7 @@ export function NavDrawer() {
             Create new pack
           </Button>
         </Grid>
-        <List>
-          {packs.map(pack => (
-            <ListItem key={pack.name} disablePadding>
-              <ListItemButton
-                selected={pack.name === decodeURIComponent(params.name ?? "")}
-                component={Link}
-                href={`/${encodeURIComponent(pack.name)}`}
-              >
-                {pack.name}
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+        <ModPackList />
         <CreatePackModal />
       </Drawer>
     </>

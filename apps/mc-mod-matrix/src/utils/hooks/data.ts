@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { loadStorage, setStorage } from "../helpers";
 
@@ -30,6 +30,42 @@ export const useStateObject = <T extends object>(initialState: T) => {
   }, []);
   return [state, setState] as const;
 };
+
+//================================================
+
+type PromiseRemote<T> = { resolve: (value: T) => void; reject: (error?: any) => void };
+
+/** Creates a promise that can be resolved/rejected from outside its executor */
+export const useRemotePromise = <T>() => {
+  return useMemo(() => {
+    if (Promise.withResolvers) {
+      const { promise, resolve, reject } = Promise.withResolvers<T>();
+      return [promise, { current: { resolve, reject } }] as const;
+    }
+    const remote = { current: undefined as PromiseRemote<T> | undefined };
+    const promise = new Promise<T>((resolve, reject) => {
+      remote.current = { resolve, reject };
+    });
+    return [promise, remote] as const;
+  }, []);
+  /*
+  const remote = useRef<PromiseRemote<T> | undefined>(undefined);
+  const [promise, setPromise] = useState(() => {
+    const { promise, resolve, reject } = Promise.withResolvers<T>();
+    remote.current = { resolve, reject };
+    return promise;
+  });
+
+  const reset = useCallback(() => {
+    const { promise, resolve, reject } = Promise.withResolvers<T>();
+    setPromise(promise);
+    remote.current = { resolve, reject };
+  }, []);
+
+  return [promise, remote, reset] as const;*/
+};
+
+//================================================
 
 export interface UseStorageStateTransformer<T, S> {
   to: (value: S) => T;

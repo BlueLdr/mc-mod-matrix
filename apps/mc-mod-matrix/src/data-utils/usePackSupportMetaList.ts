@@ -3,10 +3,7 @@
 import { useContext, useMemo } from "react";
 
 import { getPackSupportForConfig } from "@mcmm/data";
-import { gameVersionComparator } from "@mcmm/utils";
-import { DataContext } from "~/context";
-
-import { useAllModsMap } from "./useRegistryData";
+import { DataContext, useVersionRange } from "~/context";
 
 import type { PackSupportMeta, Modpack } from "@mcmm/data";
 
@@ -17,18 +14,9 @@ export const usePackSupportMetaList = (pack: Modpack) => {
     versions: { min: minVersion, max: maxVersion },
     loaders,
   } = pack;
-  const { gameVersions } = useContext(DataContext);
-  const versions = useMemo(
-    () =>
-      gameVersions.filter(
-        ver =>
-          gameVersionComparator(ver, maxVersion) <= 0 &&
-          gameVersionComparator(ver, minVersion) >= 0,
-      ),
-    [gameVersions, minVersion, maxVersion],
-  );
+  const versions = useVersionRange(minVersion, maxVersion);
 
-  const allMods = useAllModsMap();
+  const { allMods } = useContext(DataContext);
 
   return useMemo(
     () =>

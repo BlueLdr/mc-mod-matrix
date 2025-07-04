@@ -9,13 +9,14 @@ import {
   ScrollNavSection,
   useScrollNav,
 } from "~/components";
+import { useStoredPackWithData } from "~/data-utils";
 
 import { ModpackDetailModList } from "./ModpackDetailModList";
 import { ModpackMatrixContent } from "./ModpackMatrixContent";
 
 import Grid from "@mui/material/Grid";
 
-import type { Modpack } from "@mcmm/data";
+import type { StoredModpack } from "@mcmm/data";
 
 //================================================
 
@@ -36,13 +37,18 @@ const MatrixContainer = styled("div")(({ theme }) => ({
 //================================================
 
 export type ModpackDetailPageProps = {
-  pack: Modpack;
+  pack: StoredModpack;
 };
 
-export function ModpackDetailPage({ pack }: ModpackDetailPageProps) {
+export function ModpackDetailPage({ pack: storedPack }: ModpackDetailPageProps) {
   const { isSingleColumn } = useContext(ModpackDetailPageContext);
+  const pack = useStoredPackWithData(storedPack);
 
   const scrollNavSectionProps = useScrollNav({ scrollOffset: -4, disabled: !isSingleColumn });
+
+  if (!pack || !pack.mods) {
+    return "Loading...";
+  }
 
   return (
     <Grid container flexWrap="wrap" sx={theme => ({ gap: theme.sizes.modDetail.spacing })}>
@@ -52,7 +58,7 @@ export function ModpackDetailPage({ pack }: ModpackDetailPageProps) {
       <ScrollNavSection id="matrix" {...scrollNavSectionProps} component={MatrixContainer}>
         <ModpackMatrixContent pack={pack} />
       </ScrollNavSection>
-      {pack.mods.length === 0 && (
+      {pack?.mods?.length === 0 && (
         <EmptyViewCard sx={{ height: theme => theme.spacing(100), flex: "1 1 100%" }}>
           Add some more mods to view mod support data.
         </EmptyViewCard>

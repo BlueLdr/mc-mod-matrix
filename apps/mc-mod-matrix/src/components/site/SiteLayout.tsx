@@ -2,13 +2,17 @@
 
 import styled from "@emotion/styled";
 
+import {
+  CommonProvider,
+  CreatePackModalProvider,
+  DataRegistryProvider,
+  StorageProvider,
+} from "~/context";
 import { ModDetailModal } from "~/components";
-import { CreatePackModalProvider, DataProvider, DataRegistryProvider } from "~/context";
 
 import { NavDrawer } from "./NavDrawer";
 
 import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
 
 import type { WithChildren } from "@mcmm/types";
 
@@ -36,23 +40,26 @@ Body.displayName = "Body";
 
 //================================================
 
-export type SiteLayoutProps = WithChildren;
+export type SiteLayoutProps = WithChildren & {
+  initialNavOpen?: boolean;
+};
 
-export function SiteLayout({ children }: SiteLayoutProps) {
+export function SiteLayout({ initialNavOpen, children }: SiteLayoutProps) {
   return (
-    <DataRegistryProvider>
-      <DataProvider>
-        <CreatePackModalProvider>
-          <CssBaseline />
-          <NavDrawer />
-          <Box display="flex" flexDirection="column" minHeight="100vh">
-            <SiteContainer flexGrow={1}>
-              <Body>{children}</Body>
-            </SiteContainer>
-          </Box>
-          <ModDetailModal />
-        </CreatePackModalProvider>
-      </DataProvider>
-    </DataRegistryProvider>
+    <CommonProvider>
+      <StorageProvider>
+        <DataRegistryProvider>
+          <CreatePackModalProvider>
+            <NavDrawer initialOpen={initialNavOpen} />
+            <Box display="flex" flexDirection="column" minHeight="100vh">
+              <SiteContainer flexGrow={1}>
+                <Body>{children}</Body>
+              </SiteContainer>
+            </Box>
+            <ModDetailModal />
+          </CreatePackModalProvider>
+        </DataRegistryProvider>
+      </StorageProvider>
+    </CommonProvider>
   );
 }

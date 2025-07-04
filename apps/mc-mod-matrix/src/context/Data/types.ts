@@ -1,13 +1,8 @@
-import type { GameVersion, Modpack, StoredModpack } from "@mcmm/data";
+import type { Mod } from "@mcmm/data";
+import type Immutable from "immutable";
 
 //================================================
 
-export interface StoredDataState {
-  currentPack: Modpack | undefined;
-  packs: Modpack[];
-  setPacks: React.Dispatch<React.SetStateAction<StoredModpack[]>>;
-  addPack: (pack: Modpack) => void;
-  removePack: (name: string) => void;
-  updatePack: (pack: Modpack) => void;
-  gameVersions: GameVersion[];
+export interface AppDataState {
+  allMods: Immutable.Map<string, Mod> | undefined;
 }

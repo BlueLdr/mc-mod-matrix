@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { useContext } from "react";
 
 import { ModpackDetailPage } from "~/components";
-import { DataContext } from "~/context";
+import { DataProvider, StorageContext } from "~/context";
 
 import type { PageProps } from "~/utils";
 
@@ -15,10 +15,14 @@ export type ModpackDetailPageProps = PageProps<{
 }>;
 
 export default function ModpackDetailRoutePage({ params }: ModpackDetailPageProps) {
-  const { currentPack } = useContext(DataContext);
+  const { currentPack } = useContext(StorageContext);
   if (!currentPack) {
     return "window" in global ? notFound() : null;
   }
 
-  return <ModpackDetailPage pack={currentPack} />;
+  return (
+    <DataProvider>
+      <ModpackDetailPage pack={currentPack} />
+    </DataProvider>
+  );
 }

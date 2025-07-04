@@ -4,9 +4,9 @@ import { values } from "lodash";
 import { useCallback, useContext, useRef } from "react";
 
 import { Platform, PlatformModMetadataCollection } from "@mcmm/data";
-import { useAllModsMap, useMinVersion } from "~/data-utils";
+import { useMinVersion } from "~/data-utils";
 import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamRoutedModal } from "~/utils";
-import { DataRegistryContext } from "~/context";
+import { DataContext, DataRegistryContext } from "~/context";
 import { Modal } from "~/components";
 
 import { ModDetailRootMetaPicker } from "./ModDetailRootMetaPicker";
@@ -21,7 +21,7 @@ import type { ModDetailAlternativesSectionHandle } from "./ModDetailAlternatives
 //================================================
 
 export function ModDetailModal() {
-  const allMods = useAllModsMap();
+  const { allMods } = useContext(DataContext);
 
   const [, mod, modalProps] = useSearchParamRoutedModal(
     MOD_DETAIL_MODAL_SEARCH_PARAM,

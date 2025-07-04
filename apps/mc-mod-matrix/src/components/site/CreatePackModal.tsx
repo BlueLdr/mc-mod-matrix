@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { makeRecordFromEntries } from "@mcmm/utils";
 import { ModLoader } from "@mcmm/data";
 import { useStateObject } from "~/utils";
-import { CreatePackModalContext, DataContext } from "~/context";
+import { CommonContext, CreatePackModalContext, StorageContext } from "~/context";
 import { LoaderIcon, Modal } from "~/components";
 
 import Box from "@mui/material/Box";
@@ -49,7 +49,8 @@ export function CreatePackModal() {
   const { open, setOpen } = useContext(CreatePackModalContext);
   const [formData, setFormData] = useStateObject(defaultFormData);
 
-  const { addPack, gameVersions } = useContext(DataContext);
+  const { gameVersions } = useContext(CommonContext);
+  const { addPack } = useContext(StorageContext);
   const allowSubmit =
     !!formData.name &&
     !!formData.versions.min &&

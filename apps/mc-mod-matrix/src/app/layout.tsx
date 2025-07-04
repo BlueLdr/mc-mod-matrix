@@ -1,8 +1,12 @@
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { Roboto } from "next/font/google";
+import { cookies } from "next/headers";
 
 import { ThemeProvider } from "~/theme";
 import { SiteLayout } from "~/components";
+import { NAV_DRAWER_OPEN_STORAGE_KEY } from "~/utils";
+
+import CssBaseline from "@mui/material/CssBaseline";
 
 import type { Metadata } from "next";
 
@@ -24,18 +28,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const initialNavOpen = `${cookieStore.get(NAV_DRAWER_OPEN_STORAGE_KEY)?.value}` === "true";
+
   return (
     <html lang="en" className={roboto.variable} suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <div id="root">
           <AppRouterCacheProvider>
             <ThemeProvider>
-              <SiteLayout>{children}</SiteLayout>
+              <CssBaseline />
+              <SiteLayout initialNavOpen={initialNavOpen}>{children}</SiteLayout>
             </ThemeProvider>
           </AppRouterCacheProvider>
         </div>
