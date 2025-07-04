@@ -2,13 +2,14 @@
 
 import styled from "@emotion/styled";
 
+import { ModDetailModal } from "~/components";
 import {
   CommonProvider,
   CreatePackModalProvider,
+  DataProvider,
   DataRegistryProvider,
   StorageProvider,
 } from "~/context";
-import { ModDetailModal } from "~/components";
 
 import { NavDrawer } from "./NavDrawer";
 
@@ -49,15 +50,17 @@ export function SiteLayout({ initialNavOpen, children }: SiteLayoutProps) {
     <CommonProvider>
       <StorageProvider>
         <DataRegistryProvider>
-          <CreatePackModalProvider>
-            <NavDrawer initialOpen={initialNavOpen} />
-            <Box display="flex" flexDirection="column" minHeight="100vh">
-              <SiteContainer flexGrow={1}>
-                <Body>{children}</Body>
-              </SiteContainer>
-            </Box>
-            <ModDetailModal />
-          </CreatePackModalProvider>
+          <DataProvider>
+            <CreatePackModalProvider>
+              <NavDrawer initialOpen={initialNavOpen} />
+              <Box display="flex" flexDirection="column" minHeight="100vh">
+                <SiteContainer flexGrow={1}>
+                  <Body>{children}</Body>
+                </SiteContainer>
+              </Box>
+              <ModDetailModal />
+            </CreatePackModalProvider>
+          </DataProvider>
         </DataRegistryProvider>
       </StorageProvider>
     </CommonProvider>

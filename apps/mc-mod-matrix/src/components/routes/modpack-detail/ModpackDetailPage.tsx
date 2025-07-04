@@ -42,13 +42,9 @@ export type ModpackDetailPageProps = {
 
 export function ModpackDetailPage({ pack: storedPack }: ModpackDetailPageProps) {
   const { isSingleColumn } = useContext(ModpackDetailPageContext);
-  const pack = useStoredPackWithData(storedPack);
-
   const scrollNavSectionProps = useScrollNav({ scrollOffset: -4, disabled: !isSingleColumn });
 
-  if (!pack || !pack.mods) {
-    return "Loading...";
-  }
+  const pack = useStoredPackWithData(storedPack);
 
   return (
     <Grid container flexWrap="wrap" sx={theme => ({ gap: theme.sizes.modDetail.spacing })}>

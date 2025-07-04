@@ -7,6 +7,8 @@ import { LoaderIcon, ModpackDetailPageContext, ScrollNavContext } from "~/compon
 import { StorageContext } from "~/context";
 import { useStackedStickyElement } from "~/utils";
 
+import { ModpackDetailPageHeaderLoading } from "./ModpackDetailPageHeader.loading";
+
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import Tabs from "@mui/material/Tabs";
@@ -26,7 +28,7 @@ export function ModpackDetailPageHeader() {
   const rootStyle = useStackedStickyElement(ref.current);
 
   if (!pack) {
-    return null;
+    return <ModpackDetailPageHeaderLoading />;
   }
 
   return (

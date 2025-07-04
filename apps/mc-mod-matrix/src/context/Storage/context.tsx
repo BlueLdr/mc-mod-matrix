@@ -13,7 +13,7 @@ import type { StoredDataState } from "./types";
 
 const STORAGE_KEY = "storage";
 
-const storedList = loadStorage(STORAGE_KEY, [] as StoredModpack[]);
+const storedList = loadStorage<StoredModpack[]>(STORAGE_KEY);
 
 export const StorageContext = createContext<StoredDataState>({
   currentPack: undefined,
@@ -29,7 +29,19 @@ export const StorageContext = createContext<StoredDataState>({
 
 export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
   const { name: currentPackName } = useParams<{ name: string }>();
-  const [packs, setPacks, reloadStorage] = useStorageState(STORAGE_KEY, storedList);
+  const [packs, setPacks_, reloadStorage] = useStorageState(STORAGE_KEY, storedList);
+
+  const setPacks = useCallback(
+    (newState: React.SetStateAction<StoredModpack[]>) => {
+      setPacks_((prevState = []) => {
+        if (typeof newState === "function") {
+          return newState(prevState);
+        }
+        return newState;
+      });
+    },
+    [setPacks_],
+  );
 
   const addPack = useCallback(
     (newPack: Modpack | StoredModpack) =>
@@ -63,7 +75,7 @@ export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
 
   const value = useMemo(
     () => ({
-      currentPack: packs.find(p => p.name === decodeURIComponent(currentPackName ?? "")),
+      currentPack: packs?.find(p => p.name === decodeURIComponent(currentPackName ?? "")),
       packs,
       setPacks,
       addPack,

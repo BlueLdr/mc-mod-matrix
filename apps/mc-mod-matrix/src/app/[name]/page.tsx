@@ -3,8 +3,8 @@
 import { notFound } from "next/navigation";
 import { useContext } from "react";
 
-import { ModpackDetailPage } from "~/components";
-import { DataProvider, StorageContext } from "~/context";
+import { ModpackDetailPage, ModpackDetailPageLoading, SkeletonFade } from "~/components";
+import { DataInitializer, StorageContext } from "~/context";
 
 import type { PageProps } from "~/utils";
 
@@ -21,8 +21,14 @@ export default function ModpackDetailRoutePage({ params }: ModpackDetailPageProp
   }
 
   return (
-    <DataProvider>
-      <ModpackDetailPage pack={currentPack} />
-    </DataProvider>
+    <DataInitializer
+      initialLoadingView={
+        <SkeletonFade sx={{ maxHeight: `calc(100vh - 12rem)` }}>
+          <ModpackDetailPageLoading />
+        </SkeletonFade>
+      }
+    >
+      <ModpackDetailPage pack={currentPack} />;
+    </DataInitializer>
   );
 }

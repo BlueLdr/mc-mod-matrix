@@ -18,7 +18,7 @@
     "build": {
       "executor": "@nx/next:build",
       "dependsOn": [
-        "worker"
+        "build:worker"
       ],
       "outputs": [
         "{options.outputPath}"
@@ -74,6 +74,12 @@
       "outputs": [
         "{options.outputFile}"
       ]
+    },
+    "build:worker": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx nx run mc-mod-matrix:worker:production"
+      }
     },
     "worker": {
       "executor": "@nx/webpack:webpack",
