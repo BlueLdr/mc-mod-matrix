@@ -32,3 +32,11 @@ export interface DataRegistryDb extends Dexie, PlatformManagerDb {
   lastRefresh: number;
   mods: EntityTable<ModDbEntry, "id">;
 }
+
+//================================================
+
+export interface DataRefreshProgressData {
+  total: number;
+  current?: { index: number; name: string };
+  complete: boolean;
+}

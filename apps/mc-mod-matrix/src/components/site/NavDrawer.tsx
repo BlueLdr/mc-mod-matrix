@@ -7,6 +7,7 @@ import { NAV_DRAWER_OPEN_STORAGE_KEY, useStorageState } from "~/utils";
 import { CreatePackModalContext } from "~/context";
 
 import { CreatePackModal } from "./CreatePackModal";
+import { DataRefreshIndicator } from "./DataRefreshIndicator";
 
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -38,11 +39,16 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
   return (
     <>
       {!open && (
-        <Box position="fixed" top={8} left={8}>
-          <IconButton onClick={() => setDrawerOpen(true)} size="small">
-            <Menu />
-          </IconButton>
-        </Box>
+        <>
+          <Box position="fixed" top={8} left={8}>
+            <IconButton onClick={() => setDrawerOpen(true)} size="small">
+              <Menu />
+            </IconButton>
+          </Box>
+          <Box position="fixed" bottom={12} left={8}>
+            <DataRefreshIndicator variant="circular" />
+          </Box>
+        </>
       )}
       <Drawer
         open={open}
@@ -82,7 +88,10 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
             Create new pack
           </Button>
         </Grid>
-        <ModPackList />
+        <Grid overflow="auto" flexGrow={1}>
+          <ModPackList />
+        </Grid>
+        <DataRefreshIndicator />
         <CreatePackModal />
       </Drawer>
     </>

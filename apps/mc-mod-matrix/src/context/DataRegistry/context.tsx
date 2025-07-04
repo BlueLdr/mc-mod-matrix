@@ -13,14 +13,16 @@ import type { DataRegistryContextState } from "./types";
 export const DataRegistryContext = createContext<DataRegistryContextState>({
   getDataRegistry: () => new Promise<DataRegistry>(() => undefined),
   dataRegistry: undefined,
-  isRefreshing: false,
+  refreshProgress: undefined,
+  clearRefreshProgress: () => undefined,
   worker: { current: null },
 });
 
 export function DataRegistryProvider({ children }: WithChildren) {
   const workerRef = useRef<Worker>(null);
   const [dataRegistry, setDataRegistry] = useState<DataRegistry>();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshProgress, setRefreshProgress] =
+    useState<DataRegistryContextState["refreshProgress"]>();
   const [promise, remoteRef] = useRemotePromise<DataRegistry>();
   useEffect(() => {
     const dataRegistry = new DataRegistry();
@@ -30,9 +32,11 @@ export function DataRegistryProvider({ children }: WithChildren) {
     workerRef.current = new window.Worker("/workers/worker.js");
     workerRef.current.postMessage({ init: true });
     workerRef.current.addEventListener("message", e => {
-      console.log(`[DataRegistry Worker]`, e.data.message);
-      if ("inProgress" in e.data) {
-        setIsRefreshing(!!e.data.inProgress);
+      if (e.data.message) {
+        console.log(`[DataRegistry Worker]`, e.data.message);
+      }
+      if ("progress" in e.data) {
+        setRefreshProgress(e.data.progress);
       }
     });
     return () => workerRef.current?.terminate();
@@ -44,10 +48,11 @@ export function DataRegistryProvider({ children }: WithChildren) {
     () => ({
       getDataRegistry,
       dataRegistry,
-      isRefreshing,
+      refreshProgress,
+      clearRefreshProgress: () => setRefreshProgress(undefined),
       worker: workerRef,
     }),
-    [dataRegistry, isRefreshing, getDataRegistry],
+    [dataRegistry, refreshProgress, getDataRegistry],
   );
 
   return <DataRegistryContext.Provider value={value}>{children}</DataRegistryContext.Provider>;

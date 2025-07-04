@@ -28,7 +28,7 @@ export default function ModpackDetailRoutePage({ params }: ModpackDetailPageProp
         </SkeletonFade>
       }
     >
-      <ModpackDetailPage pack={currentPack} />;
+      <ModpackDetailPage pack={currentPack} />
     </DataInitializer>
   );
 }

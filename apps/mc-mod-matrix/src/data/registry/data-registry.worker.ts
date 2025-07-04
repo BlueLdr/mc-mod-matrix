@@ -3,7 +3,11 @@ import { PlatformModMetadataCollection } from "@mcmm/data";
 import { platformManager } from "../manager";
 import { loadDataRegistryDb } from "./storage";
 
-import type { PlatformModDbEntry, PlatformModVersionDbEntry } from "~/data";
+import type {
+  DataRefreshProgressData,
+  PlatformModDbEntry,
+  PlatformModVersionDbEntry,
+} from "~/data";
 
 //================================================
 
@@ -32,6 +36,16 @@ const initializeTask = () => {
       if (!record) {
         return;
       }
+      postMessage({
+        progress: {
+          total: records.length,
+          complete: false,
+          current: {
+            index: records.length - map.size,
+            name: record.meta.modName,
+          },
+        } satisfies DataRefreshProgressData,
+      });
       console.groupCollapsed(`Refreshing versions for mod "${record.meta.modName}"...`);
 
       // get corresponding mod record
@@ -103,9 +117,21 @@ const initializeTask = () => {
         `Oldest data is from ${new Date(outdatedRecords[0].meta.lastUpdated ?? 0)}, need to refresh`,
         outdatedRecords,
       );
-      postMessage({ message: "Starting registry refresh...", inProgress: true });
+      postMessage({
+        message: "Starting registry refresh...",
+        progress: {
+          total: outdatedRecords.length,
+          complete: false,
+        } satisfies DataRefreshProgressData,
+      });
       await doRefresh(outdatedRecords);
-      postMessage({ message: "Finished registry refresh.", inProgress: false });
+      postMessage({
+        message: "Finished registry refresh.",
+        progress: {
+          total: outdatedRecords.length,
+          complete: true,
+        } satisfies DataRefreshProgressData,
+      });
 
       refreshTimer = setInterval(maybeRefresh, REFRESH_INTERVAL);
     }

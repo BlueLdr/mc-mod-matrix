@@ -56,16 +56,22 @@ export function ModpackSupportIssuesList({
   return (
     <Grid container direction="column" spacing={4}>
       {unsupportedCount > 0 ? (
-        <Typography variant="body1">
-          {totalSupportedCount} of {totalModCount}{" "}
-          {pluralize(
-            "mod",
-            packSupportMeta.supportedMods.length + packSupportMeta.supportedAlternativeMods.length,
-          )}{" "}
-          supported
-          {packSupportMeta.supportedAlternativeMods.length
-            ? ` (${packSupportMeta.supportedAlternativeMods.length} ${pluralize("alternative", packSupportMeta.supportedAlternativeMods.length)} used)`
-            : ""}
+        <Typography variant="body1" component="div">
+          <div>
+            {totalSupportedCount} of {totalModCount}{" "}
+            {pluralize(
+              "mod",
+              packSupportMeta.supportedMods.length +
+                packSupportMeta.supportedAlternativeMods.length,
+            )}{" "}
+            supported
+          </div>
+          {packSupportMeta.supportedAlternativeMods.length ? (
+            <div>
+              {packSupportMeta.supportedAlternativeMods.length}{" "}
+              {pluralize("alternative", packSupportMeta.supportedAlternativeMods.length)} used
+            </div>
+          ) : null}
         </Typography>
       ) : (
         <Grid
