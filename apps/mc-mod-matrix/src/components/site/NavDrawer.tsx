@@ -45,6 +45,7 @@ export function NavDrawer() {
       <Drawer
         open={open}
         onClose={() => setOpen(false)}
+        className={`mcmm-NavDrawer mcmm-NavDrawer--${open ? "open" : "closed"}`}
         variant="persistent"
         anchor="left"
         sx={theme => ({
@@ -59,7 +60,7 @@ export function NavDrawer() {
         }}
         style={{ width: open ? "20rem" : "0rem" }}
       >
-        <Grid container padding={4} justifyContent="space-between">
+        <Grid container padding={4} justifyContent="space-between" alignItems="center">
           <Typography variant="h5">MC Mod Matrix</Typography>
           <IconButton onClick={() => setOpen(false)}>
             <ArrowBack />

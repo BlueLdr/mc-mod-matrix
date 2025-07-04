@@ -139,7 +139,7 @@ export function ModDetailAlternativesSection({
           />
         )}
         {
-          <Card sx={{ paddingInline: 4 }}>
+          <Card>
             {value.length > 0 ? (
               <List>
                 {value.map((item, index) => {
@@ -150,15 +150,17 @@ export function ModDetailAlternativesSection({
                       <ModListItem
                         key={metaId}
                         mod={item}
-                        showPlatforms="link"
-                        onClick={() => setModDetailTarget(item.id)}
                         sx={{
+                          paddingLeft: 4,
+                          paddingRight: editMode ? 12 : 4,
                           "&:not(:hover) .mcmm-ModListItem__alternatives--empty": {
                             display: "none",
                           },
                         }}
                         {...(editMode
                           ? {
+                              link: false,
+                              showPlatforms: true,
                               onRemove: async modMeta => {
                                 const mod = await dataRegistry?.helper.getModByMeta(modMeta);
                                 setAlternatives(list => list.filter(id => id !== mod?.id));
@@ -166,6 +168,8 @@ export function ModDetailAlternativesSection({
                             }
                           : {
                               link: item.id,
+                              showPlatforms: "link",
+                              onClick: () => setModDetailTarget(item.id),
                             })}
                       />
                     </Fragment>
@@ -174,7 +178,12 @@ export function ModDetailAlternativesSection({
                 {loadingMod && (
                   <>
                     {alternatives.length > 0 && <Divider />}
-                    <ModListItem mod={loadingMod} showPlatforms loading />
+                    <ModListItem
+                      mod={loadingMod}
+                      showPlatforms
+                      loading
+                      sx={{ paddingLeft: 4, paddingRight: editMode ? 12 : 4 }}
+                    />
                   </>
                 )}
               </List>

@@ -6,9 +6,21 @@ import {
 
 import Container from "@mui/material/Container";
 
+import type { Metadata } from "next";
 import type { WithChildren } from "@mcmm/types";
+import type { PageProps } from "~/utils";
 
 //================================================
+
+export type ModpackDetailPageProps = PageProps<{
+  name: string;
+}>;
+
+export async function generateMetadata({ params }: ModpackDetailPageProps): Promise<Metadata> {
+  return {
+    title: decodeURIComponent((await params).name),
+  };
+}
 
 export default function ModpackDetailPageLayout({ children }: WithChildren) {
   return (

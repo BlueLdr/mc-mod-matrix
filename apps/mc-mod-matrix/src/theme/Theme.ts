@@ -2,6 +2,7 @@
 
 import { createTheme, unstable_createMuiStrictModeTheme } from "@mui/material/styles";
 
+import { createSizes } from "./sizes";
 import { colors } from "./colors";
 
 import ExpandMore from "@mui/icons-material/ExpandMore";
@@ -132,8 +133,15 @@ export const MuiTheme = createMuiThemeForEnvironment({
         }),
       },
     },
+    MuiSkeleton: {
+      defaultProps: {
+        animation: "wave",
+      },
+    },
   },
 });
+
+MuiTheme.sizes = createSizes(MuiTheme);
 
 // type Override = Exclude<EntryOf<ComponentsOverrides<Theme>>, undefined>;
 // (Object.entries(overrides) as Override[]).forEach(([key, styles]) => {

@@ -8,10 +8,31 @@ export const createSizes = (theme: Theme) =>
       height: theme.spacing(15),
     },
     siteNavBar: {
-      height: theme.spacing(12),
+      width: theme.spacing(80),
     },
     tabBar: {
       height: theme.spacing(9.5),
+    },
+    modDetail: {
+      spacing: 4,
+      container: {
+        ["@media (min-width: 600px)"]: {
+          px: 6,
+        },
+        ["@media (max-width: 599px)"]: {
+          px: 4,
+        },
+      },
+      list: {
+        minWidth: 400,
+        flexBasis: 500,
+        flexGrow: 2,
+      },
+      matrix: {
+        minWidth: 440,
+        flexBasis: 440,
+        flexGrow: 3,
+      },
     },
     pageContainer: {
       padding: {
@@ -25,7 +46,6 @@ export const createSizes = (theme: Theme) =>
     get pageContent() {
       const total = [
         this.siteHeader.height,
-        this.siteNavBar.height,
         this.tabBar.height,
         this.pageContainer.padding.y,
         this.pageContainer.padding.y,

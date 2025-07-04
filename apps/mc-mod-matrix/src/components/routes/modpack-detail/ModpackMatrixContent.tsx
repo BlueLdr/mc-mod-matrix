@@ -5,6 +5,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 
 import { comparator } from "@mcmm/utils";
 import {
+  EmptyViewCard,
   MatrixOverflowContainer,
   ModMatrix,
   ModMatrixItemModal,
@@ -36,10 +37,11 @@ import type { Modpack, PackSupportMeta } from "@mcmm/data";
 //================================================
 
 const filterTopPercentile = (data: PackSupportMeta[], percentile = 25): PackSupportMeta[] => {
+  const endIndex = Math.round(data.length / (100 / percentile));
   const bestItems = data
     .slice()
     .sort(comparator("desc", item => Math.max(item.percentage, item.percentageWithAlternatives)))
-    .slice(0, Math.round(data.length / (100 / percentile)));
+    .filter((item, index) => item.percentage === 1 || index < endIndex);
 
   const bestLoaders = new Set(bestItems.map(item => item.loader));
   const bestVersions = new Set(bestItems.map(item => item.gameVersion));
@@ -83,7 +85,7 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
   );
 
   useEffect(() => {
-    if (!pack.pinnedVersions) {
+    if (!pack.pinnedVersions && pack.mods.length > 1) {
       const bestItemsSorted = filteredList
         .slice()
         .sort(
@@ -128,83 +130,110 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
 
   return (
     <Grid container direction="column" spacing={4} mt={6} ref={ref}>
-      <Grid container spacing={8} justifyContent="space-between">
+      <Grid
+        container
+        spacing={8}
+        justifyContent="space-between"
+        sx={{ height: theme => theme.spacing(9) }}
+      >
         {/*<Grid>*/}
         <Typography variant="h6">Mod support matrix</Typography>
         {/*<Typography variant="body2">Total mods: {pack.mods.length}</Typography>*/}
         {/*</Grid>*/}
         {/*<Grid>*/}
-        <Typography component="label" variant="caption">
-          <Switch checked={showAll} onChange={(_, checked) => setShowAll(checked)} />
-          Show all versions
-        </Typography>
+        {pack.mods.length > 1 ? (
+          <Typography component="label" variant="caption">
+            <Switch checked={showAll} onChange={(_, checked) => setShowAll(checked)} />
+            Show all versions
+          </Typography>
+        ) : (
+          <div />
+        )}
         {/*</Grid>*/}
       </Grid>
-      <Grid
-        container
-        spacing={4}
-        maxWidth="100%"
-        sx={
-          isSingleColumn
-            ? {}
-            : {
-                flexWrap: "wrap",
-                flexDirection: "column",
-              }
-        }
-      >
-        <Grid
-          flex="1 0 0"
-          maxWidth="100%"
-          minWidth="100%"
-          display="grid"
-          gridTemplateColumns="minmax(0, 1fr)"
-        >
-          <MatrixOverflowContainer>{matrix}</MatrixOverflowContainer>
-        </Grid>
+      {pack.mods.length > 1 ? (
         <Grid
           container
-          display="grid"
-          flex={isSingleColumn ? "1 0 max(50%, 400px)" : undefined}
           spacing={4}
-          gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
-          gridAutoRows="minmax(0, min-content)"
           maxWidth="100%"
-        >
-          {pinnedItems?.map(item => (
-            <Card
-              key={`${item.loader}${item.gameVersion}`}
-              sx={{
-                maxWidth: "100%",
-                "& .MuiPaper-root": { backgroundColor: theme => theme.palette.background.layer },
-              }}
-            >
-              <CardHeader
-                title={`${capitalize(item.loader)} ${item.gameVersion}`}
-                action={
-                  <Tooltip title="Unpin this version">
-                    <IconButton onClick={() => unpinVersion(item)}>
-                      <Unpin
-                        sx={{
-                          "&:not(:hover):not(:active)": {
-                            color: theme => theme.palette.action.disabled,
-                          },
-                        }}
-                      />
-                    </IconButton>
-                  </Tooltip>
+          sx={
+            isSingleColumn
+              ? {}
+              : {
+                  flexWrap: "wrap",
+                  flexDirection: "column",
                 }
-              />
-              <CardContent>
-                <ModpackSupportIssuesList
-                  packSupportMeta={item}
-                  onClickItem={mod => setModDetailTarget(mod.id)}
-                />
-              </CardContent>
-            </Card>
-          ))}
+          }
+        >
+          <Grid
+            flex="1 0 0"
+            maxWidth="100%"
+            minWidth="100%"
+            display="grid"
+            gridTemplateColumns="minmax(0, 1fr)"
+          >
+            <MatrixOverflowContainer>{matrix}</MatrixOverflowContainer>
+          </Grid>
+          <Grid
+            container
+            display="grid"
+            flex={isSingleColumn ? "1 0 max(50%, 400px)" : undefined}
+            spacing={4}
+            gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+            gridAutoRows="minmax(0, min-content)"
+            maxWidth="100%"
+          >
+            {pinnedItems?.length ? (
+              pinnedItems?.map(item => (
+                <Card
+                  key={`${item.loader}${item.gameVersion}`}
+                  sx={{
+                    maxWidth: "100%",
+                    "& .MuiPaper-root": {
+                      backgroundColor: theme => theme.palette.background.layer,
+                    },
+                  }}
+                >
+                  <CardHeader
+                    title={`${capitalize(item.loader)} ${item.gameVersion}`}
+                    action={
+                      <Tooltip title="Unpin this version">
+                        <IconButton onClick={() => unpinVersion(item)}>
+                          <Unpin
+                            sx={{
+                              "&:not(:hover):not(:active)": {
+                                color: theme => theme.palette.action.disabled,
+                              },
+                            }}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                  />
+                  <CardContent>
+                    <ModpackSupportIssuesList
+                      packSupportMeta={item}
+                      onClickItem={mod => setModDetailTarget(mod.id)}
+                    />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card sx={{ height: theme => theme.spacing(50) }}>
+                <Grid container alignItems="center" justifyContent="center" height="100%">
+                  <Typography variant="body2" color="textDisabled">
+                    Pin a version from the matrix to have it appear here.
+                  </Typography>
+                </Grid>
+              </Card>
+            )}
+          </Grid>
         </Grid>
-      </Grid>
+      ) : pack.mods.length > 0 ? (
+        <EmptyViewCard sx={{ height: theme => theme.spacing(80) }}>
+          Add some more mods to view mod support data.
+        </EmptyViewCard>
+      ) : null}
       <ModMatrixItemModal
         packSupportMeta={detailTarget}
         closeModal={() => setDetailTarget(undefined)}

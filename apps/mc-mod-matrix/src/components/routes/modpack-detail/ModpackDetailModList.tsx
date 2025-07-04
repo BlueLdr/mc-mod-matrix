@@ -56,7 +56,7 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
   return (
     <Box marginBlock={6}>
       <Grid container mb={4} justifyContent="space-between" alignItems="center">
-        <Grid container alignItems="center" spacing={3}>
+        <Grid container alignItems="center" spacing={3} sx={{ height: theme => theme.spacing(9) }}>
           <Typography variant="h6">Mods</Typography>
           <Typography variant="overline">{modList.length}</Typography>
         </Grid>
@@ -77,7 +77,6 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
       </Grid>
       {editMode && (
         <ModPicker
-          open
           size="small"
           value={modList}
           onChange={(_, newValue, __, details) => {
@@ -93,54 +92,61 @@ export function ModpackDetailModList({ pack }: ModpackDetailModListProps) {
           }}
         />
       )}
-      <Card sx={{ marginBlock: 4 }}>
-        <List>
-          {modList.map((item, index) => (
-            <Fragment key={item.id}>
-              {index > 0 && <Divider />}
-              <ModListItem
-                key={item.id}
-                mod={item}
-                showPlatforms="link"
-                onClick={() => setModDetailTarget(item.id)}
-                sx={{ paddingLeft: 4, paddingRight: editMode ? 12 : 4 }}
-                onRemove={
-                  editMode
-                    ? () => setModList(list => list.filter(m => m.id !== item.id))
-                    : undefined
-                }
-                contentRight={
-                  editMode ? undefined : (
-                    <Grid
-                      maxHeight={24}
-                      className={classNameWithModifiers(
-                        "mcmm-ModListItem__alternatives",
-                        { "--empty": !item.alternatives?.length },
-                        true,
-                      )}
-                    >
-                      {!!item.alternatives?.length && (
-                        <Chip
-                          variant="outlined"
-                          size="small"
-                          color="primary"
-                          label={`${item.alternatives.length} ${pluralize("Alternative", item.alternatives.length)}`}
-                        />
-                      )}
-                    </Grid>
-                  )
-                }
-              />
-            </Fragment>
-          ))}
-          {loadingMod && (
-            <>
-              {modList.length > 0 && <Divider />}
-              <ModListItem mod={loadingMod} showPlatforms loading />
-            </>
-          )}
-        </List>
-      </Card>
+      {modList.length > 0 && (
+        <Card sx={{ marginBlock: 4 }}>
+          <List>
+            {modList.map((item, index) => (
+              <Fragment key={item.id}>
+                {index > 0 && <Divider />}
+                <ModListItem
+                  key={item.id}
+                  mod={item}
+                  showPlatforms="link"
+                  onClick={() => setModDetailTarget(item.id)}
+                  sx={{ paddingLeft: 4, paddingRight: editMode ? 12 : 4 }}
+                  onRemove={
+                    editMode
+                      ? () => setModList(list => list.filter(m => m.id !== item.id))
+                      : undefined
+                  }
+                  contentRight={
+                    editMode ? undefined : (
+                      <Grid
+                        maxHeight={24}
+                        className={classNameWithModifiers(
+                          "mcmm-ModListItem__alternatives",
+                          { "--empty": !item.alternatives?.length },
+                          true,
+                        )}
+                      >
+                        {!!item.alternatives?.length && (
+                          <Chip
+                            variant="outlined"
+                            size="small"
+                            color="primary"
+                            label={`${item.alternatives.length} ${pluralize("Alternative", item.alternatives.length)}`}
+                          />
+                        )}
+                      </Grid>
+                    )
+                  }
+                />
+              </Fragment>
+            ))}
+            {loadingMod && (
+              <>
+                {modList.length > 0 && <Divider />}
+                <ModListItem
+                  mod={loadingMod}
+                  showPlatforms
+                  loading
+                  sx={{ paddingLeft: 4, paddingRight: editMode ? 12 : 4 }}
+                />
+              </>
+            )}
+          </List>
+        </Card>
+      )}
     </Box>
   );
 }

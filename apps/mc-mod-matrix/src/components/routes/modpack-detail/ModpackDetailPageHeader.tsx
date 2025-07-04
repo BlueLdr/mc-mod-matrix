@@ -74,11 +74,35 @@ export function ModpackDetailPageHeader() {
             </Tabs>
           </Grid>
         )}
-        <Typography variant="body1">
-          Minecraft{" "}
-          <Typography component="span" fontWeight={600}>
-            {pack.versions.min} - {pack.versions.max}
-          </Typography>{" "}
+        <Typography
+          variant="body1"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            ...(isSingleColumn === undefined
+              ? {
+                  "body:has(.mcmm-NavDrawer--open) &": {
+                    "@media (max-width: 1338px)": {
+                      gridColumn: 1,
+                      gridRow: 2,
+                    },
+                  },
+                  "body:has(.mcmm-NavDrawer--closed) &": {
+                    "@media (max-width: 1018px)": {
+                      gridColumn: 1,
+                      gridRow: 2,
+                    },
+                  },
+                }
+              : {}),
+          }}
+        >
+          <span>
+            Minecraft{" "}
+            <Typography component="span" fontWeight={600}>
+              {pack.versions.min} - {pack.versions.max}
+            </Typography>{" "}
+          </span>
         </Typography>
       </Grid>
       <Divider />

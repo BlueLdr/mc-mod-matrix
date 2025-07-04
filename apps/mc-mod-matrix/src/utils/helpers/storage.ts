@@ -13,7 +13,11 @@ export const loadStorage: LoadStorageFunction = <T>(key: string, def?: T): T | u
   const stored = localStorage.getItem(key);
   if (stored) {
     try {
-      return JSON.parse(stored) || def;
+      const parsed = JSON.parse(stored);
+      if (parsed === undefined || (parsed === "" && def !== undefined && typeof def !== "string")) {
+        return def;
+      }
+      return parsed;
     } catch {
       return def;
     }

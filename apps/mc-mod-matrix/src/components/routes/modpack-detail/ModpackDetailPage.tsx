@@ -3,7 +3,12 @@
 import { styled } from "@mui/material/styles";
 import { useContext } from "react";
 
-import { ModpackDetailPageContext, ScrollNavSection, useScrollNav } from "~/components";
+import {
+  EmptyViewCard,
+  ModpackDetailPageContext,
+  ScrollNavSection,
+  useScrollNav,
+} from "~/components";
 
 import { ModpackDetailModList } from "./ModpackDetailModList";
 import { ModpackMatrixContent } from "./ModpackMatrixContent";
@@ -14,14 +19,19 @@ import type { Modpack } from "@mcmm/data";
 
 //================================================
 
-const ListContainer = styled("div")`
-  flex: 2 1 500px;
-  min-width: 400px;
-`;
-const MatrixContainer = styled("div")`
-  flex: 3 1 440px;
-  min-width: 440px;
-`;
+const ListContainer = styled("div")(({ theme }) => ({
+  flexGrow: theme.sizes.modDetail.list.flexGrow,
+  flexShrink: 1,
+  flexBasis: `${theme.sizes.modDetail.list.flexBasis}px`,
+  minWidth: `${theme.sizes.modDetail.list.minWidth}px`,
+}));
+
+const MatrixContainer = styled("div")(({ theme }) => ({
+  flexGrow: theme.sizes.modDetail.matrix.flexGrow,
+  flexShrink: 1,
+  flexBasis: `${theme.sizes.modDetail.matrix.flexBasis}px`,
+  minWidth: `${theme.sizes.modDetail.matrix.minWidth}px`,
+}));
 
 //================================================
 
@@ -35,13 +45,18 @@ export function ModpackDetailPage({ pack }: ModpackDetailPageProps) {
   const scrollNavSectionProps = useScrollNav({ scrollOffset: -4, disabled: !isSingleColumn });
 
   return (
-    <Grid container flexWrap="wrap" spacing={4}>
+    <Grid container flexWrap="wrap" sx={theme => ({ gap: theme.sizes.modDetail.spacing })}>
       <ScrollNavSection id="list" {...scrollNavSectionProps} component={ListContainer}>
         <ModpackDetailModList pack={pack} />
       </ScrollNavSection>
       <ScrollNavSection id="matrix" {...scrollNavSectionProps} component={MatrixContainer}>
         <ModpackMatrixContent pack={pack} />
       </ScrollNavSection>
+      {pack.mods.length === 0 && (
+        <EmptyViewCard sx={{ height: theme => theme.spacing(100), flex: "1 1 100%" }}>
+          Add some more mods to view mod support data.
+        </EmptyViewCard>
+      )}
     </Grid>
   );
 }
