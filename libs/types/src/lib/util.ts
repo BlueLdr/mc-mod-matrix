@@ -17,5 +17,6 @@ export type ValueAndSetter<Name extends string, T> = Record<Name, T> &
   Record<`set${Capitalize<Name>}`, (value: T) => void>;
 
 export type DistributiveOmit<T, K> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+export type DistributivePick<T, K> = T extends any ? Pick<T, Extract<keyof T, K>> : never;
 
 export type Scalar = string | number | boolean;

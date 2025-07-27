@@ -8,7 +8,7 @@ import { CreatePackModalContext } from "~/context";
 
 import { CreatePackModal } from "./CreatePackModal";
 import { ManageDataModal } from "./ManageDataModal";
-import { DataRefreshIndicator } from "./DataRefreshIndicator";
+import { BackgroundRefreshIndicator } from "./BackgroundRefreshIndicator";
 
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -47,7 +47,7 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
             </IconButton>
           </Box>
           <Box position="fixed" bottom={12} left={8}>
-            <DataRefreshIndicator variant="circular" />
+            <BackgroundRefreshIndicator variant="circular" />
           </Box>
         </>
       )}
@@ -93,7 +93,7 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
           <ModPackList />
         </Grid>
         <ManageDataModal />
-        <DataRefreshIndicator />
+        <BackgroundRefreshIndicator />
         <CreatePackModal />
       </Drawer>
     </>

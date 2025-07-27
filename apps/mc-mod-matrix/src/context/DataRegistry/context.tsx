@@ -39,6 +39,11 @@ export function DataRegistryProvider({ children }: WithChildren) {
         setRefreshProgress(e.data.progress);
       }
     });
+    if ("window" in global && process.env.NODE_ENV?.startsWith("dev")) {
+      // @ts-expect-error: for debugging
+      window["dataRegistry"] = dataRegistry;
+    }
+
     return () => workerRef.current?.terminate();
   }, [remoteRef]);
 

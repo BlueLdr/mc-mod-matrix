@@ -74,12 +74,6 @@ export const Modal: React.FC<ModalProps> = ({
       fullWidth={fullWidth}
       maxWidth={maxWidth}
       onClose={onClose}
-      slotProps={{
-        paper: {
-          elevation: 24,
-          ...(props.PaperProps ?? {}),
-        },
-      }}
       id={id}
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-description`}

@@ -111,6 +111,13 @@ export const MuiTheme = createMuiThemeForEnvironment({
       },
     },
     MuiDialog: {
+      defaultProps: {
+        slotProps: {
+          paper: {
+            elevation: 24,
+          },
+        },
+      },
       styleOverrides: {
         paper: ({ theme }) => ({
           background: theme.palette.background.paper,

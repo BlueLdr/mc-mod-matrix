@@ -2,6 +2,7 @@
 
 import { gameVersionComparator } from "@mcmm/utils";
 import { platformManager } from "~/data";
+import { VersionSet } from "@mcmm/data";
 
 import { DataRegistryHelper } from "./helper";
 import { loadDataRegistryDb } from "./storage";
@@ -36,7 +37,7 @@ export class DataRegistry {
 
   //================================================
 
-  public async storeMod(meta: ModMetadata, minGameVersion: GameVersion): Promise<Mod | null> {
+  public async storeMod(meta: ModMetadata, minGameVersion?: GameVersion): Promise<Mod | null> {
     if (!this.db || !this.helper) {
       return null;
     }
@@ -46,8 +47,9 @@ export class DataRegistry {
     const existingEntryHasAllData =
       existingEntry &&
       meta.platforms.every(platformMeta => existingEntry.platforms.has(platformMeta.platform)) &&
-      !!existingEntry.minGameVersionFetched &&
-      gameVersionComparator(existingEntry.minGameVersionFetched, minGameVersion) <= 0;
+      (!minGameVersion ||
+        (!!existingEntry.minGameVersionFetched &&
+          gameVersionComparator(existingEntry.minGameVersionFetched, minGameVersion) <= 0));
 
     const lastUpdated = Math.min(
       ...(existingEntry?.platforms?.map(p => p.lastUpdated ?? 0) ?? [0]),
@@ -63,21 +65,26 @@ export class DataRegistry {
     if (existingEntry) {
       meta.platforms = existingEntry.platforms.merge(meta.platforms);
     }
-    const { data, error } = await platformManager.getModVersions(meta.platforms, minGameVersion);
-    if (error) {
-      console.error("Failed to fetch version data while storing mod in registry", error);
-    }
-    if (!data) {
-      console.error("MISSING DATA from platformManager.getModVersions", meta);
-      return null;
-    }
 
     const mod = existingEntry ?? {
       ...meta,
-      versions: data,
+      versions: new VersionSet(),
       alternatives: [],
     };
-    mod.minGameVersionFetched = minGameVersion;
+
+    if (minGameVersion) {
+      const { data, error } = await platformManager.getModVersions(meta.platforms, minGameVersion);
+      if (error) {
+        console.error("Failed to fetch version data while storing mod in registry", error);
+      }
+      if (!data) {
+        console.error("MISSING DATA from platformManager.getModVersions", meta);
+        return null;
+      }
+
+      mod.versions = data;
+      mod.minGameVersionFetched = minGameVersion;
+    }
 
     const result = await this.helper?.writeMod(mod, minGameVersion);
 
@@ -105,10 +112,6 @@ export class DataRegistry {
     };
     await this.helper?.updateModMeta(id, newEntry);
   }
-
-  //================================================
-
-  public forceRefresh() {}
 
   //================================================
 
