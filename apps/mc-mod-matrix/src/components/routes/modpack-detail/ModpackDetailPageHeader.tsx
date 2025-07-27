@@ -3,7 +3,12 @@
 import { capitalize } from "lodash";
 import { useContext, useRef } from "react";
 
-import { LoaderIcon, ModpackDetailPageContext, ScrollNavContext } from "~/components";
+import {
+  LoaderIcon,
+  ModpackDetailPageContext,
+  ScrollNavContext,
+  PackActionsMenu,
+} from "~/components";
 import { StorageContext } from "~/context";
 import { useStackedStickyElement } from "~/utils";
 
@@ -66,6 +71,7 @@ export function ModpackDetailPageHeader() {
                 />
               ))}
             </Grid>
+            <PackActionsMenu pack={pack} />
           </Grid>
         </Grid>
         {isSingleColumn && (

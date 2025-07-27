@@ -10,8 +10,6 @@ export interface ModalProps extends DialogProps {
    * margin)
    */
   fullWidth?: boolean;
-  /** The preset for the max width of the dialog */
-  maxWidth?: "sm" | "md" | "lg" | "xl" | false;
   /** Callback to invoke when the modal is closed */
   onClose: (e?: any, reason?: any) => void;
   children: React.ReactNode;

@@ -2,9 +2,15 @@
 
 import { useContext } from "react";
 
-import { ModPackList } from "~/components";
+import {
+  Icon,
+  ModPackList,
+  PackDeleteModal,
+  PackDuplicateModal,
+  PackEditModal,
+} from "~/components";
 import { NAV_DRAWER_OPEN_STORAGE_KEY, useStorageState } from "~/utils";
-import { CreatePackModalContext } from "~/context";
+import { PackActionsModalsContext } from "~/context";
 
 import { CreatePackModal } from "./CreatePackModal";
 import { ManageDataMenu } from "./ManageDataMenu";
@@ -26,7 +32,7 @@ import Menu from "@mui/icons-material/Menu";
 export type NavDrawerProps = { initialOpen?: boolean };
 
 export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
-  const { setOpen: setCreateModalOpen } = useContext(CreatePackModalContext);
+  const { setCreateModalOpen } = useContext(PackActionsModalsContext);
   const [open, setOpen] = useStorageState(NAV_DRAWER_OPEN_STORAGE_KEY, initialOpen);
 
   const setDrawerOpen = (value: boolean) => {
@@ -70,7 +76,10 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
         style={{ width: open ? "20rem" : "0rem" }}
       >
         <Grid container padding={4} justifyContent="space-between" alignItems="center">
-          <Typography variant="h5">MC Mod Matrix</Typography>
+          <Grid container spacing={2} alignItems="center">
+            <Icon size={32} src="/logo.svg" />
+            <Typography variant="h5">MC Mod Matrix</Typography>
+          </Grid>
           <IconButton onClick={() => setDrawerOpen(false)}>
             <ArrowBack />
           </IconButton>
@@ -95,6 +104,9 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
         <ManageDataMenu />
         <BackgroundRefreshIndicator />
         <CreatePackModal />
+        <PackEditModal />
+        <PackDuplicateModal />
+        <PackDeleteModal />
       </Drawer>
     </>
   );

@@ -1,11 +1,12 @@
 "use client";
 
-import { notFound } from "next/navigation";
 import { useContext, useEffect } from "react";
 
 import { ModpackDetailPage, ModpackDetailPageLoading, SkeletonFade } from "~/components";
 import { DataInitializer, StorageContext } from "~/context";
 import { PLACEHOLDER_TITLE_TEXT } from "~/utils";
+
+import NotFoundPage from "../not-found";
 
 import type { PageProps } from "~/utils";
 
@@ -24,7 +25,7 @@ export default function ModpackDetailRoutePage({ params }: ModpackDetailPageProp
   }, [currentPack]);
 
   if (!currentPack) {
-    return "window" in global ? notFound() : null;
+    return "window" in global ? <NotFoundPage /> : null;
   }
 
   return (

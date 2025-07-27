@@ -2,7 +2,7 @@
 
 import { useContext } from "react";
 
-import { CreatePackModalContext } from "~/context";
+import { PackActionsModalsContext } from "~/context";
 
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 // ================================================================
 
 export default function HomePage() {
-  const { setOpen } = useContext(CreatePackModalContext);
+  const { setCreateModalOpen: setOpen } = useContext(PackActionsModalsContext);
   return (
     <Container maxWidth="lg" sx={{ height: "100vh" }}>
       <Grid

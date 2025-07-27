@@ -5,7 +5,7 @@ export interface StoredDataState {
   packs: StoredModpack[] | undefined;
   setPacks: React.Dispatch<React.SetStateAction<StoredModpack[]>>;
   addPack: (pack: Omit<StoredModpack | Modpack, "id">) => string;
-  removePack: (name: string) => void;
+  removePack: (id: string) => void;
   updatePack: (pack: StoredModpack | Modpack) => void;
   reloadStorage: () => void;
 
