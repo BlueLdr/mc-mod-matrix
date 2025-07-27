@@ -43,7 +43,7 @@ export const StorageContext = createContext<StoredDataState>({
   removePack: () => undefined,
   updatePack: () => undefined,
   reloadStorage: () => undefined,
-  commonMods: [],
+  commonMods: storedCommonMods,
   setCommonMods: () => undefined,
 });
 

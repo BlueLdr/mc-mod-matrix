@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataRefreshProgressData, DataRegistry } from "~/data";
+import type { DataRegistry, DataRegistryWorkerApi } from "~/data";
 
 //================================================
 
@@ -9,8 +9,5 @@ export interface DataRegistryContextState {
 
   dataRegistry: DataRegistry | undefined;
 
-  refreshProgress?: DataRefreshProgressData;
-  clearRefreshProgress: () => void;
-
-  worker: React.RefObject<Worker | null>;
+  workerApi: DataRegistryWorkerApi | undefined;
 }

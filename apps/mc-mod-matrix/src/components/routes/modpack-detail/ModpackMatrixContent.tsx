@@ -45,9 +45,9 @@ const filterTopPercentile = (data: PackSupportMeta[], percentile = 25): PackSupp
 
 //================================================
 
-export type ModpackMatrixContentProps = { pack: Modpack };
+export type ModpackMatrixContentProps = { pack: Modpack; refreshIndicator?: React.ReactNode };
 
-export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
+export function ModpackMatrixContent({ pack, refreshIndicator }: ModpackMatrixContentProps) {
   const { updatePack } = useContext(StorageContext);
   const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM, true);
   const { isSingleColumn } = useContext(ModpackDetailPageContext);
@@ -113,10 +113,11 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
         justifyContent="space-between"
         sx={{ height: theme => theme.spacing(9) }}
       >
-        {/*<Grid>*/}
-        <Typography variant="h6">Mod support matrix</Typography>
-        {/*<Typography variant="body2">Total mods: {pack.mods.length}</Typography>*/}
-        {/*</Grid>*/}
+        <Grid container alignItems="center" spacing={4}>
+          <Typography variant="h6">Mod support matrix</Typography>
+          {refreshIndicator}
+          {/*<Typography variant="body2">Total mods: {pack.mods.length}</Typography>*/}
+        </Grid>
         {/*<Grid>*/}
         {pack.mods.length > 1 ? (
           <Typography component="label" variant="caption">

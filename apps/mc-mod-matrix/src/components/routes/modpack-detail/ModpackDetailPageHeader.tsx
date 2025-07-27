@@ -71,7 +71,7 @@ export function ModpackDetailPageHeader() {
                 />
               ))}
             </Grid>
-            <PackActionsMenu pack={pack} />
+            <PackActionsMenu pack={pack} showReloadButton />
           </Grid>
         </Grid>
         {isSingleColumn && (

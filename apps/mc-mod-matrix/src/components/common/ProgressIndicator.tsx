@@ -6,6 +6,8 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Check from "@mui/icons-material/Check";
+import Pause from "@mui/icons-material/PauseRounded";
+import ErrorIcon from "@mui/icons-material/Error";
 
 import type { CircularProgressProps } from "@mui/material/CircularProgress";
 
@@ -16,6 +18,8 @@ export type ProgressIndicatorProps = Omit<CircularProgressProps, "variant"> & {
   total?: number;
   tooltipText?: string | React.ReactElement;
   labelText?: string | React.ReactElement;
+  paused?: boolean;
+  error?: Error;
 };
 
 export function ProgressIndicator({
@@ -26,6 +30,8 @@ export function ProgressIndicator({
   tooltipText,
   labelText,
   size,
+  paused,
+  error,
   ...props
 }: ProgressIndicatorProps) {
   const scaledValue =
@@ -33,14 +39,20 @@ export function ProgressIndicator({
       ? Math.min(100, Math.max(0, total != null && value >= 0 ? (100 * value) / total : value))
       : undefined;
   const progressProps = {
-    variant: value == null || value < 0 ? "indeterminate" : "determinate",
+    variant: !error && (value == null || value < 0) ? "indeterminate" : "determinate",
     value: scaledValue,
-    color: scaledValue != null && scaledValue >= 100 ? "success" : undefined,
+    color: paused
+      ? "warning"
+      : error
+        ? "error"
+        : scaledValue != null && scaledValue >= 100
+          ? "success"
+          : undefined,
     size,
   } as const;
 
   const withTooltip = (content: React.ReactElement | string) => (
-    <Tooltip title={tooltipText}>
+    <Tooltip title={error?.message ?? tooltipText}>
       {typeof content === "string" ? <span>{content}</span> : content}
     </Tooltip>
   );
@@ -68,7 +80,11 @@ export function ProgressIndicator({
             justifyContent: "center",
           }}
         >
-          {progressProps.value != null && progressProps.value >= 100 ? (
+          {paused ? (
+            <Pause />
+          ) : error ? (
+            <ErrorIcon color="error" />
+          ) : progressProps.value != null && progressProps.value >= 100 ? (
             <Check />
           ) : progressProps.value != null ? (
             <Typography variant="caption" color="textSecondary" lineHeight={0}>

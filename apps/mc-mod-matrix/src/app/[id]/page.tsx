@@ -18,11 +18,16 @@ export type ModpackDetailPageProps = PageProps<{
 
 export default function ModpackDetailRoutePage({ params }: ModpackDetailPageProps) {
   const { currentPack } = useContext(StorageContext);
+  const title = "window" in global ? document.title : undefined;
   useEffect(() => {
     if (currentPack) {
       document.title = document.title.replace(PLACEHOLDER_TITLE_TEXT, currentPack.name);
+      const timer = setTimeout(() => {
+        document.title = document.title.replace(PLACEHOLDER_TITLE_TEXT, currentPack.name);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [currentPack]);
+  }, [currentPack, title]);
 
   if (!currentPack) {
     return "window" in global ? <NotFoundPage /> : null;

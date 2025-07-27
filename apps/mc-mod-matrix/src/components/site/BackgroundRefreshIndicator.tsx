@@ -1,9 +1,7 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-
 import { ProgressIndicator } from "~/components";
-import { DataRegistryContext } from "~/context";
+import { useDataRefreshProgress } from "~/utils";
 
 import Collapse from "@mui/material/Collapse";
 import Divider from "@mui/material/Divider";
@@ -19,24 +17,7 @@ export type BackgroundRefreshIndicatorProps = {
 export function BackgroundRefreshIndicator({
   variant = "linear",
 }: BackgroundRefreshIndicatorProps) {
-  const { refreshProgress, clearRefreshProgress } = useContext(DataRegistryContext);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  useEffect(() => {
-    if (refreshProgress?.complete == null) {
-      setIsRefreshing(false);
-      return;
-    }
-    if (!refreshProgress.complete) {
-      setIsRefreshing(true);
-    } else {
-      const timer = setTimeout(() => {
-        setIsRefreshing(false);
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [refreshProgress?.complete]);
-
+  const [refreshProgress, clearRefreshProgress, isRefreshing] = useDataRefreshProgress();
   if (!isRefreshing && !refreshProgress) {
     return null;
   }
@@ -44,23 +25,24 @@ export function BackgroundRefreshIndicator({
   const currentIndex =
     refreshProgress?.current?.index ?? (refreshProgress?.complete ? refreshProgress.total : -1);
 
-  let text = "Refreshing mod version data...";
+  let text = "Refreshing common mod version data...";
   if (refreshProgress?.complete) {
-    text = "Finished refreshing mod version data!";
+    text = "Finished refreshing common mod version data!";
+  } else if (refreshProgress?.paused) {
+    text = "Paused refreshing common mod version data";
   } else if (refreshProgress?.current) {
-    text = `Refreshing mod version data (${currentIndex}/${refreshProgress.total})`;
+    text = `Refreshing common mod version data (${currentIndex}/${refreshProgress.total})`;
   }
 
   const currentItemText = `Currently refreshing: ${refreshProgress?.current?.name}`;
-  const tooltipText =
-    variant === "linear" ? (
-      currentItemText
-    ) : (
-      <Grid container alignItems="center" direction="column">
-        <span>{text}</span>
-        {!!refreshProgress?.current && <span>{currentItemText}</span>}
-      </Grid>
-    );
+  const tooltipText = refreshProgress?.complete ? undefined : variant === "linear" ? (
+    currentItemText
+  ) : (
+    <Grid container alignItems="center" direction="column">
+      <span>{text}</span>
+      {!!refreshProgress?.current && <span>{currentItemText}</span>}
+    </Grid>
+  );
 
   const progressProps = {
     value: currentIndex,
@@ -69,6 +51,7 @@ export function BackgroundRefreshIndicator({
     variant,
     tooltipText,
     labelText: text,
+    paused: refreshProgress?.paused,
   } as const;
 
   if (variant === "circular") {
@@ -91,7 +74,7 @@ export function BackgroundRefreshIndicator({
       orientation="vertical"
       unmountOnExit
       mountOnEnter
-      onExited={() => clearRefreshProgress}
+      onExited={() => clearRefreshProgress()}
     >
       <Divider />
       <ProgressIndicator {...progressProps} />

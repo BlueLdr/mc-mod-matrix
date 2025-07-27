@@ -33,6 +33,8 @@ module.exports = composePlugins(withNx(), (config, { context, options }) => {
         process.env.NEXT_PUBLIC_MCMM_DATA_REGISTRY_REFRESH_INTERVAL || "600000",
       NEXT_PUBLIC_MCMM_DATA_REGISTRY_REFRESH_FETCH_INTERVAL:
         process.env.NEXT_PUBLIC_MCMM_DATA_REGISTRY_REFRESH_FETCH_INTERVAL || "1000",
+      NEXT_PUBLIC_MCMM_DATA_REGISTRY_WORKER_LOGGING:
+        process.env.NEXT_PUBLIC_MCMM_DATA_REGISTRY_WORKER_LOGGING || "true",
     }),
   );
 

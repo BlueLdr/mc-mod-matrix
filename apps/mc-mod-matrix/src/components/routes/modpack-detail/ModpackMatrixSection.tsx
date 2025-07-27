@@ -1,12 +1,13 @@
 "use client";
 
 import { styled } from "@mui/material/styles";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { gameVersionComparator } from "@mcmm/utils";
 import { ModpackDetailPageContext, ProgressIndicator } from "~/components";
 import { DataRegistryContext } from "~/context";
-import { useMounted, useResizeObserver } from "~/utils";
+import { DATA_REGISTRY_CACHE_LIFESPAN } from "~/data";
+import { useDataRefreshProgress, useMounted, useResizeObserver } from "~/utils";
 
 import { ModpackMatrixContent } from "./ModpackMatrixContent";
 import { ModpackMatrixContentLoading } from "./ModpackMatrixContent.loading";
@@ -54,23 +55,46 @@ export function ModpackMatrixSection({ pack }: ModpackMatrixSectionProps) {
     pack.mods.filter(
       mod =>
         !mod.minGameVersionFetched ||
-        gameVersionComparator(mod.minGameVersionFetched, pack.versions.min) > 0,
+        gameVersionComparator(mod.minGameVersionFetched, pack.versions.min) > 0 ||
+        mod.platforms.some(
+          p => !p.lastUpdated || p.lastUpdated < Date.now() - DATA_REGISTRY_CACHE_LIFESPAN,
+        ),
     ),
   );
-  const [progress, setProgress] = useState<{ index: number; name: string }>();
+  const canRefreshInBackground = useMemo(
+    () =>
+      pack.mods.every(
+        mod =>
+          !!mod.minGameVersionFetched &&
+          gameVersionComparator(mod.minGameVersionFetched, pack.versions.min) <= 0,
+      ),
+    [pack.mods, pack.versions.min],
+  );
 
-  const modsToFetchEquality = !dataRegistry ? "" : modsToFetch.map(m => m.id).join(",");
+  const [progress, clearProgress, , workerApi] = useDataRefreshProgress(pack.id);
   useEffect(() => {
-    if (!dataRegistry || !modsToFetch.length) {
+    if (progress?.complete) {
+      setModsToFetch([]);
+      clearProgress();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress?.complete]);
+
+  const modsToFetchEquality =
+    !dataRegistry || !workerApi ? "" : modsToFetch.map(m => m.id).join(",");
+  useEffect(() => {
+    if (!workerApi || !modsToFetch.length) {
       return;
     }
+    // prevent duping the request in StrictMode
     const timer = setTimeout(async () => {
-      for (const mod of modsToFetch) {
-        setProgress({ index: modsToFetch.indexOf(mod), name: mod.name });
-        await dataRegistry?.storeMod(mod, pack.versions.min);
-      }
-      setModsToFetch([]);
-      setProgress(undefined);
+      workerApi.sendRequest({
+        type: "start-refresh",
+        packId: pack.id,
+        mods: modsToFetch.map(m => m.id),
+        minVersion: pack.versions.min,
+        runImmediately: true,
+      });
     }, 10);
     return () => {
       clearTimeout(timer);
@@ -78,22 +102,30 @@ export function ModpackMatrixSection({ pack }: ModpackMatrixSectionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modsToFetchEquality]);
 
+  const refreshIndicator = (
+    <ProgressIndicator
+      value={progress?.total === 1 ? undefined : progress?.current?.index}
+      total={progress?.total}
+      size={36}
+      variant="circular"
+      tooltipText={
+        progress?.current?.name ? `Currently fetching: ${progress.current.name}` : undefined
+      }
+    />
+  );
+
   return (
     <Box mt={6} ref={ref}>
-      {!modsToFetch.length ? (
-        <ModpackMatrixContent pack={pack} />
+      {!modsToFetch.length || canRefreshInBackground ? (
+        <ModpackMatrixContent
+          pack={pack}
+          refreshIndicator={progress && !progress.complete ? refreshIndicator : undefined}
+        />
       ) : (
         <ModpackMatrixContentLoading
           info={
             <ProgressLabel as="div" variant="body1" color="textSecondary">
-              Fetching mod versions{" "}
-              <ProgressIndicator
-                value={modsToFetch.length === 1 ? undefined : progress?.index}
-                total={modsToFetch.length}
-                size={36}
-                variant="circular"
-                tooltipText={progress?.name ? `Currently fetching: ${progress.name}` : undefined}
-              />{" "}
+              Fetching mod versions {refreshIndicator}
             </ProgressLabel>
           }
         />

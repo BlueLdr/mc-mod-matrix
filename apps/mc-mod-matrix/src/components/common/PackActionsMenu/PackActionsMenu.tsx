@@ -3,7 +3,7 @@
 import { styled } from "@mui/material/styles";
 import { useContext, useRef, useState } from "react";
 
-import { PackActionsModalsContext } from "~/context";
+import { DataRegistryContext, PackActionsModalsContext } from "~/context";
 
 import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
@@ -34,11 +34,16 @@ const Button = styled(IconButton)`
   }
 `;
 
-export type PackActionsMenuProps = { pack: StoredModpack | undefined; size?: ButtonProps["size"] };
+export type PackActionsMenuProps = {
+  pack: StoredModpack | undefined;
+  size?: ButtonProps["size"];
+  showReloadButton?: boolean;
+};
 
-export function PackActionsMenu({ pack, size }: PackActionsMenuProps) {
+export function PackActionsMenu({ pack, size, showReloadButton }: PackActionsMenuProps) {
   const { setEditTarget, setDeleteTarget, setDuplicateTarget } =
     useContext(PackActionsModalsContext);
+  const { workerApi } = useContext(DataRegistryContext);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -59,6 +64,23 @@ export function PackActionsMenu({ pack, size }: PackActionsMenuProps) {
       </Button>
       <Menu open={menuOpen} onClose={() => setMenuOpen(false)} anchorEl={buttonRef.current}>
         <MenuList>
+          {showReloadButton && (
+            <MenuItem
+              onClick={() => {
+                workerApi?.sendRequest({
+                  type: "start-refresh",
+                  packId: pack.id,
+                  mods: pack.mods,
+                  minVersion: pack.versions.min,
+                  forceUpdate: true,
+                  runImmediately: true,
+                });
+                setMenuOpen(false);
+              }}
+            >
+              Refresh mod version data
+            </MenuItem>
+          )}
           <MenuItem
             onClick={() => {
               setEditTarget(pack);
