@@ -3,6 +3,7 @@ import {
   ModpackDetailPageProvider,
   ScrollNavProvider,
 } from "~/components";
+import { PLACEHOLDER_TITLE_TEXT } from "~/utils";
 
 import Container from "@mui/material/Container";
 
@@ -11,15 +12,9 @@ import type { WithChildren } from "@mcmm/types";
 
 //================================================
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ name: string }>;
-}): Promise<Metadata> {
-  return {
-    title: decodeURIComponent((await params).name),
-  };
-}
+export const metadata: Metadata = {
+  title: PLACEHOLDER_TITLE_TEXT,
+};
 
 export default function ModpackDetailPageLayout({ children }: WithChildren) {
   return (

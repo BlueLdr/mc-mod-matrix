@@ -63,7 +63,7 @@ export function ModMatrixItemModal({
 
   return (
     <Modal
-      id={`pack-support-modal-${packSupportMeta?.pack.name}`}
+      id={`pack-support-modal-${packSupportMeta?.pack.id}`}
       open={open}
       onClose={closeModal}
       titleText={

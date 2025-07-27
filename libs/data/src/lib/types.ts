@@ -47,7 +47,7 @@ export interface ModMetadata {
   image: string;
   platforms: PlatformModMetadataCollection;
   // platforms: PlatformModMetadata[];
-  minGameVersionFetched: string | undefined;
+  minGameVersionFetched: GameVersion | undefined;
 }
 
 export interface Mod extends ModMetadata {
@@ -59,6 +59,7 @@ export interface Mod extends ModMetadata {
 //==================== PACKS =====================
 
 export interface Modpack {
+  id: string;
   name: string;
   mods: Mod[];
   versions: {

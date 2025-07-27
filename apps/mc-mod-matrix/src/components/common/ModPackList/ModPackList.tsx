@@ -15,7 +15,7 @@ import List from "@mui/material/List";
 //================================================
 
 export function ModPackList() {
-  const params = useParams<{ name: string }>();
+  const params = useParams<{ id: string }>();
   const { packs } = useContext(StorageContext);
 
   if (!packs) {
@@ -25,11 +25,11 @@ export function ModPackList() {
   return (
     <List>
       {packs.map(pack => (
-        <ListItem key={pack.name} disablePadding>
+        <ListItem key={pack.id} disablePadding>
           <ListItemButton
-            selected={pack.name === decodeURIComponent(params.name ?? "")}
+            selected={pack.id === decodeURIComponent(params.id ?? "")}
             component={Link}
-            href={`/${encodeURIComponent(pack.name)}`}
+            href={`/${encodeURIComponent(pack.id)}`}
           >
             {pack.name}
           </ListItemButton>

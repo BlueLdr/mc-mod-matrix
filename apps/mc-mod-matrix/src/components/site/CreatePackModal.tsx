@@ -34,7 +34,7 @@ const modLoaderLabels = makeRecordFromEntries(
   modLoaderEntries.map(([label, value]) => [value, label] as const),
 );
 
-const defaultFormData: Modpack = {
+const defaultFormData: Omit<Modpack, "id"> = {
   name: "",
   mods: [],
   versions: {
@@ -61,8 +61,8 @@ export function CreatePackModal() {
     if (!allowSubmit) {
       return;
     }
-    addPack(formData);
-    router.push(`/${encodeURIComponent(formData.name)}`);
+    const newId = addPack(formData);
+    router.push(`/${encodeURIComponent(newId)}`);
     setOpen(false);
   };
 

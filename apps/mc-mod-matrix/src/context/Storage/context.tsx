@@ -2,8 +2,9 @@
 
 import { useParams } from "next/navigation";
 import { createContext, useCallback, useEffect, useMemo } from "react";
+import { v4 as uuid } from "uuid";
 
-import { loadStorage, useStorageState } from "~/utils";
+import { loadStorage, setStorage, useStorageState } from "~/utils";
 
 import type { Modpack, StoredModpack } from "@mcmm/data";
 import type { WithChildren } from "@mcmm/types";
@@ -13,13 +14,29 @@ import type { StoredDataState } from "./types";
 
 const STORAGE_KEY = "storage";
 
-const storedList = loadStorage<StoredModpack[]>(STORAGE_KEY);
+const storedListRaw = loadStorage<StoredModpack[]>(STORAGE_KEY);
+let storedList: StoredModpack[] | undefined = storedListRaw;
+try {
+  let shouldUpdateStorage = false;
+  storedList = storedListRaw?.map(pack => {
+    if (!pack.id) {
+      shouldUpdateStorage = true;
+      return { ...pack, id: uuid() };
+    }
+    return pack;
+  });
+  if (shouldUpdateStorage) {
+    setStorage(STORAGE_KEY, storedList);
+  }
+} catch (e) {
+  console.error("Failed to add ids to pack list", e);
+}
 
 export const StorageContext = createContext<StoredDataState>({
   currentPack: undefined,
   packs: storedList,
   setPacks: () => undefined,
-  addPack: () => undefined,
+  addPack: () => "",
   removePack: () => undefined,
   updatePack: () => undefined,
   reloadStorage: () => undefined,
@@ -28,7 +45,7 @@ export const StorageContext = createContext<StoredDataState>({
 //================================================
 
 export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
-  const { name: currentPackName } = useParams<{ name: string }>();
+  const { id: currentPackId } = useParams<{ id: string }>();
   const [packs, setPacks_, reloadStorage] = useStorageState(STORAGE_KEY, storedList);
 
   useEffect(() => {
@@ -55,17 +72,21 @@ export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
   );
 
   const addPack = useCallback(
-    (newPack: Modpack | StoredModpack) =>
+    (newPack: Omit<Modpack | StoredModpack, "id">) => {
+      const newId = uuid();
       setPacks(prevState =>
         prevState.concat({
           ...newPack,
+          id: newId,
           mods: newPack.mods.map(mod => (typeof mod === "string" ? mod : mod.id)),
         }),
-      ),
+      );
+      return newId;
+    },
     [setPacks],
   );
   const removePack = useCallback(
-    (name: string) => setPacks(prevState => prevState.filter(pack => pack.name !== name)),
+    (id: string) => setPacks(prevState => prevState.filter(pack => pack.id !== id)),
     [setPacks],
   );
 
@@ -73,7 +94,7 @@ export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
     (newPack: Modpack | StoredModpack) =>
       setPacks(prevState =>
         prevState.map(pack =>
-          pack.name === newPack.name
+          pack.id === newPack.id
             ? {
                 ...newPack,
                 mods: newPack.mods.map(mod => (typeof mod === "string" ? mod : mod.id)),
@@ -86,7 +107,7 @@ export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
 
   const value = useMemo(
     () => ({
-      currentPack: packs?.find(p => p.name === decodeURIComponent(currentPackName ?? "")),
+      currentPack: packs?.find(p => p.id === decodeURIComponent(currentPackId ?? "")),
       packs,
       setPacks,
       addPack,
@@ -94,7 +115,7 @@ export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
       updatePack,
       reloadStorage,
     }),
-    [packs, reloadStorage, setPacks, addPack, removePack, updatePack, currentPackName],
+    [packs, reloadStorage, setPacks, addPack, removePack, updatePack, currentPackId],
   );
 
   return <StorageContext value={value}>{children}</StorageContext>;
