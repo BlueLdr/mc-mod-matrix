@@ -44,6 +44,14 @@ export const gameVersionComparator = (a: string, b: string) => {
 export const getMinGameVersion = (a: string, b: string) =>
   gameVersionComparator(a, b) > 0 ? b : a;
 
+export const validateGameVersionRange = (versions: { min: string; max: string }) => {
+  if (gameVersionComparator(versions.min, versions.max) > 0) {
+    const temp = versions.max;
+    versions.max = versions.min;
+    versions.min = temp;
+  }
+};
+
 export const makeRecordFromEntries = <Key extends string | number, Value>(
   entries: [Key, Value][],
 ) => Object.fromEntries(entries) as Record<Key, Value>;

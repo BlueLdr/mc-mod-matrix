@@ -109,6 +109,15 @@
         }
       },
       "defaultConfiguration": "development"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
+      "options": {
+        "jestConfig": "apps/mc-mod-matrix/jest.config.ts"
+      }
     }
   }
 }

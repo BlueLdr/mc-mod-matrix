@@ -33,7 +33,7 @@ export function ManageDataModal() {
   const manager = useDataExport();
 
   const exportData = async () => {
-    const data = await manager?.exportData();
+    const data = await manager?.exportAllData();
     if (!data) {
       return;
     }
@@ -67,7 +67,7 @@ export function ManageDataModal() {
             const { type, ...data } = parsedData as AppDataExport & { type: string };
             setImportPending(true);
             const { promise, resolve, reject } = Promise.withResolvers();
-            startTransition(() => manager?.importData(data).then(resolve).catch(reject));
+            startTransition(() => manager?.resetAndImportData(data).then(resolve).catch(reject));
             return promise;
           } catch (e) {
             setError(
