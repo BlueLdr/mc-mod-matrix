@@ -1,7 +1,7 @@
 "use client";
 
 import { capitalize } from "lodash";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 
 import { comparator } from "@mcmm/utils";
 import {
@@ -15,12 +15,7 @@ import {
 } from "~/components";
 import { StorageContext } from "~/context";
 import { usePackSupportMetaList } from "~/data-utils";
-import {
-  MOD_DETAIL_MODAL_SEARCH_PARAM,
-  useMounted,
-  useResizeObserver,
-  useSearchParamSetter,
-} from "~/utils";
+import { MOD_DETAIL_MODAL_SEARCH_PARAM, useSearchParamSetter } from "~/utils";
 
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
@@ -31,7 +26,6 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 
-import type { ResizeObserverEntryCallback } from "~/utils";
 import type { Modpack, PackSupportMeta } from "@mcmm/data";
 
 //================================================
@@ -56,24 +50,7 @@ export type ModpackMatrixContentProps = { pack: Modpack };
 export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
   const { updatePack } = useContext(StorageContext);
   const setModDetailTarget = useSearchParamSetter(MOD_DETAIL_MODAL_SEARCH_PARAM, true);
-  const { setIsSingleColumn, isSingleColumn } = useContext(ModpackDetailPageContext);
-
-  const ref = useRef<HTMLDivElement>(null);
-  const onResize = useCallback<ResizeObserverEntryCallback>(
-    entry => {
-      if (
-        entry.target.parentElement?.parentElement &&
-        entry.contentRect.width >= entry.target.parentElement.parentElement.offsetWidth - 100
-      ) {
-        setIsSingleColumn(true);
-      } else {
-        setIsSingleColumn(false);
-      }
-    },
-    [setIsSingleColumn],
-  );
-  useResizeObserver(ref.current, onResize);
-  useMounted();
+  const { isSingleColumn } = useContext(ModpackDetailPageContext);
 
   const [showAll, setShowAll] = useState(false);
   const [detailTarget, setDetailTarget] = useState<PackSupportMeta>();
@@ -129,7 +106,7 @@ export function ModpackMatrixContent({ pack }: ModpackMatrixContentProps) {
   );
 
   return (
-    <Grid container direction="column" spacing={4} mt={6} ref={ref}>
+    <Grid container direction="column" spacing={4}>
       <Grid
         container
         spacing={8}

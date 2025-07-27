@@ -9,7 +9,9 @@ import Typography from "@mui/material/Typography";
 
 //================================================
 
-export function ModpackMatrixContentLoading() {
+export type ModpackMatrixContentLoadingProps = { info?: React.ReactNode };
+
+export function ModpackMatrixContentLoading({ info }: ModpackMatrixContentLoadingProps) {
   return (
     <Grid container direction="column" spacing={4} mt={6}>
       <Grid
@@ -19,6 +21,7 @@ export function ModpackMatrixContentLoading() {
         sx={{ height: theme => theme.spacing(9) }}
       >
         <Typography variant="h6">Mod support matrix</Typography>
+        {info}
       </Grid>
       <Grid container spacing={4} maxWidth="100%" flexWrap="wrap" flexDirection="column">
         <Grid
@@ -55,12 +58,7 @@ export function ModpackMatrixContentLoading() {
                     <Skeleton />
                   </Typography>
                   <Grid container direction="column" spacing={2} maxWidth="100%">
-                    <Grid
-                      container
-                      spacing={2}
-                      alignItems="center"
-                      justifyContent="space-between"
-                    >
+                    <Grid container spacing={2} alignItems="center" justifyContent="space-between">
                       <Grid container spacing={2} alignItems="center" height="2rem">
                         <Typography variant="body1">
                           <Skeleton width="9rem" />
@@ -79,5 +77,5 @@ export function ModpackMatrixContentLoading() {
         </Grid>
       </Grid>
     </Grid>
-  )
+  );
 }

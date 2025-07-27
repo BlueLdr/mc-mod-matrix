@@ -7,7 +7,7 @@ import { NAV_DRAWER_OPEN_STORAGE_KEY, useStorageState } from "~/utils";
 import { CreatePackModalContext } from "~/context";
 
 import { CreatePackModal } from "./CreatePackModal";
-import { ManageDataModal } from "./ManageDataModal";
+import { ManageDataMenu } from "./ManageDataMenu";
 import { BackgroundRefreshIndicator } from "./BackgroundRefreshIndicator";
 
 import Box from "@mui/material/Box";
@@ -92,7 +92,7 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
         <Grid overflow="auto" flexGrow={1}>
           <ModPackList />
         </Grid>
-        <ManageDataModal />
+        <ManageDataMenu />
         <BackgroundRefreshIndicator />
         <CreatePackModal />
       </Drawer>

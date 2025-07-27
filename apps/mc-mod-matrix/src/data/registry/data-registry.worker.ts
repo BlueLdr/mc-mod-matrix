@@ -1,13 +1,9 @@
 import { PlatformModMetadataCollection } from "@mcmm/data";
 
-import { platformManager } from "../manager";
+import { DataRegistryHelper } from "./helper";
 import { loadDataRegistryDb } from "./storage";
 
-import type {
-  DataRefreshProgressData,
-  PlatformModDbEntry,
-  PlatformModVersionDbEntry,
-} from "~/data";
+import type { DataRefreshProgressData, PlatformModDbEntry } from "~/data";
 
 //================================================
 
@@ -25,6 +21,7 @@ const getFetchIntervalWithVariance = () =>
 
 const initializeTask = () => {
   const db = loadDataRegistryDb();
+  const helper = new DataRegistryHelper(db);
 
   let refreshTimer: any = undefined;
 
@@ -59,40 +56,18 @@ const initializeTask = () => {
           ...platforms.map(p => p.meta),
         );
 
-        console.debug(`Fetching versions after ${minVersion}`);
-        const { data: versions, error } = await platformManager.getModVersions(
-          platformsCollection,
-          minVersion,
-        );
-        if (versions) {
-          console.debug(`Writing updates to versions...`, versions);
-          await db.platformModVersions.bulkPut(
-            versions.reduce((arr, v) => {
-              // get the PlatformModMetadata that this version belongs to
-              const platform = platformsCollection.get(v.platform);
-              if (platform) {
-                arr.push({
-                  ...v,
-                  modId: `${platform.id}`,
-                  platform: platform.platform,
-                });
-              }
-              return arr;
-            }, [] as PlatformModVersionDbEntry[]),
-          );
-
-          console.debug(`Writing update to PlatformModMetadata...`);
-          await db.platformMods.bulkPut(
-            platforms.map(rec => ({ ...rec, meta: { ...rec.meta, lastUpdated: Date.now() } })),
-          );
-
-          // remove all platforms for this mod from the map
-          platforms.map(({ id }) => map.delete(id));
-        } else {
-          console.error(error);
-        }
+        await helper
+          .refreshModVersions(platformsCollection, minVersion, true)
+          .then(() => {
+            // remove all platforms for this mod from the map
+            platforms.map(({ id }) => map.delete(id));
+          })
+          .catch(error => {
+            console.error(error);
+          });
       } else {
         console.debug(`No minVersion found, aborting...`, mod);
+        mod?.platforms.map(id => map.delete(id));
       }
       console.groupEnd();
       if (map.size) {
@@ -107,6 +82,7 @@ const initializeTask = () => {
     const outdatedRecords = await db.platformMods
       .where("meta.lastUpdated")
       .belowOrEqual(Date.now() - CACHE_LIFESPAN)
+      .and(entry => entry.meta.minGameVersionFetched != null)
       .toArray();
 
     if (outdatedRecords.length) {

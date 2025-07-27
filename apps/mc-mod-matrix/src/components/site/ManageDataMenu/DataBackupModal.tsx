@@ -14,7 +14,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Settings from "@mui/icons-material/Settings";
+import Restore from "@mui/icons-material/Restore";
 import Typography from "@mui/material/Typography";
 import ErrorIcon from "@mui/icons-material/Error";
 
@@ -24,7 +24,7 @@ import type { AppDataExport } from "~/data-utils/useDataExport/types";
 
 const generateFilename = () => `mc-mod-matrix-data-export-${new Date().toISOString()}.json`;
 
-export function ManageDataModal() {
+export function DataBackupModal() {
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,13 +94,22 @@ export function ManageDataModal() {
       <ListItem>
         <ListItemButton onClick={() => setOpen(true)}>
           <ListItemIcon>
-            <Settings />
+            <Restore />
           </ListItemIcon>
-          <ListItemText>Manage data</ListItemText>
+          <ListItemText
+            slotProps={{
+              secondary: {
+                variant: "caption",
+              },
+            }}
+            secondary="Save/restore all data to/from a file (e.g. to transfer to another computer)"
+          >
+            Backup and restore data
+          </ListItemText>
         </ListItemButton>
       </ListItem>
       <Modal
-        id="manage-data-modal"
+        id="data-backup-modal"
         open={open}
         onClose={() => {
           if (importPending) {
@@ -109,7 +118,7 @@ export function ManageDataModal() {
           setOpen(false);
           setError(undefined);
         }}
-        titleText="Manage data"
+        titleText="Backup and restore data"
       >
         {importPending ? (
           <Grid

@@ -1,4 +1,4 @@
-import type { Modpack, StoredModpack } from "@mcmm/data";
+import type { Mod, Modpack, StoredModpack } from "@mcmm/data";
 
 export interface StoredDataState {
   currentPack: StoredModpack | undefined;
@@ -8,4 +8,7 @@ export interface StoredDataState {
   removePack: (name: string) => void;
   updatePack: (pack: StoredModpack | Modpack) => void;
   reloadStorage: () => void;
+
+  commonMods: Mod["id"][];
+  setCommonMods: React.Dispatch<React.SetStateAction<Mod["id"][]>>;
 }

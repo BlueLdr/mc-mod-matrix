@@ -12,7 +12,7 @@ import {
 import { useStoredPackWithData } from "~/data-utils";
 
 import { ModpackDetailModList } from "./ModpackDetailModList";
-import { ModpackMatrixContent } from "./ModpackMatrixContent";
+import { ModpackMatrixSection } from "./ModpackMatrixSection";
 
 import Grid from "@mui/material/Grid";
 
@@ -52,7 +52,7 @@ export function ModpackDetailPage({ pack: storedPack }: ModpackDetailPageProps) 
         <ModpackDetailModList pack={pack} />
       </ScrollNavSection>
       <ScrollNavSection id="matrix" {...scrollNavSectionProps} component={MatrixContainer}>
-        <ModpackMatrixContent pack={pack} />
+        <ModpackMatrixSection pack={pack} />
       </ScrollNavSection>
       {pack?.mods?.length === 0 && (
         <EmptyViewCard sx={{ height: theme => theme.spacing(100), flex: "1 1 100%" }}>

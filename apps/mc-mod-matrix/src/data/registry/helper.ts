@@ -8,7 +8,8 @@ import {
   PlatformModMetadataCollection,
   VersionSet,
 } from "@mcmm/data";
-import { platformManager } from "~/data";
+
+import { platformManager } from "../manager";
 
 import type {
   GameVersion,
@@ -230,6 +231,47 @@ export class DataRegistryHelper {
       mods.push(await this.parseModDbEntry(entry));
     }
     return mods;
+  }
+
+  //================================================
+
+  public async refreshModVersions(
+    platformsCollection: PlatformModMetadataCollection,
+    minVersion: GameVersion,
+    enableLogging?: boolean,
+  ) {
+    const log = enableLogging ? console.debug : (...args: any[]) => undefined;
+
+    log(`Fetching versions after ${minVersion}`);
+    const { data: versions, error } = await platformManager.getModVersions(
+      platformsCollection,
+      minVersion,
+    );
+
+    if (versions) {
+      log(`Writing updates to versions...`, versions);
+      await this.db.platformModVersions.bulkPut(
+        versions.reduce((arr, v) => {
+          // get the PlatformModMetadata that this version belongs to
+          const platform = platformsCollection.get(v.platform);
+          if (platform) {
+            arr.push({
+              ...v,
+              modId: `${platform.id}`,
+              platform: platform.platform,
+            });
+          }
+          return arr;
+        }, [] as PlatformModVersionDbEntry[]),
+      );
+
+      log(`Writing update to PlatformModMetadata...`);
+      for (const platform of platformsCollection) {
+        await this.writePlatformMod(platform, minVersion);
+      }
+    } else if (error) {
+      return Promise.reject(error);
+    }
   }
 
   //================================================

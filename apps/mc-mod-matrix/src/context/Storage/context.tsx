@@ -6,15 +6,16 @@ import { v4 as uuid } from "uuid";
 
 import { loadStorage, setStorage, useStorageState } from "~/utils";
 
-import type { Modpack, StoredModpack } from "@mcmm/data";
+import type { Mod, Modpack, StoredModpack } from "@mcmm/data";
 import type { WithChildren } from "@mcmm/types";
 import type { StoredDataState } from "./types";
 
 //================================================
 
-const STORAGE_KEY = "storage";
+const PACKS_STORAGE_KEY = "storage";
+const COMMON_MODS_STORAGE_KEY = "common-mods";
 
-const storedListRaw = loadStorage<StoredModpack[]>(STORAGE_KEY);
+const storedListRaw = loadStorage<StoredModpack[]>(PACKS_STORAGE_KEY);
 let storedList: StoredModpack[] | undefined = storedListRaw;
 try {
   let shouldUpdateStorage = false;
@@ -26,11 +27,13 @@ try {
     return pack;
   });
   if (shouldUpdateStorage) {
-    setStorage(STORAGE_KEY, storedList);
+    setStorage(PACKS_STORAGE_KEY, storedList);
   }
 } catch (e) {
   console.error("Failed to add ids to pack list", e);
 }
+
+const storedCommonMods = loadStorage<Mod["id"][]>(COMMON_MODS_STORAGE_KEY, []);
 
 export const StorageContext = createContext<StoredDataState>({
   currentPack: undefined,
@@ -40,19 +43,22 @@ export const StorageContext = createContext<StoredDataState>({
   removePack: () => undefined,
   updatePack: () => undefined,
   reloadStorage: () => undefined,
+  commonMods: [],
+  setCommonMods: () => undefined,
 });
 
 //================================================
 
 export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
   const { id: currentPackId } = useParams<{ id: string }>();
-  const [packs, setPacks_, reloadStorage] = useStorageState(STORAGE_KEY, storedList);
+  const [packs, setPacks_, reloadStorage] = useStorageState(PACKS_STORAGE_KEY, storedList);
+  const [commonMods, setCommonMods] = useStorageState(COMMON_MODS_STORAGE_KEY, storedCommonMods);
 
   useEffect(() => {
     if (!packs) {
-      const existingData = localStorage.getItem(STORAGE_KEY);
+      const existingData = localStorage.getItem(PACKS_STORAGE_KEY);
       if (existingData) {
-        localStorage.setItem(`${STORAGE_KEY}-backup-${Date.now()}`, existingData);
+        localStorage.setItem(`${PACKS_STORAGE_KEY}-backup-${Date.now()}`, existingData);
       }
       setPacks([]);
     }
@@ -114,8 +120,20 @@ export const StorageProvider: React.FC<WithChildren> = ({ children }) => {
       removePack,
       updatePack,
       reloadStorage,
+      commonMods,
+      setCommonMods,
     }),
-    [packs, reloadStorage, setPacks, addPack, removePack, updatePack, currentPackId],
+    [
+      packs,
+      setPacks,
+      addPack,
+      removePack,
+      updatePack,
+      reloadStorage,
+      commonMods,
+      setCommonMods,
+      currentPackId,
+    ],
   );
 
   return <StorageContext value={value}>{children}</StorageContext>;
