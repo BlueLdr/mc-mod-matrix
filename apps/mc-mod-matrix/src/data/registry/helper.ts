@@ -1,10 +1,13 @@
 "use client";
 
-import { debounce } from "lodash";
 import { v4 as uuid } from "uuid";
 
 import { getMinGameVersion, makeRecordFromEntries } from "@mcmm/utils";
-import { PlatformModMetadataCollection, VersionSet } from "@mcmm/data";
+import {
+  getUniqueIdForPlatformModMeta,
+  PlatformModMetadataCollection,
+  VersionSet,
+} from "@mcmm/data";
 import { platformManager } from "~/data";
 
 import type {
@@ -35,18 +38,6 @@ export class DataRegistryHelper {
 
   private db: DataRegistryDb;
   private platformIdTypeMap: Record<Platform, "string" | "number">;
-  private migrations: (() => Promise<any>)[] = [];
-
-  private doMigrations = debounce(
-    async () => {
-      while (this.migrations.length) {
-        const func = this.migrations.shift();
-        await func?.();
-      }
-    },
-    1000,
-    { trailing: true },
-  );
 
   //================================================
 
@@ -119,7 +110,7 @@ export class DataRegistryHelper {
     } = mod;
     const platformIds: string[] = [];
     for (const platform of platforms) {
-      platformIds.push(await this.writePlatformMod(platform, !!versionFetched));
+      platformIds.push(await this.writePlatformMod(platform, versionFetched));
       const platVersions = versions.filter(v => v.platform === platform.platform);
       await this.writePlatformModVersions(platVersions, platform.id, platform.platform);
     }
@@ -141,19 +132,21 @@ export class DataRegistryHelper {
 
   public async writePlatformMod<Id extends string | number = string | number>(
     meta: PlatformModMetadata<Id>,
-    wasRefetched?: boolean,
+    minGameVersionFetched?: string,
   ) {
     let record = await this.getPlatformModByModId(meta.id);
     if (!record) {
       record = {
-        id: uuid(),
+        id: getUniqueIdForPlatformModMeta(meta),
         meta: {
           ...meta,
+          minGameVersionFetched,
           lastUpdated: meta.lastUpdated ?? 0,
         },
       };
     }
-    if (wasRefetched) {
+    if (minGameVersionFetched) {
+      record.meta.minGameVersionFetched = minGameVersionFetched;
       record.meta.lastUpdated = Date.now();
     }
     return this.db.platformMods.put(record, record.id);

@@ -38,6 +38,7 @@ export interface PlatformModMetadata<Id extends string | number = string | numbe
   modDescription: string;
   thumbnailUrl: string;
   lastUpdated?: number;
+  minGameVersionFetched?: GameVersion;
 }
 
 //==================== MODS ======================
