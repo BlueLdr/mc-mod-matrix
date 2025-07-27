@@ -3,8 +3,8 @@ import type { PlatformModMetadata } from "./types";
 //================================================
 
 export class PlatformModMetadataCollection extends Array<PlatformModMetadata> {
-  get(platform: PlatformModMetadata["platform"]) {
-    return this.find(item => item.platform === platform);
+  get<P extends PlatformModMetadata["platform"]>(platform: P) {
+    return this.find((item): item is PlatformModMetadata<P> => item.platform === platform);
   }
 
   has(platform: PlatformModMetadata["platform"]) {

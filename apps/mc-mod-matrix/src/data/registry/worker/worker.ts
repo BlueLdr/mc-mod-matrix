@@ -112,7 +112,7 @@ export class DataRegistryWorker {
       this.sendMessage({
         type: "progress",
         total: total,
-        current: { index: currentJob.mods.length - (modsRemaining.length + 1), name: nextMod.name },
+        current: { index: total - (modsRemaining.length + 1), name: nextMod.name },
         packId: currentJob.packId,
       });
 

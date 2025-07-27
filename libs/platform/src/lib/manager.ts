@@ -14,6 +14,12 @@ import { comparator, makeRecordFromEntries } from "@mcmm/utils";
 import type { GameVersion, ModMetadata, PlatformModMetadata, Mod, Platform } from "@mcmm/data";
 import type { ApiResponse } from "@mcmm/api";
 import type { PlatformPlugin } from "./plugin";
+import type {
+  ExtraDataForPlatform,
+  GetModVersionsAggregateResponse,
+  GetModVersionsResponse,
+  PlatformModExtraData,
+} from "./types";
 
 //================================================
 
@@ -24,11 +30,35 @@ const MAX_SEARCH_RESULT_COUNT = isNaN(
   : Number(process.env["NEXT_PUBLIC_MCMM_MAX_SEARCH_RESULT_COUNT"]);
 
 export class PlatformPluginManager {
-  constructor(plugins: PlatformPlugin<unknown>[]) {
-    this.plugins = plugins;
+  constructor(plugins: { [P in Platform]: PlatformPlugin<P, unknown> }[Platform][]) {
+    this.plugins = plugins as PlatformPlugin<Platform, unknown>[];
   }
 
-  plugins: PlatformPlugin<unknown>[];
+  plugins: PlatformPlugin<Platform, unknown>[];
+
+  static getExtraDataForPlatform<P extends Platform>(
+    platform: P,
+    extraData: PlatformModExtraData | undefined,
+  ): ExtraDataForPlatform<P> {
+    // @ts-expect-error: not every platform necessarily has extra data
+    return extraData?.[platform];
+  }
+
+  static buildExtraDataFromPlatformItems = <T>(
+    items: T[],
+    getPlatform: (item: T) => Platform,
+    getData: (item: T) => ExtraDataForPlatform<Platform> | undefined,
+  ): PlatformModExtraData | undefined => {
+    let output: PlatformModExtraData | undefined = undefined;
+    items.forEach(item => {
+      const platform = getPlatform(item);
+      const data = getData(item);
+      if (data) {
+        output = { ...(output ?? {}), [platform]: data } as PlatformModExtraData;
+      }
+    });
+    return output;
+  };
 
   getModLink(meta: PlatformModMetadata) {
     const plugin = this.plugins.find(p => p.platformName === meta.platform);
@@ -84,13 +114,21 @@ export class PlatformPluginManager {
   getModVersions(
     platforms: ModMetadata["platforms"],
     minGameVersion: GameVersion,
-  ): Promise<ApiResponse<VersionSet>> {
-    // @ts-expect-error: initially empty
-    const promises: Record<Platform, Promise<ApiResponse<VersionSet>>> = {};
+    extraData?: PlatformModExtraData,
+  ): Promise<ApiResponse<GetModVersionsAggregateResponse>> {
+    const promises: Record<string, Promise<ApiResponse<GetModVersionsResponse<Platform>>>> = {};
     this.plugins.forEach(plugin => {
       const platformMeta = platforms.get(plugin.platformName);
+      const platformExtraData = PlatformPluginManager.getExtraDataForPlatform(
+        plugin.platformName,
+        extraData,
+      );
       if (platformMeta) {
-        promises[plugin.platformName] = plugin.getModVersions(platformMeta, minGameVersion);
+        promises[plugin.platformName] = plugin.getModVersions(
+          platformMeta,
+          minGameVersion,
+          platformExtraData,
+        );
       }
     });
 
@@ -99,19 +137,26 @@ export class PlatformPluginManager {
         return { data: null, error };
       }
       return {
-        data: Object.values(data).reduce(
-          (output, versions) => output.concat(versions),
-          new VersionSet(),
-        ),
+        data: {
+          versions: Object.values(data).reduce(
+            (output, { versions }) => output.concat(versions),
+            new VersionSet(),
+          ),
+          extraData: PlatformPluginManager.buildExtraDataFromPlatformItems(
+            Object.entries(data),
+            item => item[0] as Platform,
+            item => item[1].extraData,
+          ),
+        },
         error: null,
       };
     });
   }
 
-  getModVersionsForPlatform(
+  /*getModVersionsForPlatform(
     meta: PlatformModMetadata,
     minGameVersion: GameVersion,
-  ): Promise<ApiResponse<VersionSet>> {
+  ): Promise<ApiResponse<GetModVersionsAggregateResponse>> {
     const plugin = this.plugins.find(p => p.platformName === meta.platform);
     if (!plugin) {
       return Promise.resolve({
@@ -122,7 +167,7 @@ export class PlatformPluginManager {
       });
     }
     return plugin.getModVersions(meta, minGameVersion);
-  }
+  }*/
 
   //================================================
 

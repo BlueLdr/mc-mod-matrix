@@ -7,7 +7,8 @@ import { gameVersionComparator } from "@mcmm/utils";
 import { ModpackDetailPageContext, ProgressIndicator } from "~/components";
 import { DataRegistryContext } from "~/context";
 import { DATA_REGISTRY_CACHE_LIFESPAN } from "~/data";
-import { useDataRefreshProgress, useMounted, useResizeObserver } from "~/utils";
+import { useDataRefreshProgress } from "~/data-utils";
+import { useMounted, useResizeObserver } from "~/utils";
 
 import { ModpackMatrixContent } from "./ModpackMatrixContent";
 import { ModpackMatrixContentLoading } from "./ModpackMatrixContent.loading";

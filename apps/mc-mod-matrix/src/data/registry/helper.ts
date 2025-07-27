@@ -2,6 +2,7 @@
 
 import { v4 as uuid } from "uuid";
 
+import { PlatformPluginManager } from "@mcmm/platform";
 import { getMinGameVersion, makeRecordFromEntries } from "@mcmm/utils";
 import {
   getUniqueIdForPlatformModMeta,
@@ -11,6 +12,7 @@ import {
 
 import { platformManager } from "../manager";
 
+import type { ExtraDataForPlatform, PlatformModExtraData } from "@mcmm/platform";
 import type {
   GameVersion,
   ModMetadata,
@@ -77,9 +79,9 @@ export class DataRegistryHelper {
     };
   }
 
-  public parsePlatformModDbEntry<Id extends string | number = string | number>(
-    dbEntry: PlatformModDbEntry<Id>,
-  ): PlatformModMetadata<Id> {
+  public parsePlatformModDbEntry<P extends Platform, Id extends string | number = string | number>(
+    dbEntry: PlatformModDbEntry<P, Id>,
+  ): PlatformModMetadata<P, Id> {
     return dbEntry.meta;
   }
 
@@ -99,6 +101,7 @@ export class DataRegistryHelper {
   public async writeMod(
     mod: Omit<Mod, "id"> & { id?: string },
     versionFetched?: GameVersion,
+    platformExtraData?: PlatformModExtraData,
   ): Promise<ModDbEntry> {
     const {
       id = uuid(),
@@ -111,7 +114,11 @@ export class DataRegistryHelper {
     } = mod;
     const platformIds: string[] = [];
     for (const platform of platforms) {
-      platformIds.push(await this.writePlatformMod(platform, versionFetched));
+      const extraData = PlatformPluginManager.getExtraDataForPlatform(
+        platform.platform,
+        platformExtraData,
+      );
+      platformIds.push(await this.writePlatformMod(platform, versionFetched, extraData));
       const platVersions = versions.filter(v => v.platform === platform.platform);
       await this.writePlatformModVersions(platVersions, platform.id, platform.platform);
     }
@@ -131,20 +138,27 @@ export class DataRegistryHelper {
     return newMod;
   }
 
-  public async writePlatformMod<Id extends string | number = string | number>(
-    meta: PlatformModMetadata<Id>,
+  public async writePlatformMod<
+    P extends Platform = Platform,
+    Id extends string | number = string | number,
+  >(
+    meta: PlatformModMetadata<P, Id>,
     minGameVersionFetched?: string,
+    platformExtraData?: ExtraDataForPlatform<Platform>,
   ) {
     let record = await this.getPlatformModByModId(meta.id);
     if (!record) {
       record = {
         id: getUniqueIdForPlatformModMeta(meta),
+        extraData: platformExtraData,
         meta: {
           ...meta,
           minGameVersionFetched,
           lastUpdated: meta.lastUpdated ?? 0,
         },
       };
+    } else {
+      record.extraData = platformExtraData;
     }
     if (minGameVersionFetched) {
       record.meta.minGameVersionFetched = minGameVersionFetched;
@@ -242,11 +256,24 @@ export class DataRegistryHelper {
   ) {
     const log = enableLogging ? console.debug : (...args: any[]) => undefined;
 
+    const prevExtraData = PlatformPluginManager.buildExtraDataFromPlatformItems(
+      (
+        await this.db.platformMods.bulkGet(
+          platformsCollection.map(p => getUniqueIdForPlatformModMeta(p)),
+        )
+      ).filter(p => !!p),
+      item => item.meta.platform,
+      item => item.extraData,
+    );
+
     log(`Fetching versions after ${minVersion}`);
-    const { data: versions, error } = await platformManager.getModVersions(
+    const { data, error } = await platformManager.getModVersions(
       platformsCollection,
       minVersion,
+      prevExtraData,
     );
+
+    const { versions, extraData } = data ?? {};
 
     if (versions) {
       log(`Writing updates to versions...`, versions);
@@ -267,7 +294,11 @@ export class DataRegistryHelper {
 
       log(`Writing update to PlatformModMetadata...`);
       for (const platform of platformsCollection) {
-        await this.writePlatformMod(platform, minVersion);
+        const platformExtraData = PlatformPluginManager.getExtraDataForPlatform(
+          platform.platform,
+          extraData,
+        );
+        await this.writePlatformMod(platform, minVersion, platformExtraData);
       }
     } else if (error) {
       return Promise.reject(error);

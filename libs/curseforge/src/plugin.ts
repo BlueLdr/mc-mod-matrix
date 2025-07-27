@@ -3,9 +3,10 @@ import { Platform, VersionSet } from "@mcmm/data";
 import { curseforgeApi } from "./lib/api";
 
 import type { GameVersion, PlatformModMetadata } from "@mcmm/data";
-import type { PlatformPlugin } from "@mcmm/platform";
+import type { GetModVersionsResponse, PlatformPlugin } from "@mcmm/platform";
 import type { ApiResponse } from "@mcmm/api";
 import type * as Curseforge from "./lib/types";
+import type { CurseforgePlatformModExtraData } from "./types";
 
 //================================================
 
@@ -17,15 +18,20 @@ export type CurseforgePlatformModMetadata = Pick<
 };
 
 export class CurseforgePlatformPlugin
-  implements PlatformPlugin<CurseforgePlatformModMetadata, CurseforgePlatformModMetadata["id"]>
+  implements
+    PlatformPlugin<
+      Platform.Curseforge,
+      CurseforgePlatformModMetadata,
+      CurseforgePlatformModMetadata["id"]
+    >
 {
-  platformName = Platform.Curseforge;
+  platformName = Platform.Curseforge as const;
   modUrlBase = "https://www.curseforge.com/minecraft/mc-mods/";
   idType = "number" as const;
 
   toModMetadata = (
     record: CurseforgePlatformModMetadata,
-  ): PlatformModMetadata<CurseforgePlatformModMetadata["id"]> => {
+  ): PlatformModMetadata<Platform.Curseforge, CurseforgePlatformModMetadata["id"]> => {
     return {
       platform: this.platformName,
       id: record.id,
@@ -39,7 +45,7 @@ export class CurseforgePlatformPlugin
   };
 
   fromModMetadata(
-    meta: PlatformModMetadata<CurseforgePlatformModMetadata["id"]>,
+    meta: PlatformModMetadata<Platform.Curseforge, CurseforgePlatformModMetadata["id"]>,
   ): CurseforgePlatformModMetadata {
     return {
       id: meta.id,
@@ -64,22 +70,28 @@ export class CurseforgePlatformPlugin
   }
 
   getModVersions(
-    meta: PlatformModMetadata<CurseforgePlatformModMetadata["id"]>,
+    meta: PlatformModMetadata<Platform.Curseforge, CurseforgePlatformModMetadata["id"]>,
     minGameVersion: GameVersion,
-  ): Promise<ApiResponse<VersionSet>> {
-    return curseforgeApi.getModVersions(meta.id, minGameVersion).then(({ data, error }) => {
-      if (error) {
-        return { data: null, error };
-      }
-      return {
-        data: new VersionSet(
-          ...data.map(version => ({
-            ...version,
-            platform: this.platformName,
-          })),
-        ),
-      };
-    });
+    extraData?: CurseforgePlatformModExtraData,
+  ): Promise<ApiResponse<GetModVersionsResponse<Platform.Curseforge>>> {
+    return curseforgeApi
+      .getModVersions(meta.id, minGameVersion, extraData)
+      .then(({ data, error }) => {
+        if (error) {
+          return { data: null, error };
+        }
+        return {
+          data: {
+            versions: new VersionSet(
+              ...data.versions.map(version => ({
+                ...version,
+                platform: this.platformName,
+              })),
+            ),
+            extraData: data?.extraData,
+          },
+        };
+      });
   }
 
   //================================================

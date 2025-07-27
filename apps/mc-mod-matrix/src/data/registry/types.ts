@@ -1,6 +1,7 @@
 import type Dexie from "dexie";
 import type { EntityTable } from "dexie";
-import type { Mod, ModVersion, PlatformModMetadata } from "@mcmm/data";
+import type { Mod, ModVersion, PlatformModMetadata, Platform } from "@mcmm/data";
+import type { ExtraDataForPlatform } from "@mcmm/platform";
 
 //================================================
 
@@ -10,9 +11,13 @@ export interface ModDbEntry extends Omit<Mod, "platforms" | "versions"> {
 
 //================================================
 
-export interface PlatformModDbEntry<Id extends string | number = string | number> {
-  meta: PlatformModMetadata<Id>;
+export interface PlatformModDbEntry<
+  P extends Platform = Platform,
+  Id extends string | number = string | number,
+> {
+  meta: PlatformModMetadata<P, Id>;
   id: string;
+  extraData?: ExtraDataForPlatform<P>;
 }
 
 export interface PlatformModVersionDbEntry<Id extends string | number = string | number>

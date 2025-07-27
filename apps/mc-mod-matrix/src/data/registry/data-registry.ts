@@ -8,6 +8,7 @@ import { DataRegistryHelper } from "./helper";
 import { loadDataRegistryDb } from "./storage";
 
 import type { GameVersion, Mod, ModMetadata, Platform } from "@mcmm/data";
+import type { PlatformModExtraData } from "@mcmm/platform";
 import type { DataRegistryDb, DataRegistryExportedData } from "./types";
 
 //================================================
@@ -71,6 +72,7 @@ export class DataRegistry {
       versions: new VersionSet(),
       alternatives: [],
     };
+    let extraData: PlatformModExtraData | undefined = undefined;
 
     if (minGameVersion) {
       const { data, error } = await platformManager.getModVersions(meta.platforms, minGameVersion);
@@ -82,11 +84,12 @@ export class DataRegistry {
         return null;
       }
 
-      mod.versions = data;
+      mod.versions = data.versions;
       mod.minGameVersionFetched = minGameVersion;
+      extraData = data.extraData;
     }
 
-    const result = await this.helper?.writeMod(mod, minGameVersion);
+    const result = await this.helper?.writeMod(mod, minGameVersion, extraData);
 
     return {
       id: result.id,

@@ -17,15 +17,20 @@ export type ModrinthPlatformModMetadata = Pick<
 >;
 
 export class ModrinthPlatformPlugin
-  implements PlatformPlugin<ModrinthPlatformModMetadata, ModrinthPlatformModMetadata["project_id"]>
+  implements
+    PlatformPlugin<
+      Platform.Modrinth,
+      ModrinthPlatformModMetadata,
+      ModrinthPlatformModMetadata["project_id"]
+    >
 {
-  platformName = Platform.Modrinth;
+  platformName = Platform.Modrinth as const;
   modUrlBase = "https://modrinth.com/mod/";
   idType = "string" as const;
 
   toModMetadata = (
     record: ModrinthPlatformModMetadata,
-  ): PlatformModMetadata<ModrinthPlatformModMetadata["project_id"]> => {
+  ): PlatformModMetadata<Platform.Modrinth, ModrinthPlatformModMetadata["project_id"]> => {
     return {
       platform: this.platformName,
       id: record.project_id,
@@ -39,7 +44,7 @@ export class ModrinthPlatformPlugin
   };
 
   fromModMetadata(
-    meta: PlatformModMetadata<ModrinthPlatformModMetadata["project_id"]>,
+    meta: PlatformModMetadata<Platform.Modrinth, ModrinthPlatformModMetadata["project_id"]>,
   ): ModrinthPlatformModMetadata {
     return {
       project_id: meta.id,
@@ -61,8 +66,8 @@ export class ModrinthPlatformPlugin
   }
 
   getModVersions(
-    meta: PlatformModMetadata<ModrinthPlatformModMetadata["project_id"]>,
-  ): Promise<ApiResponse<VersionSet>> {
+    meta: PlatformModMetadata<Platform.Modrinth, ModrinthPlatformModMetadata["project_id"]>,
+  ): Promise<ApiResponse<{ versions: VersionSet }>> {
     return modrinthApi.getModVersions(meta.id).then(({ data, error }) => {
       if (error) {
         return { data: null, error };
@@ -79,7 +84,7 @@ export class ModrinthPlatformPlugin
           });
         });
       });
-      return { data: versionSet, error: null };
+      return { data: { versions: versionSet }, error: null };
     });
   }
 

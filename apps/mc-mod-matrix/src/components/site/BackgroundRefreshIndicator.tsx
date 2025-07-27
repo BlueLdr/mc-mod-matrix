@@ -1,7 +1,7 @@
 "use client";
 
 import { ProgressIndicator } from "~/components";
-import { useDataRefreshProgress } from "~/utils";
+import { useDataRefreshProgress } from "~/data-utils";
 
 import Collapse from "@mui/material/Collapse";
 import Divider from "@mui/material/Divider";

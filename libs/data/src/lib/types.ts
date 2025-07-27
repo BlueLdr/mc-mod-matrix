@@ -28,8 +28,11 @@ export enum Platform {
   "Curseforge" = "Curseforge",
 }
 
-export interface PlatformModMetadata<Id extends string | number = string | number> {
-  platform: Platform;
+export interface PlatformModMetadata<
+  P extends Platform = Platform,
+  Id extends string | number = string | number,
+> {
+  platform: P;
   id: Id;
   slug: string;
   authorName: string;
