@@ -305,6 +305,10 @@ export class DataRegistryHelper {
     }
   }
 
+  public async updateModVersionFetched(id: string, versionFetched: GameVersion) {
+    return this.db.mods.update(id, { minGameVersionFetched: versionFetched });
+  }
+
   //================================================
 
   public async updateModMeta(

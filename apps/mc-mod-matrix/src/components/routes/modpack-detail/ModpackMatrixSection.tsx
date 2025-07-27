@@ -72,7 +72,8 @@ export function ModpackMatrixSection({ pack }: ModpackMatrixSectionProps) {
     [pack.mods, pack.versions.min],
   );
 
-  const [progress, clearProgress, , workerApi] = useDataRefreshProgress(pack.id);
+  const onCancel = useCallback(() => setModsToFetch([]), []);
+  const [progress, clearProgress, , workerApi] = useDataRefreshProgress(pack.id, onCancel);
   useEffect(() => {
     if (progress?.complete) {
       setModsToFetch([]);

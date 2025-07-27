@@ -126,6 +126,7 @@ export class DataRegistryWorker {
       }
       await await this.helper
         .refreshModVersions(nextMod.platforms, minGameVersion, this.ENABLE_REQUEST_LOGGING)
+        .then(async () => await this.helper.updateModVersionFetched(nextMod.id, minGameVersion))
         .catch(error => {
           this.sendMessage({ type: "error", message: error.message, packId: currentJob.packId });
         });
