@@ -1,3 +1,4 @@
+export * from "./useDataExport";
 export * from "./useMinVersion";
 export * from "./useModData";
 export * from "./useModSearch";

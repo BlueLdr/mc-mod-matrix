@@ -7,7 +7,7 @@ import { DataRegistryHelper } from "./helper";
 import { loadDataRegistryDb } from "./storage";
 
 import type { GameVersion, Mod, ModMetadata, Platform } from "@mcmm/data";
-import type { DataRegistryDb } from "./types";
+import type { DataRegistryDb, DataRegistryExportedData } from "./types";
 
 //================================================
 
@@ -122,6 +122,38 @@ export class DataRegistry {
       return;
     }
     return await this.helper?.updateModMeta(mod.id, { alternatives });
+  }
+
+  //================================================
+
+  public async exportData() {
+    const json: DataRegistryExportedData = {
+      mods: [],
+      platformMods: [],
+      platformModVersions: [],
+    };
+
+    await this.db.mods.each(item => json.mods.push(item));
+    await this.db.platformMods.each(item => json.platformMods.push(item));
+    await this.db.platformModVersions.each(item => json.platformModVersions.push(item));
+
+    return json;
+  }
+
+  public async importData(data: DataRegistryExportedData) {
+    this.db.close({ disableAutoOpen: true });
+    const db = loadDataRegistryDb(true);
+    return db.open().then(async () =>
+      db
+        .transaction("rw", db.mods, db.platformMods, db.platformModVersions, async tx => {
+          await tx.mods.clear().then(() => tx.mods.bulkAdd(data.mods));
+          await tx.platformMods.clear().then(() => tx.platformMods.bulkAdd(data.platformMods));
+          await tx.platformModVersions
+            .clear()
+            .then(() => tx.platformModVersions.bulkAdd(data.platformModVersions));
+        })
+        .then(() => window.location.reload()),
+    );
   }
 
   //#region Curseforge-specific =====================================

@@ -4,9 +4,8 @@ import type { Mod, ModVersion, PlatformModMetadata } from "@mcmm/data";
 
 //================================================
 
-export interface ModDbEntry extends Omit<Mod, "platforms" | "alternatives" | "versions"> {
+export interface ModDbEntry extends Omit<Mod, "platforms" | "versions"> {
   platforms: string[];
-  alternatives: string[];
 }
 
 //================================================
@@ -29,7 +28,6 @@ export interface PlatformManagerDb extends Dexie {
 //================================================
 
 export interface DataRegistryDb extends Dexie, PlatformManagerDb {
-  lastRefresh: number;
   mods: EntityTable<ModDbEntry, "id">;
 }
 
@@ -39,4 +37,12 @@ export interface DataRefreshProgressData {
   total: number;
   current?: { index: number; name: string };
   complete: boolean;
+}
+
+//================================================
+
+export interface DataRegistryExportedData {
+  mods: ModDbEntry[];
+  platformMods: PlatformModDbEntry[];
+  platformModVersions: PlatformModVersionDbEntry[];
 }

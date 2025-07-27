@@ -6,7 +6,7 @@ import type { DataRegistryDb } from "./types";
 
 //================================================
 
-export const loadDataRegistryDb = () => {
+export const loadDataRegistryDb = (preventOpen?: true) => {
   const dataRegistryDb = new Dexie("DataRegistry") as DataRegistryDb;
 
   dataRegistryDb.version(2).stores({
@@ -14,7 +14,9 @@ export const loadDataRegistryDb = () => {
     platformMods: "&id,[meta.id+meta.platform],meta.platform,meta.id,meta.lastUpdated",
     platformModVersions: "++,modId,platform,gameVersion,loader",
   });
-  dataRegistryDb.open().catch(e => console.error(e));
+  if (!preventOpen) {
+    dataRegistryDb.open().catch(e => console.error(e));
+  }
 
   return dataRegistryDb;
 };
