@@ -38,7 +38,7 @@ export const useModSearch = ({ debounceDelay, platforms }: UseModSearchOptions =
   const status = useMemo(
     () => ({
       pending: isLoading,
-      error,
+      error: error || data?.error,
       success: !isLoading && !error && !data?.error,
     }),
     [data?.error, error, isLoading],

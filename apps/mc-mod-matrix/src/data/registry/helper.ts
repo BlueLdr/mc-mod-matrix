@@ -129,10 +129,7 @@ export class DataRegistryHelper {
       image,
       alternatives,
       platforms: platformIds,
-      minGameVersionFetched:
-        versionFetched && minGameVersionFetched
-          ? getMinGameVersion(minGameVersionFetched, versionFetched)
-          : (versionFetched ?? minGameVersionFetched),
+      minGameVersionFetched: getMinGameVersion(minGameVersionFetched, versionFetched),
     };
     await this.db.mods.put(newMod, newMod.id);
     return newMod;
@@ -143,7 +140,7 @@ export class DataRegistryHelper {
     Id extends string | number = string | number,
   >(
     meta: PlatformModMetadata<P, Id>,
-    minGameVersionFetched?: string,
+    minGameVersionFetched?: GameVersion,
     platformExtraData?: ExtraDataForPlatform<Platform>,
   ) {
     let record = await this.getPlatformModByModId(meta.id);
@@ -161,7 +158,10 @@ export class DataRegistryHelper {
       record.extraData = platformExtraData;
     }
     if (minGameVersionFetched) {
-      record.meta.minGameVersionFetched = minGameVersionFetched;
+      record.meta.minGameVersionFetched = getMinGameVersion(
+        minGameVersionFetched,
+        record.meta.minGameVersionFetched,
+      );
       record.meta.lastUpdated = Date.now();
     }
     return this.db.platformMods.put(record, record.id);
@@ -306,7 +306,12 @@ export class DataRegistryHelper {
   }
 
   public async updateModVersionFetched(id: string, versionFetched: GameVersion) {
-    return this.db.mods.update(id, { minGameVersionFetched: versionFetched });
+    return this.db.mods.update(id, record => {
+      record.minGameVersionFetched = getMinGameVersion(
+        versionFetched,
+        record.minGameVersionFetched,
+      );
+    });
   }
 
   //================================================

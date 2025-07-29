@@ -34,10 +34,10 @@ const processExactMatch = (
   if (incoming.id !== existing.id) {
     result.idMapping[incoming.id] = existing.id;
   }
-  const newMinGameVersionFetched =
-    incoming.minGameVersionFetched && existing.minGameVersionFetched
-      ? getMinGameVersion(incoming.minGameVersionFetched, existing.minGameVersionFetched)
-      : incoming.minGameVersionFetched || existing.minGameVersionFetched;
+  const newMinGameVersionFetched = getMinGameVersion(
+    incoming.minGameVersionFetched,
+    existing.minGameVersionFetched,
+  );
 
   if (newMinGameVersionFetched !== existing.minGameVersionFetched) {
     result.recordsToUpdate[existing.id] = entry => {

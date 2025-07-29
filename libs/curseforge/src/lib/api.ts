@@ -2,7 +2,7 @@ import { values } from "lodash";
 
 import { ApiConnector, promiseAll } from "@mcmm/api";
 import { ModLoader, Platform, VersionSet } from "@mcmm/data";
-import { awaitTimeout, gameVersionComparator } from "@mcmm/utils";
+import { awaitTimeout, gameVersionComparator, gameVersionRegex } from "@mcmm/utils";
 import { createDisplayableError } from "@mcmm/types";
 
 import * as Curseforge from "./types";
@@ -17,14 +17,54 @@ import type { CurseforgeCachedVersionFetchData, CurseforgePlatformModExtraData }
 
 type GetVersionsForLoaderResponse = { versions: string[] } & CurseforgeCachedVersionFetchData;
 
+type GetVersionsPrevData = CurseforgeCachedVersionFetchData & {
+  minVersion: GameVersion;
+};
+
 const CURSEFORGE_BASE_URL =
   typeof globalThis !== "undefined" && ("window" in globalThis || "location" in globalThis)
     ? `${location.origin}/api/curseforge/`
     : (process.env["MCMM_CURSEFORGE_API_URL"] ?? "https://api.curseforge.com/");
 
 export class CurseforgeApi extends ApiConnector {
+  constructor() {
+    super();
+    this.gameVersionReleaseDates = {};
+    this.gameVersionPreReleaseDates = {};
+    if (
+      typeof globalThis === "undefined" ||
+      !("window" in globalThis || "location" in globalThis)
+    ) {
+      return;
+    }
+    this.getMinecraftGameVersions().then(result => {
+      result?.data?.data.forEach(version => {
+        if (gameVersionRegex.test(version.versionString)) {
+          this.gameVersionPreReleaseDates[version.versionString] = new Date(
+            version.dateModified,
+          ).getTime();
+        }
+      });
+    });
+  }
+
   protected baseUrl = CURSEFORGE_BASE_URL;
   protected gameId = 432;
+
+  private gameVersionReleaseDates: Record<GameVersion, number>;
+  private gameVersionPreReleaseDates: Record<GameVersion, number>;
+
+  private getGameVersionRange = (min: GameVersion, max?: GameVersion) => {
+    return Object.keys(this.gameVersionPreReleaseDates).filter(
+      version =>
+        (!max || gameVersionComparator(version, max) < 0) &&
+        gameVersionComparator(version, min) >= 0,
+    );
+  };
+
+  private getVersionReleaseDate(version: GameVersion) {
+    return this.gameVersionReleaseDates[version] ?? this.gameVersionPreReleaseDates[version] ?? 0;
+  }
 
   public override fetch<T>(path: string, params?: URLSearchParams, request?: RequestInit) {
     path =
@@ -168,7 +208,8 @@ export class CurseforgeApi extends ApiConnector {
   public getModVersions(
     modId: number,
     minGameVersion: GameVersion,
-    prevExtraData?: Partial<CurseforgePlatformModExtraData>,
+    prevMinGameVersion?: GameVersion,
+    prevExtraData?: CurseforgePlatformModExtraData,
   ): Promise<ApiResponse<GetModVersionsResponse<Platform.Curseforge>>> {
     if (!minGameVersion) {
       return Promise.resolve({
@@ -184,8 +225,12 @@ export class CurseforgeApi extends ApiConnector {
           modId,
           loader,
           minGameVersion,
-          prevExtraData?.[loader]?.newestFileDate,
-          prevExtraData?.[loader]?.lastPageFetched,
+          prevExtraData?.[loader] && prevMinGameVersion
+            ? {
+                ...prevExtraData[loader],
+                minVersion: prevMinGameVersion,
+              }
+            : undefined,
         );
         return obj;
       }, {} as any),
@@ -204,7 +249,7 @@ export class CurseforgeApi extends ApiConnector {
               prevExtraData?.[loader as ModLoader]?.newestFileDate ?? 0,
             ),
             lastPageFetched: Math.max(
-              lastPageFetched,
+              lastPageFetched ?? 0,
               prevExtraData?.[loader as ModLoader]?.lastPageFetched ?? 0,
             ),
           };
@@ -230,84 +275,107 @@ export class CurseforgeApi extends ApiConnector {
     });
   }
 
-  public getModVersionsForLoader(
+  public async getModVersionsForLoader(
     modId: number,
     loader: ModLoader,
     minVersion: GameVersion,
-    newestFileDate?: number,
-    prevLastPageFetched?: number,
-    page = 0,
+    prevData: GetVersionsPrevData | undefined,
   ): Promise<ApiResponse<GetVersionsForLoaderResponse>> {
-    return this.getModFiles(modId, {
-      modLoaderType: Curseforge.ModLoaderType[loader],
-      index: page,
-    }).then(result => {
+    let page = 0;
+    let newestFileDate = prevData?.newestFileDate ?? 0;
+    let oldestFileDate = Infinity;
+    let allNewerDataHasBeenFetched = false;
+    let hasPassedReleaseDateOfOldestVersionNeeded = false;
+
+    const versions = new Set<GameVersion>();
+    // if we're fetching for a version <= the prev min fetched version
+    const versionsNeeded =
+      !prevData || gameVersionComparator(minVersion, prevData.minVersion) < 0
+        ? new Set(this.getGameVersionRange(minVersion, prevData?.minVersion))
+        : undefined;
+
+    let shouldStop = false;
+    do {
+      const result = await this.getModFiles(modId, {
+        modLoaderType: Curseforge.ModLoaderType[loader],
+        index: page,
+      });
       if (!result.data) {
         return result;
       }
 
-      // eslint-disable-next-line prefer-const
-      let [versions, newestDate] = result.data.data.reduce(
-        ([arr, date], item) => {
-          const thisFileVersions = item.sortableGameVersions
-            .filter(v => !!v.gameVersion)
-            .map(v => v.gameVersion);
-          return [
-            arr.concat(thisFileVersions),
-            Math.max(new Date(item.fileDate).getTime(), date),
-          ] as const;
-        },
-        [[] as string[], newestFileDate ?? 0] as const,
-      );
-      versions = versions.sort(gameVersionComparator);
+      for (const file of result.data.data) {
+        const thisGameVersions = file.sortableGameVersions.filter(v => !!v.gameVersion);
+
+        thisGameVersions.forEach(v => {
+          const gameVersion = v.gameVersion;
+          versions.add(gameVersion);
+          versionsNeeded?.delete(gameVersion);
+
+          if (!this.gameVersionReleaseDates[gameVersion]) {
+            this.gameVersionReleaseDates[gameVersion] = new Date(
+              v.gameVersionReleaseDate,
+            ).getTime();
+          }
+        });
+
+        const fileDate = new Date(file.fileDate).getTime();
+        newestFileDate = Math.max(fileDate, newestFileDate ?? 0);
+        oldestFileDate = Math.min(fileDate, oldestFileDate ?? 0);
+      }
 
       const isLastPage =
         (page + 1) * result.data.pagination.pageSize >= result.data.pagination.totalCount;
-      const allNewerDataHasBeenFetched =
-        newestFileDate != null &&
-        result.data?.data?.some(file => new Date(file.fileDate).getTime() <= newestFileDate);
-
-      if (
-        isLastPage ||
-        (allNewerDataHasBeenFetched && prevLastPageFetched == null) ||
-        gameVersionComparator(versions[0], minVersion) <= 0
-      ) {
-        return {
-          data: {
-            versions: Array.from(new Set(versions)),
-            lastPageFetched: page,
-            newestFileDate: newestDate,
-          },
-        };
+      const foundAllVersions = versionsNeeded?.size === 0;
+      if (isLastPage || foundAllVersions) {
+        shouldStop = true;
+        break;
       }
 
-      const nextPage =
-        allNewerDataHasBeenFetched && prevLastPageFetched != null && page < prevLastPageFetched
-          ? prevLastPageFetched
-          : page + 1;
+      if (prevData != null && !allNewerDataHasBeenFetched) {
+        allNewerDataHasBeenFetched = oldestFileDate < prevData.newestFileDate;
+      }
 
-      return awaitTimeout(Math.random() * 500).then(() =>
-        this.getModVersionsForLoader(
-          modId,
-          loader,
-          minVersion,
-          newestFileDate,
-          prevLastPageFetched,
-          nextPage,
-        ).then(result => {
-          if (!result.data) {
-            return result;
-          }
-          return {
-            data: {
-              versions: Array.from(new Set(versions.concat(result.data.versions))),
-              lastPageFetched: nextPage,
-              newestFileDate: Math.max(result.data.newestFileDate, newestDate),
-            },
-          };
-        }),
-      );
-    });
+      if (allNewerDataHasBeenFetched && !versionsNeeded) {
+        shouldStop = true;
+        break;
+      }
+
+      if (versionsNeeded?.size) {
+        const versionsNeededArr = versionsNeeded ? Array.from(versionsNeeded) : [];
+
+        const oldestVersionNotFoundReleaseDate = versionsNeededArr.length
+          ? Math.min(...versionsNeededArr.map(ver => this.getVersionReleaseDate(ver)))
+          : undefined;
+
+        if (oldestVersionNotFoundReleaseDate) {
+          hasPassedReleaseDateOfOldestVersionNeeded =
+            oldestFileDate < oldestVersionNotFoundReleaseDate;
+        }
+      }
+
+      if ((!prevData || allNewerDataHasBeenFetched) && hasPassedReleaseDateOfOldestVersionNeeded) {
+        shouldStop = true;
+        break;
+      }
+
+      page =
+        // if we're done looking for new data, and we still have versions to find, then skip to the
+        // previous lastPageFetched.
+        allNewerDataHasBeenFetched && prevData && page < prevData.lastPageFetched
+          ? prevData.lastPageFetched
+          : page + result.data.pagination.pageSize;
+
+      await awaitTimeout(Math.random() * 500);
+    } while (!shouldStop);
+
+    return {
+      data: {
+        versions: Array.from(versions).sort(gameVersionComparator),
+        newestFileDate,
+        lastPageFetched: Math.max(page, prevData?.lastPageFetched ?? 0),
+      },
+    };
   }
 }
 
