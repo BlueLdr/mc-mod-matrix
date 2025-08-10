@@ -32,7 +32,6 @@ export class DataRegistryWorkerApi {
     if (!e.data) {
       return;
     }
-    console.log(`Worker Message: `, e.data);
     if (e.data.message) {
       console.log(`[DataRegistry Worker]`, e.data.message);
     }

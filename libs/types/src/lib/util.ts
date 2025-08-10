@@ -20,3 +20,7 @@ export type DistributiveOmit<T, K> = T extends any ? Pick<T, Exclude<keyof T, K>
 export type DistributivePick<T, K> = T extends any ? Pick<T, Extract<keyof T, K>> : never;
 
 export type Scalar = string | number | boolean;
+
+export type DeepPartial<T extends object> = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
+};

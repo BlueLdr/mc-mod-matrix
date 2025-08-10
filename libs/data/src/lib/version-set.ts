@@ -44,7 +44,7 @@ export const buildVersionSetMaps = <T extends ModVersion = ModVersion>(
 };
 
 const loaderValues = values(ModLoader);
-const isLoader = (value: GameVersion | ModVersion): value is ModLoader =>
+const isLoader = (value: GameVersion | ModLoader): value is ModLoader =>
   loaderValues.includes(value as ModLoader);
 
 export class VersionSet<T extends ModVersion = ModVersion> extends Array<T> {

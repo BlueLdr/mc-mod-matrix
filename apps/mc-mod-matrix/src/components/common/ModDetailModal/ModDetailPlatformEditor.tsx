@@ -18,6 +18,7 @@ import MenuItem from "@mui/material/MenuItem";
 import MenuList from "@mui/material/MenuList";
 import Popover from "@mui/material/Popover";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 
 import type { Platform, PlatformModMetadata } from "@mcmm/data";
 import type { RequestStatus } from "@mcmm/api";
@@ -104,6 +105,11 @@ function Picker({
           </Button>
         )}
       </Grid>
+      {status.error && (
+        <Typography color="error">
+          <b>Error:</b> {status.error.message}
+        </Typography>
+      )}
       <MenuList
         {...getListboxProps()}
         sx={{

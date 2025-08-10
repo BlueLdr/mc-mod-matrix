@@ -116,10 +116,10 @@ export class DataRegistryWorker {
         packId: currentJob.packId,
       });
 
-      const minGameVersion =
-        nextMod.minGameVersionFetched && currentJob.minVersion
-          ? getMinGameVersion(currentJob.minVersion, nextMod.minGameVersionFetched)
-          : (currentJob.minVersion ?? nextMod.minGameVersionFetched);
+      const minGameVersion = getMinGameVersion(
+        currentJob.minVersion,
+        nextMod.minGameVersionFetched,
+      );
       if (!minGameVersion) {
         this.requestLogger.debug(`No minVersion found, aborting...`, nextMod);
         continue;

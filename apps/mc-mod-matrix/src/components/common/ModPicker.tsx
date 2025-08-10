@@ -9,6 +9,7 @@ import { VirtualizedListbox } from "./VirtualizedListBox";
 import Autocomplete from "@mui/material/Autocomplete";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 
 import type { ModMetadata } from "@mcmm/data";
 import type { ListChildComponentProps } from "react-window";
@@ -94,7 +95,15 @@ export function ModPicker(props: ModPickerProps) {
       disableClearable
       loading={status.pending}
       noOptionsText={
-        status.success ? "No matches for your search" : "Start typing to search mods..."
+        status.success ? (
+          "No matches for your search"
+        ) : status.error ? (
+          <Typography color="error">
+            <b>Error:</b> {status.error.message}
+          </Typography>
+        ) : (
+          "Start typing to search mods..."
+        )
       }
       renderInput={params => (
         <TextField {...params} label="Search for a mod..." value={inputValue} />

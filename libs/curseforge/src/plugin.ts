@@ -75,7 +75,7 @@ export class CurseforgePlatformPlugin
     extraData?: CurseforgePlatformModExtraData,
   ): Promise<ApiResponse<GetModVersionsResponse<Platform.Curseforge>>> {
     return curseforgeApi
-      .getModVersions(meta.id, minGameVersion, extraData)
+      .getModVersions(meta.id, minGameVersion, meta.minGameVersionFetched, extraData)
       .then(({ data, error }) => {
         if (error) {
           return { data: null, error };
