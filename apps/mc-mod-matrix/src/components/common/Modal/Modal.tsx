@@ -26,7 +26,7 @@ const headerStyle = {
 
 const CloseButton = styled(IconButton)`
   padding: ${({ theme }) => theme.spacing(2)};
-  margin: ${({ theme }) => theme.spacing(0, -2, 0, 2)};
+  margin: ${({ theme }) => theme.spacing(0, -2, 0, 0)};
 `;
 CloseButton.displayName = "CloseButton";
 
@@ -41,6 +41,7 @@ export const Modal: React.FC<ModalProps> = ({
   fullWidth = false,
   className,
   hideCloseButton,
+  headerActions,
   id,
   confirmButton: confirmButtonProp,
   cancelButton: cancelButtonProp,
@@ -66,6 +67,14 @@ export const Modal: React.FC<ModalProps> = ({
       })
     : undefined;
 
+  const closeButton = hideCloseButton ? null : (
+    <Grid sx={{ lineHeight: 0 }}>
+      <CloseButton className="modal-close" aria-label="close" onClick={onClose}>
+        <CloseIcon />
+      </CloseButton>
+    </Grid>
+  );
+
   return (
     <Dialog
       {...props}
@@ -78,15 +87,14 @@ export const Modal: React.FC<ModalProps> = ({
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-description`}
     >
-      {(!hideCloseButton || !!titleText) && (
+      {(!!closeButton || !!titleText || !!headerActions?.length) && (
         <DialogTitle component="div" id={`${id}-title`} sx={titleText ? headerStyle : undefined}>
           <Grid container justifyContent="space-between" alignItems="center" spacing={4}>
-            <Grid>{titleText}</Grid>
-            {!hideCloseButton ? (
-              <Grid sx={{ lineHeight: 0 }}>
-                <CloseButton className="modal-close" aria-label="close" onClick={onClose}>
-                  <CloseIcon />
-                </CloseButton>
+            <Grid flex={1}>{titleText}</Grid>
+            {!!closeButton || !!headerActions ? (
+              <Grid container justifyContent="flex-end" alignItems="center" spacing={2}>
+                {headerActions}
+                {closeButton}
               </Grid>
             ) : undefined}
           </Grid>

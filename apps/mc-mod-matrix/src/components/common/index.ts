@@ -11,6 +11,7 @@ export * from "./ModListItem";
 export * from "./ModLoaderPicker";
 export * from "./ModMatrix";
 export * from "./ModPackList";
+export * from "./ModpackExport";
 export * from "./ModPicker";
 export * from "./ModpackSupportIssuesList";
 export * from "./PackActionsMenu";

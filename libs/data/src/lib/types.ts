@@ -66,6 +66,7 @@ export interface Modpack {
   id: string;
   name: string;
   mods: Mod[];
+  packVersion?: string;
   versions: {
     min: GameVersion;
     max: GameVersion;
@@ -96,3 +97,8 @@ export type MigrationMap = {
   ModMetadata: ModMetadata;
   Mod: Mod;
 };
+
+//================================================
+
+export type ModLoaderSemVerString = `${number}.${number}${string}`
+export type RawModLoaderVersionString = `${ModLoader}-${ModLoaderSemVerString}`

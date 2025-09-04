@@ -11,6 +11,7 @@ import {
   StorageProvider,
 } from "~/context";
 
+import { SiteFooter } from "./Footer";
 import { NavDrawer } from "./NavDrawer";
 
 import Box from "@mui/material/Box";
@@ -56,6 +57,7 @@ export function SiteLayout({ initialNavOpen, children }: SiteLayoutProps) {
               <Box display="flex" flexDirection="column" minHeight="100vh">
                 <SiteContainer flexGrow={1}>
                   <Body>{children}</Body>
+                  <SiteFooter />
                 </SiteContainer>
               </Box>
               <ModDetailModal />

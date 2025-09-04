@@ -226,8 +226,15 @@ export class DataRegistryHelper {
   }
 
   public async getModByPlatformMeta(meta: PlatformModMetadata) {
+    return this.getModByPlatformModId(meta.platform, meta.id);
+  }
+
+  public async getModByPlatformModId<P extends Platform>(
+    platform: P,
+    id: PlatformModMetadata<P>["id"],
+  ) {
     const platformModEntry = await this.db.platformMods.get({
-      "[meta.id+meta.platform]": [meta.id, meta.platform],
+      "[meta.id+meta.platform]": [id, platform],
     });
     if (platformModEntry) {
       return this.db.mods

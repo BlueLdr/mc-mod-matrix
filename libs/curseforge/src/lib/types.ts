@@ -1,3 +1,5 @@
+import type { RawModLoaderVersionString } from "@mcmm/data";
+
 /**
  * Painstakingly transcribed from https://docs.curseforge.com/rest-api
  * Up to date as of 05/14/25
@@ -230,7 +232,7 @@ export interface MinecraftGameVersion {
 }
 
 export interface MinecraftModLoaderIndex {
-  name: string;
+  name: RawModLoaderVersionString;
   gameVersion: string;
   latest: boolean;
   recommended: boolean;
@@ -473,4 +475,29 @@ export type SortOrder = "asc" | "desc";
 export interface VersionsByType {
   type: number;
   versions: GameVersion[];
+}
+
+export interface ModpackManifestModLoader {
+  id: string;
+  primary: boolean;
+}
+
+export interface ModpackManifestFile {
+  projectId: number;
+  fileId: number;
+  required: boolean;
+}
+
+export interface ModpackManifest {
+  minecraft: {
+    version: string;
+    modLoaders: ModpackManifestModLoader[];
+  };
+  manifestType: "minecraftModpack";
+  manifestVersion: number;
+  name: string;
+  version: string;
+  author: string;
+  files: ModpackManifestFile[];
+  overrides: "overrides";
 }

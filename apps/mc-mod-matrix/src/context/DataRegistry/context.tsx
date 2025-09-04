@@ -2,9 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-import { StorageContext } from "~/context";
+import { CommonContext, StorageContext } from "~/context";
 import { DataRegistry, DataRegistryWorkerApi } from "~/data";
-import { useRemotePromise } from "~/utils";
+import { useRemotePromise, useValueRef } from "~/utils";
 
 import type { WithChildren } from "@mcmm/types";
 import type { DataRegistryContextState } from "./types";
@@ -22,12 +22,15 @@ export function DataRegistryProvider({ children }: WithChildren) {
   const [dataRegistry, setDataRegistry] = useState<DataRegistry>();
   const [promise, remoteRef] = useRemotePromise<DataRegistry>();
   const { commonMods } = useContext(StorageContext);
+  const { gameVersions } = useContext(CommonContext);
+  const gameVersionsRef = useValueRef(gameVersions.length ? gameVersions : undefined);
+
   useEffect(() => {
     const dataRegistry = new DataRegistry();
     setDataRegistry(dataRegistry);
     remoteRef.current?.resolve(dataRegistry);
 
-    const workerApi = new DataRegistryWorkerApi(commonMods);
+    const workerApi = new DataRegistryWorkerApi(commonMods, gameVersionsRef.current);
     setWorkerApi(workerApi);
 
     if ("window" in global && process.env.NODE_ENV?.startsWith("dev")) {
@@ -38,6 +41,12 @@ export function DataRegistryProvider({ children }: WithChildren) {
     return () => workerApi.terminate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [remoteRef]);
+
+  useEffect(() => {
+    if (gameVersions.length && workerApi) {
+      workerApi.sendRequest({ type: "set-game-versions", allGameVersions: gameVersions });
+    }
+  }, [workerApi, gameVersions]);
 
   useEffect(() => {
     workerApi?.sendRequest({ type: "update-common-mods", modsToAutoRefresh: commonMods });

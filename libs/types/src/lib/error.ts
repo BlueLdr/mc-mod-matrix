@@ -7,6 +7,7 @@ export interface DisplayableError {
   title?: string;
   code?: string | number;
   status?: number;
+  data?: any;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
@@ -33,6 +34,7 @@ export class DisplayableError {
   title?: string;
   status?: number;
   statusText?: string;
+  data?: any;
 }
 
 const isPotentialMessage = (value: any) =>

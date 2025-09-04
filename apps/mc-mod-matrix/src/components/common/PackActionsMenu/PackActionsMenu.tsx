@@ -4,6 +4,7 @@ import { styled } from "@mui/material/styles";
 import { useContext, useRef, useState } from "react";
 
 import { DataRegistryContext, PackActionsModalsContext } from "~/context";
+import { JobRequestType, JobType } from "~/data";
 
 import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
@@ -20,7 +21,6 @@ const Button = styled(IconButton)`
   border-radius: ${({ theme }) => theme.shape.borderRadius}px;
 
   &:not(:hover):not(:active):not(:focus) {
-    color: ${({ theme }) => theme.palette.action.disabled};
     background-color: rgba(0, 0, 0, 0);
     transition: ${({ theme }) => theme.transitions.create(["color", "background-color"])};
   }
@@ -68,11 +68,12 @@ export function PackActionsMenu({ pack, size, showReloadButton }: PackActionsMen
             <MenuItem
               onClick={() => {
                 workerApi?.sendRequest({
-                  type: "start-refresh",
+                  type: JobRequestType.StartJob,
+                  jobType: JobType.Refresh,
                   packId: pack.id,
                   mods: pack.mods,
                   minVersion: pack.versions.min,
-                  forceUpdate: true,
+                  forceRun: true,
                   runImmediately: true,
                 });
                 setMenuOpen(false);

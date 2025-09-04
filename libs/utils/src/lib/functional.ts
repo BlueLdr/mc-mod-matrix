@@ -47,3 +47,23 @@ export const pluralize = (word: string, count: number) => {
   }
   return `${word}s`;
 };
+
+//================================================
+
+export type PromiseRemote<T> = { resolve: (value: T) => void; reject: (error?: any) => void };
+export const createRemotePromise = <T>() => {
+  if (Promise.withResolvers) {
+    const { promise, resolve, reject } = Promise.withResolvers<T>();
+    return [promise, { current: { resolve, reject } }] as const;
+  }
+  const remote = { current: undefined as PromiseRemote<T> | undefined };
+  const promise = new Promise<T>((resolve, reject) => {
+    remote.current = { resolve, reject };
+  });
+  return [promise, remote] as const;
+};
+
+//================================================
+
+export const getVariableInterval = (interval: number) =>
+  interval + (Math.random() * 0.5 * interval - 0.25 * interval);

@@ -38,9 +38,10 @@ export interface DataRegistryDb extends Dexie, PlatformManagerDb {
 
 //================================================
 
-export interface BackgroundRefreshProgressData {
+export interface BackgroundJobProgressData {
   total: number;
-  current?: { index: number; name: string };
+  current?: number;
+  currentName?: string;
   complete: boolean;
   paused?: boolean;
   error?: Error;

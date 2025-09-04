@@ -44,14 +44,7 @@ export function ModDetailPlatformItem({
       <CardHeader
         action={
           onSave ? (
-            <IconButton
-              onClick={() => setEditMode(true)}
-              sx={{
-                "&:not(:hover)": {
-                  color: theme => theme.palette.grey[400],
-                },
-              }}
-            >
+            <IconButton onClick={() => setEditMode(true)}>
               <EditOutlined fontSize="small" />
             </IconButton>
           ) : undefined

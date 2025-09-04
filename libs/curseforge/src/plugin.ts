@@ -1,9 +1,16 @@
 import { Platform, VersionSet } from "@mcmm/data";
+import { createDisplayableError } from "@mcmm/types";
+import { PlatformPlugin } from "@mcmm/platform";
 
 import { curseforgeApi } from "./lib/api";
+import { FileRelationType, ModLoaderType } from "./lib/types";
 
-import type { GameVersion, PlatformModMetadata } from "@mcmm/data";
-import type { GetModVersionsResponse, PlatformPlugin } from "@mcmm/platform";
+import type {
+  ModpackExportParams,
+  GetModVersionsResponse,
+  PlatformPluginTypes,
+} from "@mcmm/platform";
+import type { GameVersion, PlatformModMetadata, ModLoader } from "@mcmm/data";
 import type { ApiResponse } from "@mcmm/api";
 import type * as Curseforge from "./lib/types";
 import type { CurseforgePlatformModExtraData } from "./types";
@@ -18,16 +25,13 @@ export type CurseforgePlatformModMetadata = Pick<
 };
 
 export class CurseforgePlatformPlugin
-  implements
-    PlatformPlugin<
-      Platform.Curseforge,
-      CurseforgePlatformModMetadata,
-      CurseforgePlatformModMetadata["id"]
-    >
+  extends PlatformPlugin<Platform.Curseforge, PlatformPluginTypes>
+  implements PlatformPlugin<Platform.Curseforge, PlatformPluginTypes>
 {
   platformName = Platform.Curseforge as const;
   modUrlBase = "https://www.curseforge.com/minecraft/mc-mods/";
   idType = "number" as const;
+  manifestFilename = "manifest.json";
 
   toModMetadata = (
     record: CurseforgePlatformModMetadata,
@@ -92,6 +96,84 @@ export class CurseforgePlatformPlugin
           },
         };
       });
+  }
+
+  public getLatestFileForMod(
+    modId: CurseforgePlatformModMetadata["id"],
+    gameVersion: GameVersion,
+    loader: ModLoader,
+  ): Promise<ApiResponse<Curseforge.File>> {
+    return curseforgeApi
+      .getModFiles(modId, { gameVersion, modLoaderType: ModLoaderType[loader] })
+      .then(({ data, error }) => {
+        if (error || !data?.data?.length) {
+          if (!error) {
+            error = createDisplayableError(
+              new Error(`No files found for mod ${modId} / ${gameVersion} / ${loader}`),
+            );
+            error.code = PlatformPlugin.NO_FILE_FOR_MOD_VERSION_ERROR_CODE;
+          }
+          return {
+            data: null,
+            error,
+          };
+        }
+        return {
+          data: data.data.reduce((mostRecent, file) => {
+            if (!mostRecent) {
+              return file;
+            }
+            if (new Date(file.fileDate) > new Date(mostRecent.fileDate)) {
+              return file;
+            }
+            return mostRecent;
+          }),
+          error: null,
+        };
+      });
+  }
+
+  public getDependencyModIdsFromFile(file: Curseforge.File) {
+    return file.dependencies
+      .filter(d =>
+        [
+          FileRelationType.EmbeddedLibrary,
+          FileRelationType.RequiredDependency,
+          FileRelationType.Include,
+        ].includes(d.relationType),
+      )
+      .map(d => d.modId);
+  }
+
+  public createModpackManifest({
+    packSupportMeta,
+    files,
+    modLoaderVersion,
+    version,
+    author,
+  }: ModpackExportParams & { files: Curseforge.File[] }): Curseforge.ModpackManifest {
+    return {
+      minecraft: {
+        version: packSupportMeta.gameVersion,
+        modLoaders: [
+          {
+            id: modLoaderVersion,
+            primary: true,
+          },
+        ],
+      },
+      manifestType: "minecraftModpack",
+      manifestVersion: 1,
+      name: packSupportMeta.pack.name,
+      version,
+      author,
+      files: files.map(file => ({
+        projectId: file.modId,
+        fileId: file.id,
+        required: true,
+      })),
+      overrides: "overrides",
+    };
   }
 
   //================================================

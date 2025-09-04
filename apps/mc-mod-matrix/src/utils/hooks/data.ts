@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { createRemotePromise } from "@mcmm/utils";
+
 import { loadStorage, setStorage } from "../helpers";
 
 import type { Dispatch, SetStateAction } from "react";
@@ -33,21 +35,9 @@ export const useStateObject = <T extends object>(initialState: T) => {
 
 //================================================
 
-type PromiseRemote<T> = { resolve: (value: T) => void; reject: (error?: any) => void };
-
 /** Creates a promise that can be resolved/rejected from outside its executor */
 export const useRemotePromise = <T>() => {
-  return useMemo(() => {
-    if (Promise.withResolvers) {
-      const { promise, resolve, reject } = Promise.withResolvers<T>();
-      return [promise, { current: { resolve, reject } }] as const;
-    }
-    const remote = { current: undefined as PromiseRemote<T> | undefined };
-    const promise = new Promise<T>((resolve, reject) => {
-      remote.current = { resolve, reject };
-    });
-    return [promise, remote] as const;
-  }, []);
+  return useMemo(() => createRemotePromise<T>(), []);
   /*
   const remote = useRef<PromiseRemote<T> | undefined>(undefined);
   const [promise, setPromise] = useState(() => {

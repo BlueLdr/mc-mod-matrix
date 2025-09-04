@@ -2,76 +2,66 @@
 
 import { difference } from "lodash";
 
-import { gameVersionComparator, getMinGameVersion } from "@mcmm/utils";
+import { PlatformPlugin } from "@mcmm/platform";
 
-import { loadDataRegistryDb } from "../storage";
 import { DataRegistryHelper } from "../helper";
-import {
-  DATA_REGISTRY_CACHE_LIFESPAN,
-  DATA_REGISTRY_REFRESH_INTERVAL,
-  DATA_REGISTRY_FETCH_INTERVAL,
-} from "./constants";
+import { loadDataRegistryDb } from "../storage";
+import { ExportJobHandler, JobHandler, RefreshJobHandler } from "./job-handlers";
+import { JobRequestType, JobType } from "./types";
 
-import type { Mod } from "@mcmm/data";
+import type * as Worker from "./types";
+import type { DistributiveIndex } from "@mcmm/types";
 import type { DataRegistryDb } from "../types";
-import type {
-  WorkerBackgroundRefreshJob,
-  WorkerBackgroundRefreshStartRequest,
-  WorkerBackgroundRefreshState,
-  WorkerMessage,
-  WorkerRequest,
-  WorkerUpdateCommonModsRequest,
-} from "./types";
+import type { GameVersion, Mod } from "@mcmm/data";
 
 const _enableRequestLogging = process.env.NEXT_PUBLIC_MCMM_DATA_REGISTRY_WORKER_LOGGING;
 const ENABLE_REQUEST_LOGGING = ["true", "1"].includes(_enableRequestLogging?.toLowerCase() ?? "");
 
 //===============================================
 
+type RequestHandler<Type extends Worker.JobRequestType> = <State extends Worker.JobState>(
+  request: Worker.JobRequestWith<Type, State["type"]>,
+  existingItem: State | null | undefined,
+  handler: JobHandler<State>,
+) => Promise<void>;
+
 export class DataRegistryWorker {
-  constructor(modsToAutoRefresh?: Mod["id"][]) {
+  constructor(modsToAutoRefresh?: Mod["id"][], allGameVersions?: GameVersion[]) {
     this.db = loadDataRegistryDb();
     this.helper = new DataRegistryHelper(this.db);
     this.modsToAutoRefresh = modsToAutoRefresh;
 
-    this.on("start-refresh", this.handleJobRequest);
+    if (allGameVersions?.length) {
+      PlatformPlugin.allGameVersions = allGameVersions;
+    }
+
+    this.jobHandlers = [
+      new RefreshJobHandler(this.startJob, modsToAutoRefresh),
+      new ExportJobHandler(),
+    ];
+
+    this.on("set-game-versions", this.setAllGameVersionsOnPlatformPlugin);
+    this.on(JobRequestType.StartJob, this.handleJobRequest);
+    this.on(JobRequestType.PauseJob, this.handleJobRequest);
+    this.on(JobRequestType.ResumeJob, this.handleJobRequest);
+    this.on(JobRequestType.CancelJob, this.handleJobRequest);
     this.on("update-common-mods", this.handleUpdateCommonMods);
 
     console.log("Loaded DataRegistry web worker");
-    if (modsToAutoRefresh?.length) {
-      this.createJob({ mods: modsToAutoRefresh }).then(
-        newJob =>
-          newJob &&
-          setTimeout(() => {
-            this.startJob(newJob);
-          }, 1000),
-      );
-    }
 
-    this.ENABLE_REQUEST_LOGGING = ENABLE_REQUEST_LOGGING;
+    JobHandler.ENABLE_REQUEST_LOGGING = ENABLE_REQUEST_LOGGING;
   }
+
+  jobHandlers: JobHandler<Worker.JobState>[];
 
   db: DataRegistryDb;
   helper: DataRegistryHelper;
   private modsToAutoRefresh: Mod["id"][] | undefined;
 
-  private queue: WorkerBackgroundRefreshState[] = [];
-  private currentState: WorkerBackgroundRefreshState | null = null;
-
-  private refreshTimer: any = undefined;
-
-  static readonly cacheLifespan: number = DATA_REGISTRY_CACHE_LIFESPAN;
-  static readonly refreshInterval: number = DATA_REGISTRY_REFRESH_INTERVAL;
-  static readonly fetchInterval: number = DATA_REGISTRY_FETCH_INTERVAL;
-
-  static get variableFetchInterval() {
-    return (
-      this.fetchInterval + (Math.random() * 0.5 * this.fetchInterval - 0.25 * this.fetchInterval)
-    );
-  }
+  private queue: Worker.JobState[] = [];
+  private currentState: Worker.JobState | null = null;
 
   private DEBUG_LOGGING = false;
-  private ENABLE_REQUEST_LOGGING = ENABLE_REQUEST_LOGGING;
 
   private debugLog = (...args: any[]) => {
     if (!this.DEBUG_LOGGING) {
@@ -80,109 +70,44 @@ export class DataRegistryWorker {
     console.debug(...args);
   };
 
-  private get requestLogger() {
-    if (this.ENABLE_REQUEST_LOGGING) {
-      return console;
-    }
-    return {
-      log: () => {},
-      debug: () => {},
-      info: () => {},
-      groupCollapsed: () => {},
-      groupEnd: () => {},
-    };
+  private setAllGameVersionsOnPlatformPlugin(request: Worker.SetGameVersionsRequest) {
+    PlatformPlugin.allGameVersions = request.allGameVersions;
   }
 
   //================================================
 
-  private executeJob = async (args: WorkerBackgroundRefreshState) => {
-    const { job: currentJob, modsRemaining, total } = args;
+  private getHandler = <S extends Worker.JobState>(type: S["type"]) =>
+    this.jobHandlers.find((h): h is JobHandler<S> => h.type === type);
+
+  //================================================
+
+  private executeJob = async <T extends Worker.JobState>(state: T, handler: JobHandler<T>) => {
     while (
-      this.currentState?.job === currentJob &&
-      modsRemaining?.length &&
-      !args.paused &&
-      !args.cancelled
+      this.currentState?.job === state.job &&
+      !handler.isJobComplete(state) &&
+      !state.paused &&
+      !state.cancelled &&
+      !state.failed
     ) {
-      const nextMod = modsRemaining.shift();
-      if (!nextMod) {
+      const shouldAbort = await handler.executeJobStep(state);
+      if (shouldAbort) {
         break;
       }
-
-      this.requestLogger.groupCollapsed(`Refreshing versions for mod "${nextMod.name}"...`);
-      this.sendMessage({
-        type: "progress",
-        total: total,
-        current: { index: total - (modsRemaining.length + 1), name: nextMod.name },
-        packId: currentJob.packId,
-      });
-
-      const minGameVersion = getMinGameVersion(
-        currentJob.minVersion,
-        nextMod.minGameVersionFetched,
-      );
-      if (!minGameVersion) {
-        this.requestLogger.debug(`No minVersion found, aborting...`, nextMod);
-        continue;
-      }
-      await await this.helper
-        .refreshModVersions(nextMod.platforms, minGameVersion, this.ENABLE_REQUEST_LOGGING)
-        .then(async () => await this.helper.updateModVersionFetched(nextMod.id, minGameVersion))
-        .catch(error => {
-          this.sendMessage({ type: "error", message: error.message, packId: currentJob.packId });
-        });
-      this.requestLogger.groupEnd();
-
-      if (modsRemaining.length && !args.paused && !args.cancelled) {
-        await new Promise<void>(resolve =>
-          setTimeout(() => resolve(), DataRegistryWorker.variableFetchInterval),
-        );
-      }
     }
 
-    return !modsRemaining?.length;
+    return handler.isJobComplete(state);
   };
 
-  private createJob = async (
-    args: WorkerBackgroundRefreshJob,
-  ): Promise<WorkerBackgroundRefreshState | undefined> => {
-    this.debugLog("Creating job for", args);
-    if (!args.mods.length) {
-      return;
-    }
-    const mods = await this.helper.getModsByIds(args.mods);
-    const modsToUpdate: Mod[] = [];
-    for (const mod of mods) {
-      const needsUpdate = mod.platforms.some(p => {
-        if (!p) {
-          return false;
-        }
-        const minVersionFetched = mod.minGameVersionFetched ?? p.minGameVersionFetched;
-        if (!minVersionFetched && !args.minVersion) {
-          return false;
-        }
-        return (
-          args.forceUpdate ||
-          !minVersionFetched ||
-          (args.minVersion && gameVersionComparator(minVersionFetched, args.minVersion) > 0) ||
-          !p.lastUpdated ||
-          p.lastUpdated < Date.now() - DataRegistryWorker.cacheLifespan
-        );
-      });
-      if (needsUpdate) {
-        modsToUpdate.push(mod);
-      }
-    }
-    if (modsToUpdate.length === 0) {
-      this.debugLog("All mods up to date, aborting");
-      return;
+  private createJob = <T extends Worker.JobState>(
+    type: DistributiveIndex<T, "type">,
+    job: DistributiveIndex<T, "job">,
+  ): Promise<Worker.JobStateForType<T["type"]> | undefined> => {
+    const handler = this.jobHandlers.find(h => h.type === type);
+    if (!handler) {
+      return Promise.reject(`Invalid job type "${type}"`);
     }
 
-    this.debugLog("Mods to update:", modsToUpdate);
-    return {
-      job: args,
-      modsRemaining: modsToUpdate,
-      total: modsToUpdate.length,
-    };
+    return handler.createJob(job);
   };
 
   //================================================
@@ -193,73 +118,74 @@ export class DataRegistryWorker {
       this.debugLog("A job is in progress, aborting");
       return;
     }
-    const nextItem = this.queue.shift();
-    this.debugLog("Next item:", nextItem);
-    if (!nextItem) {
-      if (!this.refreshTimer && this.modsToAutoRefresh?.length) {
-        this.debugLog("Scheduling next auto-refresh");
-        this.refreshTimer = setTimeout(async () => {
-          this.debugLog("Auto-refresh timeout finished, running auto-refresh");
-          this.refreshTimer = null;
-          const newJob = await this.createJob({ mods: this.modsToAutoRefresh ?? [] });
-          if (newJob) {
-            this.queue.push(newJob);
-            this.processQueue();
-          }
-        }, DataRegistryWorker.refreshInterval);
-      }
+    const nextJob = this.queue.shift();
+    this.debugLog("Next job:", nextJob);
+    if (!nextJob) {
+      this.jobHandlers.forEach(handler => {
+        handler.scheduleAutoJobs(newJob => {
+          this.queue.push(newJob);
+          this.processQueue();
+        });
+      });
       return;
     }
 
-    if (!nextItem.modsRemaining.length) {
-      this.debugLog("Job has no mods remaining, skipping");
+    const handler = this.getHandler(nextJob.type);
+    if (!handler) {
+      this.debugLog(`No handler found for job type ${nextJob.type}, skipping`);
+      this.processQueue();
+      return;
+    }
+    if (handler.isJobComplete(nextJob)) {
+      this.debugLog("Job has no steps remaining, skipping");
       this.processQueue();
       return;
     }
 
     setTimeout(() => {
-      this.startJob(nextItem);
+      this.startJob(nextJob);
     }, 0);
   };
 
-  private startJob = async (state: WorkerBackgroundRefreshState) => {
+  private startJob = async (state: Worker.JobState) => {
     if (this.currentState) {
       this.debugLog("Another job is in progress, placing this job at the front of the queue");
       this.queue.unshift(state);
-      if (!this.currentState.cancelled) {
+      if (!this.currentState.cancelled && !this.currentState.failed) {
         this.debugLog("\tPausing existing job...");
         this.currentState.paused = true;
       }
       return;
     }
-    this.debugLog("Starting job ", state);
-    this.sendMessage({
-      type: "progress",
-      message: `${state.paused ? "Resuming" : "Starting"} background refresh job for ${state.job.packId ? `pack ${state.job.packId}` : "common mods"}...`,
-      total: state.total,
-      packId: state.job.packId,
-    });
+    const handler = this.getHandler(state.type);
+    if (!handler) {
+      this.debugLog(`No handler found for job type ${state.type}, skipping`);
+      return;
+    }
+
+    this.debugLog(`${state.paused ? "Resuming" : "Starting"} job `, state);
+    handler.onStart(state);
 
     state.paused = false;
     this.currentState = state;
-    this.executeJob(state).then(success => {
+    this.executeJob(state, handler).then(success => {
       this.debugLog("Job 'finished'; success =", success);
       if (success) {
-        this.sendMessage({
-          type: "complete",
-          packId: state.job.packId,
-          total: state.total,
-          message: `Completed background refresh job for ${state.job.packId ? `pack ${state.job.packId}` : "common mods"}`,
-        });
+        handler.onComplete(state);
       } else if (state.paused) {
         this.debugLog("Job was paused, updating state...");
         this.pauseCurrentJob();
       } else if (state.cancelled) {
         this.debugLog("Job was cancelled, updating state...");
         this.cancelCurrentJob();
+      } else if (state.failed) {
+        this.debugLog("Job failed, updating state...");
+        this.failCurrentJob();
       }
       this.currentState = null;
-      this.processQueue();
+      if (!state.paused || this.queue.length > 1) {
+        this.processQueue();
+      }
     });
   };
 
@@ -269,19 +195,14 @@ export class DataRegistryWorker {
     }
 
     const nextItem = this.queue.shift();
-    if (!nextItem) {
-      return;
-    }
 
     const state = this.currentState;
-    this.sendMessage({
-      type: "pause",
-      message: `Pausing background refresh job for ${state.job.packId ? `pack ${state.job.packId}` : "common mods"}...`,
-      packId: state.job.packId,
-    });
+    this.getHandler(state.type)?.onPause(state);
 
     this.queue.unshift(state);
-    this.queue.unshift(nextItem);
+    if (nextItem) {
+      this.queue.unshift(nextItem);
+    }
 
     this.currentState = null;
   };
@@ -292,66 +213,76 @@ export class DataRegistryWorker {
     }
 
     const state = this.currentState;
-    this.sendMessage({
-      type: "cancel",
-      message: `Cancelling background refresh job for ${state.job.packId ? `pack ${state.job.packId}` : "common mods"}.`,
-      packId: state.job.packId,
-    });
+    this.getHandler(state.type)?.onCancel(state);
+
+    this.currentState = null;
+  };
+
+  private failCurrentJob = () => {
+    if (!this.currentState) {
+      return;
+    }
+    const state = this.currentState;
+    this.getHandler(state.type)?.onError?.(state);
 
     this.currentState = null;
   };
 
   //================================================
 
-  private isSubsetOfExistingJob = (
-    request: WorkerBackgroundRefreshJob,
-    existingItem: WorkerBackgroundRefreshState,
-  ) => {
-    return (
-      request.mods.every(id => existingItem.job.mods.includes(id)) &&
-      request.minVersion &&
-      existingItem.job.minVersion &&
-      gameVersionComparator(request.minVersion, existingItem.job.minVersion) >= 0
-    );
-  };
+  private isStateForType = <S extends Worker.JobState>(
+    state: Worker.JobState,
+    type: S["type"],
+  ): state is S => state.type === type;
 
-  private isSupersetOfExistingJob = (
-    request: WorkerBackgroundRefreshJob,
-    existingItem: WorkerBackgroundRefreshState,
+  private handleJobRequest = async <T extends JobType, S extends Worker.JobStateForType<T>>(
+    request: Worker.JobRequest,
   ) => {
-    return (
-      existingItem.job.mods.every(id => request.mods.includes(id)) &&
-      request.mods.length > existingItem.job.mods.length &&
-      ((!request.minVersion && !existingItem.job.minVersion) ||
-        (!!request.minVersion &&
-          !!existingItem.job.minVersion &&
-          gameVersionComparator(request.minVersion, existingItem.job.minVersion) < 0))
-    );
-  };
+    this.debugLog("Got request for job:", request);
+    const handler = this.getHandler(request.jobType);
+    if (!handler) {
+      this.debugLog(`No handler found for job type ${request.jobType}, ignoring`);
+      return;
+    }
 
-  private handleJobRequest = async (request: WorkerBackgroundRefreshStartRequest) => {
-    this.debugLog("Got request for new job:", request);
     const existingItem = [...this.queue, this.currentState].find(
-      item => request.packId === item?.job.packId,
+      (item): item is S =>
+        !!item &&
+        this.isStateForType(item, request.jobType) &&
+        handler.matchesExistingJob(request, item),
     );
     this.debugLog("Existing item:", existingItem);
 
-    if (existingItem && this.isSubsetOfExistingJob(request, existingItem)) {
+    switch (request.type) {
+      case JobRequestType.StartJob:
+        return this.handleJobStartRequest(request, existingItem, handler);
+      case JobRequestType.PauseJob:
+        return this.handleJobPauseRequest(request, existingItem, handler);
+      case JobRequestType.ResumeJob:
+        return this.handleJobResumeRequest(request, existingItem, handler);
+      case JobRequestType.CancelJob:
+        return this.handleJobCancelRequest(request, existingItem, handler);
+    }
+  };
+
+  private handleJobStartRequest: RequestHandler<Worker.JobRequestType.StartJob> = async (
+    request,
+    existingItem,
+    handler,
+  ) => {
+    if (existingItem && handler.isSubsetOfExistingJob(request, existingItem)) {
       this.debugLog("New job is subset of existing job, returning...");
       return;
     }
 
     const newItem =
-      (await this.createJob({
-        mods: request.mods,
-        minVersion: request.minVersion,
-        packId: request.packId,
-        forceUpdate: request.forceUpdate,
-      })) || existingItem;
+      (await handler
+        .createJob(request)
+        .catch(error => console.error("Failed to create job", error))) || existingItem;
     const shouldReplace =
       !!existingItem &&
       newItem !== existingItem &&
-      (this.isSupersetOfExistingJob(request, existingItem) || request.forceUpdate);
+      (handler.isSupersetOfExistingJob(request, existingItem) || request.forceRun);
     if (shouldReplace) {
       this.debugLog("New job is superset of existing job");
     }
@@ -363,11 +294,7 @@ export class DataRegistryWorker {
       (existingItem === newItem && (!request.runImmediately || existingItem === this.currentState))
     ) {
       this.debugLog("New job is invalid or is a duplicate");
-      this.sendMessage({
-        type: "cancel",
-        packId: request.packId,
-        message: `Rejecting background refresh job for ${request.packId ? `pack ${request.packId}` : "common mods"} (no updates needed)`,
-      });
+      handler?.onReject(request);
       return;
     }
 
@@ -401,9 +328,102 @@ export class DataRegistryWorker {
     this.startJob(newItem);
   };
 
+  private handleJobPauseRequest: RequestHandler<Worker.JobRequestType.PauseJob> = async (
+    _,
+    existingItem,
+  ) => {
+    if (!existingItem) {
+      this.debugLog("No existing job with matching id, ignoring request.");
+      return;
+    }
+    if (existingItem.paused) {
+      this.debugLog("Existing job is already paused, ignoring request.");
+      return;
+    }
+    if (existingItem.cancelled) {
+      this.debugLog("Existing job is being cancelled, ignoring request.");
+      return;
+    }
+    if (existingItem.failed) {
+      this.debugLog("Existing job has failed, ignoring request.");
+      return;
+    }
+    if (existingItem.job !== this.currentState?.job) {
+      this.debugLog("Existing job is not currently running, ignoring request.");
+      return;
+    }
+    this.currentState.paused = true;
+  };
+
+  private handleJobResumeRequest: RequestHandler<Worker.JobRequestType.ResumeJob> = async (
+    _,
+    existingItem,
+  ) => {
+    if (!existingItem) {
+      this.debugLog("No existing job with matching id, ignoring request.");
+      return;
+    }
+    if (!existingItem.paused) {
+      this.debugLog("Existing job is not paused, ignoring request.");
+      return;
+    }
+    if (existingItem.cancelled) {
+      this.debugLog("Existing job is being cancelled, ignoring request.");
+      return;
+    }
+    if (existingItem.failed) {
+      this.debugLog("Existing job has failed, ignoring request.");
+      return;
+    }
+
+    const index = this.queue.indexOf(existingItem);
+    if (index < 0) {
+      this.debugLog("Couldn't find job position in queue, aborting request.");
+      return;
+    }
+    this.queue.splice(index, 1);
+    if (!this.currentState) {
+      this.startJob(existingItem);
+    } else {
+      this.queue.push(existingItem);
+      this.currentState.paused = true;
+    }
+  };
+
+  private handleJobCancelRequest: RequestHandler<Worker.JobRequestType.CancelJob> = async (
+    request,
+    existingItem,
+    handler,
+  ) => {
+    if (!existingItem) {
+      this.debugLog("No existing job with matching id, ignoring request.");
+      return;
+    }
+    if (existingItem.cancelled) {
+      this.debugLog("Existing job is already cancelled, ignoring request.");
+      return;
+    }
+    if (existingItem.failed) {
+      this.debugLog("Existing job has failed, ignoring request.");
+      return;
+    }
+    if (existingItem.job === this.currentState?.job) {
+      this.currentState.cancelled = true;
+    } else {
+      existingItem.cancelled = true;
+      const index = this.queue.indexOf(existingItem);
+      if (index < 0) {
+        this.debugLog("Couldn't find job position in queue, aborting request.");
+        return;
+      }
+      this.queue.splice(index, 1);
+      handler.onCancel(existingItem);
+    }
+  };
+
   private handleUpdateCommonMods = async ({
     modsToAutoRefresh: updatedList,
-  }: WorkerUpdateCommonModsRequest) => {
+  }: Worker.UpdateCommonModsRequest) => {
     if (!this.modsToAutoRefresh) {
       if (updatedList.length) {
         this.modsToAutoRefresh = updatedList;
@@ -417,36 +437,34 @@ export class DataRegistryWorker {
       return;
     }
     const existingJob = [...this.queue, this.currentState].find(
-      state => !!state && !state.job.packId,
+      (state): state is Worker.RefreshJobState =>
+        !!state && state.type === JobType.Refresh && !state.job.packId,
     );
     if (!existingJob) {
       return;
     }
 
-    const newJob = await this.createJob({ mods: diff });
+    const newJob = await this.createJob<Worker.RefreshJobState>(JobType.Refresh, { mods: diff });
     if (!newJob) {
       return;
     }
     existingJob.job.mods = updatedList;
-    existingJob.total += newJob.total;
-    newJob.modsRemaining.forEach(mod => existingJob.modsRemaining.push(mod));
+    existingJob.data.total += newJob.data.total;
+    newJob.data.modsRemaining.forEach(mod => existingJob.data.modsRemaining.push(mod));
   };
 
   //================================================
 
-  public on = <T extends WorkerRequest>(type: T["type"], callback: (args: T) => void) => {
+  public on = <T extends Worker.Request["type"]>(
+    type: T,
+    callback: (args: Worker.Request & { type: T }) => void,
+  ) => {
     if (typeof globalThis !== "undefined" && "Worker" in globalThis) {
-      addEventListener("message", (e: MessageEvent<T>) => {
+      addEventListener("message", (e: MessageEvent<Worker.Request & { type: T }>) => {
         if (e.data.type === type) {
           callback(e.data);
         }
       });
-    }
-  };
-
-  private sendMessage = (args: WorkerMessage) => {
-    if (typeof globalThis !== "undefined" && "Worker" in globalThis) {
-      postMessage(args);
     }
   };
 }

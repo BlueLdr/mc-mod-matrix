@@ -18,11 +18,13 @@ export type ModpackSupportIssuesListProps = {
   packSupportMeta: PackSupportMeta;
   separateAltModsList?: boolean;
   onClickItem?: (item: Mod, event: React.MouseEvent<HTMLLIElement>) => void;
+  allModsSupportedAction?: React.ReactNode;
 };
 
 export function ModpackSupportIssuesList({
   packSupportMeta,
   separateAltModsList,
+  allModsSupportedAction,
   onClickItem,
 }: ModpackSupportIssuesListProps) {
   const supportedCount = packSupportMeta?.supportedMods.length ?? 0;
@@ -83,6 +85,12 @@ export function ModpackSupportIssuesList({
           <Box maxWidth="80%" textAlign="center">
             All mods are supported for this version!
           </Box>
+
+          {allModsSupportedAction && (
+            <Box maxWidth="80%" textAlign="center">
+              {allModsSupportedAction}
+            </Box>
+          )}
         </Grid>
       )}
       {unsupportedCount > 0 && (

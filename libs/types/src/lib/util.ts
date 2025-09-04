@@ -18,9 +18,15 @@ export type ValueAndSetter<Name extends string, T> = Record<Name, T> &
 
 export type DistributiveOmit<T, K> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
 export type DistributivePick<T, K> = T extends any ? Pick<T, Extract<keyof T, K>> : never;
+export type DistributiveIndex<T, K extends keyof T> =
+  DistributivePick<T, K> extends infer R ? (K extends keyof R ? R[K] : never) : never;
 
 export type Scalar = string | number | boolean;
 
 export type DeepPartial<T extends object> = {
   [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K];
 };
+
+export type AtLeastOneRequired<T extends object> = {
+  [K in keyof T]: Required<Pick<T, K>> & Partial<Omit<T, K>>;
+}[keyof T];

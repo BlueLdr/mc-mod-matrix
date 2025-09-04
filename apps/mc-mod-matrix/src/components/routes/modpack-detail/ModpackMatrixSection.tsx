@@ -6,8 +6,8 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import { gameVersionComparator } from "@mcmm/utils";
 import { ModpackDetailPageContext, ProgressIndicator } from "~/components";
 import { DataRegistryContext } from "~/context";
-import { DATA_REGISTRY_CACHE_LIFESPAN } from "~/data";
-import { useDataRefreshProgress } from "~/data-utils";
+import { DATA_REGISTRY_CACHE_LIFESPAN, JobRequestType, JobType, MessageType } from "~/data";
+import { useBackgroundJobProgress } from "~/data-utils";
 import { useMounted, useResizeObserver } from "~/utils";
 
 import { ModpackMatrixContent } from "./ModpackMatrixContent";
@@ -17,6 +17,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 
 import type { ResizeObserverEntryCallback } from "~/utils";
+import type { Worker } from "~/data";
 import type { Modpack } from "@mcmm/data";
 
 //================================================
@@ -26,6 +27,15 @@ const ProgressLabel = styled(Typography)(({ theme }) => ({
   alignItems: "center",
   gap: theme.spacing(3),
 }));
+
+const parseMessage = (
+  data: Worker.ProgressMessage<JobType.Refresh> | Worker.CompleteMessage<JobType.Refresh>,
+) => ({
+  total: data.total,
+  ...(data.type === MessageType.Progress
+    ? { current: data.current, currentName: data.currentName }
+    : {}),
+});
 
 //================================================
 
@@ -73,7 +83,12 @@ export function ModpackMatrixSection({ pack }: ModpackMatrixSectionProps) {
   );
 
   const onCancel = useCallback(() => setModsToFetch([]), []);
-  const [progress, clearProgress, , workerApi] = useDataRefreshProgress(pack.id, onCancel);
+  const [progress, clearProgress, , workerApi] = useBackgroundJobProgress(
+    JobType.Refresh,
+    parseMessage,
+    pack.id,
+    { onCancel },
+  );
   useEffect(() => {
     if (progress?.complete) {
       setModsToFetch([]);
@@ -91,7 +106,8 @@ export function ModpackMatrixSection({ pack }: ModpackMatrixSectionProps) {
     // prevent duping the request in StrictMode
     const timer = setTimeout(async () => {
       workerApi.sendRequest({
-        type: "start-refresh",
+        type: JobRequestType.StartJob,
+        jobType: JobType.Refresh,
         packId: pack.id,
         mods: modsToFetch.map(m => m.id),
         minVersion: pack.versions.min,
@@ -106,12 +122,12 @@ export function ModpackMatrixSection({ pack }: ModpackMatrixSectionProps) {
 
   const refreshIndicator = (
     <ProgressIndicator
-      value={progress?.total === 1 ? undefined : progress?.current?.index}
+      value={progress?.total === 1 ? undefined : progress?.current}
       total={progress?.total}
       size={36}
       variant="circular"
       tooltipText={
-        progress?.current?.name ? `Currently fetching: ${progress.current.name}` : undefined
+        progress?.currentName ? `Currently fetching: ${progress.currentName}` : undefined
       }
     />
   );

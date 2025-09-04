@@ -7,5 +7,10 @@
     "types": ["jest", "node"],
     "verbatimModuleSyntax": false
   },
-  "include": ["jest.config.ts", "test/**/*.test.ts", "test/**/*.spec.ts", "test/**/*.d.ts"]
+  "include": [
+    "jest.config.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.d.ts"
+  ]
 }

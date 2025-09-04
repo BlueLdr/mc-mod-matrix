@@ -5,7 +5,8 @@ import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import { DataRegistryContext } from "~/context";
-import { isSameMod, platformManager } from "~/data";
+import { platformManager } from "~/data";
+import { isSameMod } from "~/data-utils";
 
 import type { Platform } from "@mcmm/data";
 

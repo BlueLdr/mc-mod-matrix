@@ -100,14 +100,7 @@ export function ModDetailAlternativesSection({
               </Button>
             </>
           ) : (
-            <IconButton
-              onClick={() => setEditMode(true)}
-              sx={{
-                "&:not(:hover)": {
-                  color: theme => theme.palette.grey[400],
-                },
-              }}
-            >
+            <IconButton onClick={() => setEditMode(true)}>
               <EditOutlined />
             </IconButton>
           )}

@@ -10,6 +10,7 @@ import {
   ModMatrix,
   ModMatrixItemModal,
   ModpackDetailPageContext,
+  ModpackExportButton,
   ModpackSupportIssuesList,
   Unpin,
 } from "~/components";
@@ -175,17 +176,19 @@ export function ModpackMatrixContent({ pack, refreshIndicator }: ModpackMatrixCo
                   <CardHeader
                     title={`${capitalize(item.loader)} ${item.gameVersion}`}
                     action={
-                      <Tooltip title="Unpin this version">
-                        <IconButton onClick={() => unpinVersion(item)}>
-                          <Unpin
-                            sx={{
-                              "&:not(:hover):not(:active)": {
-                                color: theme => theme.palette.action.disabled,
-                              },
-                            }}
-                          />
-                        </IconButton>
-                      </Tooltip>
+                      <Grid
+                        container
+                        justifyContent="space-between"
+                        alignItems="center"
+                        spacing={2}
+                      >
+                        <ModpackExportButton key="export" packMeta={item} icon />
+                        <Tooltip title="Unpin this version">
+                          <IconButton onClick={() => unpinVersion(item)}>
+                            <Unpin />
+                          </IconButton>
+                        </Tooltip>
+                      </Grid>
                     }
                   />
                   <CardContent>

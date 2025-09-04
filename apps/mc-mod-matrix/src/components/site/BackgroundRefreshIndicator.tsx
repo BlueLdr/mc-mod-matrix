@@ -1,14 +1,26 @@
 "use client";
 
 import { ProgressIndicator } from "~/components";
-import { useDataRefreshProgress } from "~/data-utils";
+import { JobType, MessageType } from "~/data";
+import { useBackgroundJobProgress } from "~/data-utils";
 
 import Collapse from "@mui/material/Collapse";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Slide from "@mui/material/Slide";
 
+import type { Worker } from "~/data";
+
 //================================================
+
+const parseMessage = (
+  data: Worker.ProgressMessage<JobType.Refresh> | Worker.CompleteMessage<JobType.Refresh>,
+) => ({
+  total: data.total,
+  ...(data.type === MessageType.Progress
+    ? { current: data.current, currentName: data.currentName }
+    : {}),
+});
 
 export type BackgroundRefreshIndicatorProps = {
   variant?: "linear" | "circular";
@@ -17,13 +29,17 @@ export type BackgroundRefreshIndicatorProps = {
 export function BackgroundRefreshIndicator({
   variant = "linear",
 }: BackgroundRefreshIndicatorProps) {
-  const [refreshProgress, clearRefreshProgress, isRefreshing] = useDataRefreshProgress();
+  const [refreshProgress, clearRefreshProgress, isRefreshing] = useBackgroundJobProgress(
+    JobType.Refresh,
+    parseMessage,
+    "",
+  );
   if (!isRefreshing && !refreshProgress) {
     return null;
   }
 
   const currentIndex =
-    refreshProgress?.current?.index ?? (refreshProgress?.complete ? refreshProgress.total : -1);
+    refreshProgress?.current ?? (refreshProgress?.complete ? refreshProgress.total : -1);
 
   let text = "Refreshing common mod version data...";
   if (refreshProgress?.complete) {
@@ -34,7 +50,7 @@ export function BackgroundRefreshIndicator({
     text = `Refreshing common mod version data (${currentIndex}/${refreshProgress.total})`;
   }
 
-  const currentItemText = `Currently refreshing: ${refreshProgress?.current?.name}`;
+  const currentItemText = `Currently refreshing: ${refreshProgress?.currentName}`;
   const tooltipText = refreshProgress?.complete ? undefined : variant === "linear" ? (
     currentItemText
   ) : (

@@ -52,6 +52,13 @@ export const MuiTheme = createMuiThemeForEnvironment({
       defaultProps: {
         disableRipple: true,
       },
+      styleOverrides: {
+        root: {
+          "&:not(:hover):not(:active)": {
+            opacity: 0.7,
+          },
+        },
+      },
     },
     MuiButtonGroup: {
       defaultProps: {

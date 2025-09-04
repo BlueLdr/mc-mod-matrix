@@ -15,7 +15,9 @@ import type { CurseforgeCachedVersionFetchData, CurseforgePlatformModExtraData }
 
 //================================================
 
-type GetVersionsForLoaderResponse = { versions: string[] } & CurseforgeCachedVersionFetchData;
+type GetVersionsForLoaderResponse = {
+  versions: GameVersion[];
+} & CurseforgeCachedVersionFetchData;
 
 type GetVersionsPrevData = CurseforgeCachedVersionFetchData & {
   minVersion: GameVersion;
@@ -179,7 +181,14 @@ export class CurseforgeApi extends ApiConnector {
     }>(`/mods/${modId}/files`, searchParams);
   }
 
-  // getFiles - not needed
+  public getFiles(fileIds: number[]) {
+    return this.fetch<{ data: Curseforge.File[] }>("/mods/files", undefined, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileIds }),
+    });
+  }
+
   // getModFileChangelog - not needed
   // getModFileDownloadUrl - not needed
 

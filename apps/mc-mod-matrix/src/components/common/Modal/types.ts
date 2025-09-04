@@ -27,6 +27,8 @@ export interface ModalProps extends DialogProps {
   titleText?: React.ReactNode;
   /** If `true`, the "X" close button will be hidden */
   hideCloseButton?: boolean;
+
+  headerActions?: React.ReactNode[];
 }
 
 export interface ModalHeaderProps {

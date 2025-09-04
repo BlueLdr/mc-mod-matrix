@@ -11,14 +11,24 @@ import {
 import { createDisplayableError } from "@mcmm/types";
 import { comparator, makeRecordFromEntries } from "@mcmm/utils";
 
-import type { GameVersion, ModMetadata, PlatformModMetadata, Mod, Platform } from "@mcmm/data";
-import type { ApiResponse } from "@mcmm/api";
 import type { PlatformPlugin } from "./plugin";
+import type {
+  GameVersion,
+  ModMetadata,
+  PlatformModMetadata,
+  Mod,
+  ModLoader,
+  Platform,
+} from "@mcmm/data";
+import type { ApiResponse } from "@mcmm/api";
 import type {
   ExtraDataForPlatform,
   GetModVersionsAggregateResponse,
   GetModVersionsResponse,
+  ModpackExportParams,
   PlatformModExtraData,
+  PlatformPluginTypes,
+  PlatformPluginTypesTemplate,
 } from "./types";
 
 //================================================
@@ -29,12 +39,15 @@ const MAX_SEARCH_RESULT_COUNT = isNaN(
   ? 10
   : Number(process.env["NEXT_PUBLIC_MCMM_MAX_SEARCH_RESULT_COUNT"]);
 
-export class PlatformPluginManager {
-  constructor(plugins: { [P in Platform]: PlatformPlugin<P, unknown> }[Platform][]) {
-    this.plugins = plugins as PlatformPlugin<Platform, unknown>[];
+export class PlatformPluginManager<
+  PluginTypes extends Record<Platform, PlatformPluginTypesTemplate<unknown, unknown, unknown>> &
+    PlatformPluginTypes,
+> {
+  constructor(plugins: { [P in Platform]: PlatformPlugin<P, PluginTypes> }[Platform][]) {
+    this.plugins = plugins as PlatformPlugin<Platform, PluginTypes>[];
   }
 
-  plugins: PlatformPlugin<Platform, unknown>[];
+  plugins: PlatformPlugin<Platform, PluginTypes>[];
 
   static getExtraDataForPlatform<P extends Platform>(
     platform: P,
@@ -59,6 +72,12 @@ export class PlatformPluginManager {
     });
     return output;
   };
+
+  private getPlugin = <T extends Platform>(platform: T) =>
+    this.plugins.find(
+      (p): p is PlatformPlugin<T, PluginTypes> & PlatformPlugin<Platform, PluginTypes> =>
+        p.platformName === platform,
+    );
 
   getModLink(meta: PlatformModMetadata) {
     const plugin = this.plugins.find(p => p.platformName === meta.platform);
@@ -168,6 +187,53 @@ export class PlatformPluginManager {
     }
     return plugin.getModVersions(meta, minGameVersion);
   }*/
+
+  //================================================
+
+  public getDependencyModIdsFromFile = <T extends Platform>(
+    platform: T,
+    file: PluginTypes[T]["file"],
+  ) => {
+    const plugin = this.getPlugin(platform);
+    if (!plugin) {
+      return [];
+    }
+    return plugin.getDependencyModIdsFromFile(file);
+  };
+
+  public getLatestModFileForPlatform = async <T extends PlatformModMetadata>(
+    platform: T["platform"],
+    modId: T["id"],
+    gameVersion: GameVersion,
+    loader: ModLoader,
+  ) => {
+    const plugin = this.getPlugin(platform);
+    if (!plugin) {
+      return Promise.reject(
+        createDisplayableError(
+          new Error(`Invalid platform "${platform}" provided when trying to export modpack`),
+        ),
+      );
+    }
+    return plugin.getLatestFileForMod(modId, gameVersion, loader);
+  };
+
+  public createModpackZip = <T extends Platform>({
+    platform,
+    ...params
+  }: Omit<ModpackExportParams, "platform"> & {
+    platform: T;
+    files: PluginTypes[T]["file"][];
+  }) => {
+    const plugin = this.getPlugin(platform);
+    if (!plugin) {
+      throw createDisplayableError(
+        new Error(`Invalid platform "${platform}" provided when trying to export modpack`),
+      );
+    }
+    const manifest = plugin.createModpackManifest(params);
+    return plugin.generateModpackFile(manifest);
+  };
 
   //================================================
 

@@ -1,3 +1,5 @@
 export * from "./api";
 export * from "./constants";
-export type * from "./types";
+export * from "./job-handlers";
+export { MessageType, JobType, JobRequestType } from "./types";
+export type * as Worker from "./types";

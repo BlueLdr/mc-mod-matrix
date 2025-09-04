@@ -1,5 +1,6 @@
 import { ApiConnector } from "@mcmm/api";
 
+import type { GameVersion, ModLoader } from "@mcmm/data";
 import type * as Modrinth from "./types";
 
 //================================================
@@ -49,8 +50,16 @@ export class ModrinthApi extends ApiConnector {
     return this.fetch<Modrinth.Project[]>("/projects", params);
   }
 
-  public getModVersions(projectIdOrSlug: string) {
-    return this.fetch<Modrinth.Version[]>(`/project/${projectIdOrSlug}/version`);
+  public getModVersions(
+    projectIdOrSlug: string,
+    gameVersions?: GameVersion[],
+    loaders?: ModLoader[],
+  ) {
+    const params = new URLSearchParams({
+      ...(gameVersions ? { game_versions: JSON.stringify(gameVersions) } : {}),
+      ...(loaders ? { loaders: JSON.stringify(loaders) } : {}),
+    });
+    return this.fetch<Modrinth.Version[]>(`/project/${projectIdOrSlug}/version`, params);
   }
 
   public getDetailsForFiles(versionIds: string[]) {

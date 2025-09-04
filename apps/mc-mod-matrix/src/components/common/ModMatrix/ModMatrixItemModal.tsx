@@ -3,13 +3,12 @@
 import { capitalize } from "lodash";
 import { useContext } from "react";
 
-import { Modal, ModpackSupportIssuesList, Unpin } from "~/components";
+import { Modal, ModpackExportButton, ModpackSupportIssuesList, Unpin } from "~/components";
 import { StorageContext } from "~/context";
 import { useCurrentPackWithData } from "~/data-utils";
 import { useModalTarget } from "~/utils";
 
 import IconButton from "@mui/material/IconButton";
-import Grid from "@mui/material/Grid";
 import Tooltip from "@mui/material/Tooltip";
 import PushPin from "@mui/icons-material/PushPin";
 
@@ -66,27 +65,17 @@ export function ModMatrixItemModal({
       id={`pack-support-modal-${packSupportMeta?.pack.id}`}
       open={open}
       onClose={closeModal}
-      titleText={
-        <Grid container alignItems="center" spacing={2}>
-          <Grid>
-            {capitalize(packSupportMeta?.loader)} {packSupportMeta?.gameVersion}
-          </Grid>
-
-          {packSupportMeta && (
-            <Tooltip title={`${isPinned ? "Unp" : "P"}in this version`}>
-              <IconButton onClick={() => (isPinned ? unpinVersion : pinVersion)(packSupportMeta)}>
-                <Icon
-                  sx={{
-                    "&:not(:hover):not(:active)": {
-                      color: theme => theme.palette.action.disabled,
-                    },
-                  }}
-                />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Grid>
-      }
+      titleText={`${capitalize(packSupportMeta?.loader)} ${packSupportMeta?.gameVersion}`}
+      headerActions={[
+        !!packSupportMeta && <ModpackExportButton key="export" packMeta={packSupportMeta} icon />,
+        !!packSupportMeta && (
+          <Tooltip title={`${isPinned ? "Unp" : "P"}in this version`} key="pin">
+            <IconButton onClick={() => (isPinned ? unpinVersion : pinVersion)(packSupportMeta)}>
+              <Icon />
+            </IconButton>
+          </Tooltip>
+        ),
+      ]}
       slotProps={{
         transition: TransitionProps,
         paper: {

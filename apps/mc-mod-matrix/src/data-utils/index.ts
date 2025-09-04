@@ -1,5 +1,6 @@
+export * from "./isSameMod";
 export * from "./useDataExport";
-export * from "./useDataRefreshProgress";
+export * from "./useBackgroundJobProgress";
 export * from "./useMinVersion";
 export * from "./useModData";
 export * from "./useModSearch";

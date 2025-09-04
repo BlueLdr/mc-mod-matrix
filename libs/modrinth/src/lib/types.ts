@@ -1,5 +1,7 @@
 /** copied from https://raw.githubusercontent.com/modrinth/code/refs/heads/main/packages/utils/types.ts */
 
+import type { ModLoaderSemVerString } from "@mcmm/data";
+
 export const BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 export type Base62Char = (typeof BASE62_CHARS)[number];
 
@@ -173,7 +175,7 @@ export type DependencyType = "required" | "optional" | "incompatible" | "embedde
 
 export interface VersionDependency {
   dependency_type: DependencyType;
-  file_name?: string;
+  version_id?: string;
 }
 
 export interface ProjectDependency {
@@ -315,4 +317,36 @@ export type ServerNotice = {
     server: string;
     dismissed_on: string;
   }[];
+};
+
+export type FileWithVersionInfo = VersionFile & {
+  meta: Omit<Version, "files">;
+};
+
+export enum ModpackManifestLoader {
+  forge = "forge",
+  neoforge = "neoforge",
+  fabric = "fabric-loader",
+  quilt = "quilt-loader",
+}
+
+export type ModpackManifestFile = {
+  path: string;
+  hashes: {
+    sha1: string;
+    sha512: string;
+  };
+  downloads: string[];
+  fileSize: number;
+};
+
+export type ModpackManifest = {
+  formatVersion: 1;
+  game: "minecraft";
+  versionId: string;
+  name: string;
+  dependencies: {
+    minecraft: GameVersion;
+  } & Partial<Record<ModpackManifestLoader, ModLoaderSemVerString>>;
+  files: ModpackManifestFile[];
 };

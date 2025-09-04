@@ -1,9 +1,12 @@
+import { capitalize } from "lodash";
+
 import { comparator } from "@mcmm/utils";
 
 import type {
   GameVersion,
   Mod,
   ModLoader,
+  ModLoaderSemVerString,
   ModMetadata,
   Modpack,
   PackSupportMeta,
@@ -68,3 +71,17 @@ export const getUniqueIdForModMetadata = (meta: ModMetadata) =>
     .sort(comparator("asc", "platform"))
     .map(getUniqueIdForPlatformModMeta)
     .join("_");
+
+//================================================
+
+export const formatLoaderVersion = (version: string) => {
+  const match = version.match(/^(\w+)-(.+)$/i);
+  if (!match) {
+    return ["", version];
+  }
+  const [, name, versionNumber] = match;
+  return [
+    capitalize(name) as Capitalize<ModLoader>,
+    versionNumber as ModLoaderSemVerString,
+  ] as const;
+};

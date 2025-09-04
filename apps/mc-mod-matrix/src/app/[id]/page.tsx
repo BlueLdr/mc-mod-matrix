@@ -36,7 +36,7 @@ export default function ModpackDetailRoutePage({ params }: ModpackDetailPageProp
   return (
     <DataInitializer
       initialLoadingView={
-        <SkeletonFade sx={{ maxHeight: `calc(100vh - 12rem)` }}>
+        <SkeletonFade sx={{ maxHeight: `calc(100vh - 14rem)` }}>
           <ModpackDetailPageLoading />
         </SkeletonFade>
       }

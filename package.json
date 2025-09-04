@@ -25,6 +25,7 @@
     "dexie": "4.0.11",
     "dexie-react-hooks": "1.1.7",
     "immutable": "5.1.2",
+    "jszip": "3.10.1",
     "lodash": "4.17.21",
     "next": "15.4.3",
     "react": "19.1.0",

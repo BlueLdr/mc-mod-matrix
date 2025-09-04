@@ -5,6 +5,7 @@
     "noEmit": false
   },
   "include": [
-    "src/**/*.worker.ts"
+    "src/**/*.worker.ts",
+    "src/**/worker/**/*"
   ]
 }
