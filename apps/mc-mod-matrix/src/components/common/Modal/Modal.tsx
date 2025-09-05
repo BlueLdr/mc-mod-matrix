@@ -3,7 +3,7 @@
 import styled from "@emotion/styled";
 import * as React from "react";
 
-import { classNameWithModifiers, classNames } from "@mcmm/utils";
+import { classNameWithModifiers, joinClassNames } from "@mcmm/utils";
 
 import CloseIcon from "@mui/icons-material/Close";
 import Dialog from "@mui/material/Dialog";
@@ -78,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <Dialog
       {...props}
-      className={classNames(classNameWithModifiers("modal", { "-open": open }), className)}
+      className={joinClassNames(classNameWithModifiers("modal", { "-open": open }), className)}
       open={open}
       fullWidth={fullWidth}
       maxWidth={maxWidth}

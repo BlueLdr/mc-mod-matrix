@@ -3,6 +3,7 @@
 import { styled } from "@mui/material/styles";
 import { useCallback, useRef, useState } from "react";
 
+import { joinClassNames } from "@mcmm/utils";
 import { useMounted, useResizeObserver } from "~/utils";
 
 import type { ResizeObserverEntryCallback } from "~/utils";
@@ -15,11 +16,10 @@ const Container = styled("div", { shouldForwardProp: prop => prop !== "hasOverfl
   maxWidth: "100%",
   ...(hasOverflow
     ? {
+        backgroundColor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: `${theme.shape.borderRadius}px`,
         overflow: "auto",
-        paddingRight: theme.spacing(4),
-        paddingBottom: theme.spacing(4),
         "& > .MuiPaper-root": {
           border: "none",
         },
@@ -47,25 +47,47 @@ const Container = styled("div", { shouldForwardProp: prop => prop !== "hasOverfl
 
 //================================================
 
-export type MatrixOverflowContainerProps = React.HTMLAttributes<HTMLDivElement>;
+export type MatrixOverflowContainerProps = React.HTMLAttributes<HTMLDivElement> & {
+  setColumnCount?: (value: number) => void;
+};
 
-export function MatrixOverflowContainer(props: MatrixOverflowContainerProps) {
+export function MatrixOverflowContainer({
+  setColumnCount,
+  ...props
+}: MatrixOverflowContainerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [matrixHasOverflow, setMatrixHasOverflow] = useState(false);
-  const onMatrixResize = useCallback<ResizeObserverEntryCallback>(entry => {
-    if (
-      (entry.target.classList.contains("mcmm-MatrixContainer") &&
-        entry.target.firstElementChild &&
-        entry.target.firstElementChild.scrollWidth > entry.target.clientWidth) ||
-      (entry.target.parentElement &&
-        entry.target.parentElement.classList.contains("mcmm-MatrixContainer") &&
-        entry.target.parentElement.clientWidth < entry.target.scrollWidth)
-    ) {
-      setMatrixHasOverflow(true);
-    } else {
-      setMatrixHasOverflow(false);
-    }
-  }, []);
+  const onMatrixResize = useCallback<ResizeObserverEntryCallback>(
+    entry => {
+      if (setColumnCount) {
+        const containerWidth = entry.target.classList.contains("mcmm-MatrixContainer")
+          ? entry.target.clientWidth
+          : entry.target.parentElement?.clientWidth;
+        const cell = entry.target.getElementsByClassName("mcmm-Matrix__cell")[0];
+        const header = entry.target.getElementsByClassName("mcmm-Matrix__header--left")[0];
+        if (cell instanceof HTMLElement && header instanceof HTMLElement && containerWidth) {
+          const cellWidth = cell.getBoundingClientRect().width;
+          const headerWidth = header.getBoundingClientRect().width;
+          const colCount = Math.floor((containerWidth - headerWidth) / cellWidth);
+          console.log(`colCount: `, colCount);
+          setColumnCount(colCount);
+        }
+      }
+      if (
+        (entry.target.classList.contains("mcmm-MatrixContainer") &&
+          entry.target.firstElementChild &&
+          entry.target.firstElementChild.scrollWidth > entry.target.clientWidth) ||
+        (entry.target.parentElement &&
+          entry.target.parentElement.classList.contains("mcmm-MatrixContainer") &&
+          entry.target.parentElement.clientWidth < entry.target.scrollWidth)
+      ) {
+        setMatrixHasOverflow(true);
+      } else {
+        setMatrixHasOverflow(false);
+      }
+    },
+    [setColumnCount],
+  );
 
   useResizeObserver(ref.current, onMatrixResize);
   useResizeObserver(ref.current?.firstElementChild ?? null, onMatrixResize);
@@ -76,7 +98,11 @@ export function MatrixOverflowContainer(props: MatrixOverflowContainerProps) {
       hasOverflow={matrixHasOverflow}
       ref={ref}
       {...props}
-      className={`${props.className ?? ""} mcmm-MatrixContainer`}
+      className={joinClassNames(
+        "mcmm-MatrixContainer",
+        matrixHasOverflow && "mcmm-MatrixContainer--overflow",
+        props.className,
+      )}
     />
   );
 }

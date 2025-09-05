@@ -1,6 +1,6 @@
 "use client";
 
-import { styled } from "@mui/material/styles";
+import { alpha, styled } from "@mui/material/styles";
 
 import Box from "@mui/material/Box";
 
@@ -9,35 +9,42 @@ import type { PackSupportMeta } from "@mcmm/data";
 //================================================
 
 const Component = styled(Box, {
-  shouldForwardProp: (propName: PropertyKey) => propName !== "interactive",
-})<{ interactive?: boolean }>(({ theme, interactive }) => ({
-  border: `1px solid ${theme.palette.divider}`,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  padding: theme.spacing(2),
-  marginBottom: "-1px",
-  marginRight: "-1px",
-  ...(interactive
-    ? {
-        transitionDuration: "100ms",
-        transitionTimingFunction: theme.transitions.easing.easeInOut,
-        transitionProperty: "transform, box-shadow",
-        cursor: "pointer",
-        boxShadow: `0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0)`,
+  shouldForwardProp: (propName: PropertyKey) =>
+    propName !== "interactive" && propName !== "percentage",
+})<{ interactive?: boolean; percentage: number }>(({ theme, interactive, percentage }) => {
+  const perfectItemShadow =
+    percentage === 1 ? `, inset 0 0 1px 1px ${alpha(theme.palette.success.light, 0.8)}` : "";
+  return {
+    border: `1px solid ${theme.palette.divider}`,
+    fontWeight: percentage === 1 ? 800 : undefined,
+    backgroundColor: getColor(percentage),
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing(2),
+    marginBottom: "-1px",
+    marginRight: "-1px",
+    ...(interactive
+      ? {
+          transitionDuration: "100ms",
+          transitionTimingFunction: theme.transitions.easing.easeInOut,
+          transitionProperty: "transform, box-shadow",
+          cursor: "pointer",
+          boxShadow: `0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0), 0 0 0 0 rgba(0, 0, 0, 0)${perfectItemShadow}`,
 
-        "&:hover": {
-          transform: "scale(1.1)",
-          boxShadow: theme.shadows[4],
-        },
+          "&:hover": {
+            transform: "scale(1.1)",
+            boxShadow: `${theme.shadows[4]}${perfectItemShadow}`,
+          },
 
-        "&:hover:active": {
-          transform: "scale(1.05)",
-          boxShadow: theme.shadows[2],
-        },
-      }
-    : {}),
-}));
+          "&:hover:active": {
+            transform: "scale(1.05)",
+            boxShadow: `${theme.shadows[2]}${perfectItemShadow}`,
+          },
+        }
+      : {}),
+  };
+});
 
 const getColor = (percentage: number) => `hsl(${percentage * 120}, 60%, 30%)`;
 
@@ -52,13 +59,7 @@ export function ModMatrixItem({ data, ...props }: ModMatrixItemProps) {
   const modCount = supportedMods.length + (usesAlternatives ? supportedAlternativeMods.length : 0);
 
   return (
-    <Component
-      {...props}
-      sx={{
-        backgroundColor: getColor(percentage),
-      }}
-      interactive={!!props.onClick}
-    >
+    <Component {...props} percentage={percentage} interactive={!!props.onClick}>
       {modCount}
       {usesAlternatives ? <Box sx={{ opacity: 0.5 }}>*</Box> : ""}
     </Component>

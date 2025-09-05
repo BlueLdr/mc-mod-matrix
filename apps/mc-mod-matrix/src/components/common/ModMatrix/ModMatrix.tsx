@@ -52,9 +52,10 @@ export type ModMatrixProps = {
   data: PackSupportMeta[];
   disablePivot?: boolean;
   onClickItem?: (item: PackSupportMeta, event: React.MouseEvent<HTMLDivElement>) => void;
+  canScroll?: boolean;
 };
 
-export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
+export function ModMatrix({ data, disablePivot, onClickItem, canScroll }: ModMatrixProps) {
   const [pivoted, setPivoted] = useState(false);
 
   const [loaders, versions, itemMap] = useMemo(() => {
@@ -90,9 +91,26 @@ export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
   return (
     <Matrix
       className="mcmm-Matrix"
-      sx={{
-        gridTemplateColumns: `5rem repeat(${cols.length}, ${cols.length > rows.length ? "5rem" : "8rem"})`,
-        gridTemplateRows: `auto repeat(${items.length}, ${rows.length > cols.length ? "3rem" : "5rem"})`,
+      sx={theme => {
+        const templateCols = `5rem repeat(${cols.length}, ${cols.length > rows.length ? "5rem" : "8rem"})`;
+        const templateRows = `auto repeat(${items.length}, ${rows.length > cols.length ? "3rem" : "5rem"})`;
+        return {
+          gridTemplateColumns: templateCols,
+          gridTemplateRows: templateRows,
+          "& .mcmm-Matrix__spacer": {
+            display: "none",
+          },
+          ".mcmm-MatrixContainer--overflow &": canScroll
+            ? {
+                gridTemplateColumns: `${templateCols} 1rem`,
+                gridTemplateRows: `${templateRows} 1rem`,
+
+                "& .mcmm-Matrix__spacer": {
+                  display: "block",
+                },
+              }
+            : {},
+        };
       }}
     >
       <Corner className="mcmm-Matrix__header mcmm-Matrix__header--top mcmm-Matrix__header--left">
@@ -111,6 +129,9 @@ export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
           {capitalize(value)}
         </Typography>
       ))}
+      {canScroll && (
+        <div className="mcmm-Matrix__header mcmm-Matrix__header--top mcmm-Matrix__spacer" />
+      )}
       {items.map((rowItems, i) => (
         <Fragment key={rowItems[0]?.[pivoted ? "gameVersion" : "loader"]}>
           <Typography
@@ -122,13 +143,18 @@ export function ModMatrix({ data, disablePivot, onClickItem }: ModMatrixProps) {
           </Typography>
           {rowItems.map(item => (
             <Cell
+              className="mcmm-Matrix__cell"
               key={`${item.loader}${item.gameVersion}`}
               data={item}
               onClick={onClickItem ? e => onClickItem(item, e) : undefined}
             />
           ))}
+          {canScroll && <div className="mcmm-Matrix__spacer" />}
         </Fragment>
       ))}
+      {canScroll && (
+        <div className="mcmm-Matrix__header mcmm-Matrix__header--left mcmm-Matrix__spacer" />
+      )}
     </Matrix>
   );
 }

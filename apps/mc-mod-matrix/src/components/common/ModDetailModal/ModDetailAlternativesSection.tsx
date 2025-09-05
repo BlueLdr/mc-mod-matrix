@@ -151,7 +151,6 @@ export function ModDetailAlternativesSection({
                         }}
                         {...(editMode
                           ? {
-                              link: false,
                               showPlatforms: true,
                               onRemove: async modMeta => {
                                 const mod = await dataRegistry?.helper.getModByMeta(modMeta);
@@ -159,7 +158,6 @@ export function ModDetailAlternativesSection({
                               },
                             }
                           : {
-                              link: item.id,
                               showPlatforms: "link",
                               onClick: () => setModDetailTarget(item.id),
                             })}

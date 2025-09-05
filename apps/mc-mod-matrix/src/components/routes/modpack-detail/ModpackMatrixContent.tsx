@@ -1,9 +1,9 @@
 "use client";
 
-import { capitalize } from "lodash";
+import { capitalize, groupBy } from "lodash";
 import { useContext, useEffect, useMemo, useState } from "react";
 
-import { comparator } from "@mcmm/utils";
+import { comparator, gameVersionComparator } from "@mcmm/utils";
 import {
   EmptyViewCard,
   MatrixOverflowContainer,
@@ -27,11 +27,11 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid";
 
-import type { Modpack, PackSupportMeta } from "@mcmm/data";
+import type { GameVersion, Modpack, PackSupportMeta } from "@mcmm/data";
 
 //================================================
 
-const filterTopPercentile = (data: PackSupportMeta[], percentile = 25): PackSupportMeta[] => {
+/*const filterTopPercentile = (data: PackSupportMeta[], percentile = 25): PackSupportMeta[] => {
   const endIndex = Math.round(data.length / (100 / percentile));
   const bestItems = data
     .slice()
@@ -42,6 +42,39 @@ const filterTopPercentile = (data: PackSupportMeta[], percentile = 25): PackSupp
   const bestVersions = new Set(bestItems.map(item => item.gameVersion));
 
   return data.filter(item => bestLoaders.has(item.loader) && bestVersions.has(item.gameVersion));
+};*/
+
+const calculateMetaScore = (meta: PackSupportMeta): number => {
+  let baseScore = Math.max(meta.percentage, meta.percentageWithAlternatives);
+  if (meta.percentage === 1) {
+    baseScore *= 1.1;
+  } else if (meta.percentageWithAlternatives === 1) {
+    baseScore *= 1.05;
+  }
+  return baseScore;
+};
+
+const calculateColScore = (metas: PackSupportMeta[]): number =>
+  metas.reduce((total, meta) => total + calculateMetaScore(meta), 0) / metas.length;
+
+const filterTopByColumnCount = (
+  data: PackSupportMeta[],
+  columnCount = data.length,
+  getColumnScore = calculateColScore,
+): PackSupportMeta[] => {
+  const columns = Object.entries(groupBy(data, "gameVersion"))
+    .map(([gameVersion, metas]): [GameVersion, number] => [gameVersion, getColumnScore(metas)])
+    .sort(
+      comparator(
+        "desc",
+        ([_, score]: [string, number]) => score,
+        ([v1]: [string, number], [v2]: [string, number]) => gameVersionComparator(v1, v2) * -1,
+      ),
+    )
+    .slice(0, columnCount)
+    .map(([col]) => col);
+
+  return data.filter(item => columns.includes(item.gameVersion));
 };
 
 //================================================
@@ -55,11 +88,13 @@ export function ModpackMatrixContent({ pack, refreshIndicator }: ModpackMatrixCo
 
   const [showAll, setShowAll] = useState(false);
   const [detailTarget, setDetailTarget] = useState<PackSupportMeta>();
+  const [columnCount, setColumnCount] = useState(Infinity);
 
   const packSupportMetaList = usePackSupportMetaList(pack);
   const filteredList = useMemo(
-    () => (showAll ? packSupportMetaList : filterTopPercentile(packSupportMetaList)),
-    [packSupportMetaList, showAll],
+    () =>
+      showAll ? packSupportMetaList : filterTopByColumnCount(packSupportMetaList, columnCount),
+    [columnCount, packSupportMetaList, showAll],
   );
 
   useEffect(() => {
@@ -67,7 +102,9 @@ export function ModpackMatrixContent({ pack, refreshIndicator }: ModpackMatrixCo
       const bestItemsSorted = filteredList
         .slice()
         .sort(
-          comparator("desc", item => Math.max(item.percentage, item.percentageWithAlternatives)),
+          comparator("desc", item =>
+            Math.max(item.percentage, item.percentageWithAlternatives * 0.95),
+          ),
         )
         .slice(0, 3);
 
@@ -103,7 +140,12 @@ export function ModpackMatrixContent({ pack, refreshIndicator }: ModpackMatrixCo
   );
 
   const matrix = (
-    <ModMatrix key="matrix" data={filteredList} onClickItem={item => setDetailTarget(item)} />
+    <ModMatrix
+      key="matrix"
+      data={filteredList}
+      onClickItem={item => setDetailTarget(item)}
+      canScroll={showAll}
+    />
   );
 
   return (
@@ -151,7 +193,9 @@ export function ModpackMatrixContent({ pack, refreshIndicator }: ModpackMatrixCo
             display="grid"
             gridTemplateColumns="minmax(0, 1fr)"
           >
-            <MatrixOverflowContainer>{matrix}</MatrixOverflowContainer>
+            <MatrixOverflowContainer setColumnCount={setColumnCount}>
+              {matrix}
+            </MatrixOverflowContainer>
           </Grid>
           <Grid
             container
