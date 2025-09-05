@@ -1,7 +1,8 @@
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { Roboto } from "next/font/google";
+import { Roboto_Flex, Spline_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 
+import { joinClassNames } from "@mcmm/utils";
 import { ThemeProvider } from "~/theme";
 import { SiteLayout } from "~/components";
 import { NAV_DRAWER_OPEN_STORAGE_KEY } from "~/utils";
@@ -12,11 +13,21 @@ import type { Metadata } from "next";
 
 //================================================
 
-const roboto = Roboto({
+const titleFont = Spline_Sans({
+  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  fallback: ["Roboto Flex", "Roboto", "Helvetica", "sans-serif"],
+  variable: "--font-title",
+  preload: true,
+});
+const mainFont = Roboto_Flex({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-roboto",
+  fallback: ["Roboto", "Helvetica", "sans-serif"],
+  variable: "--font-default",
+  preload: true,
 });
 
 //================================================
@@ -37,7 +48,11 @@ export default async function RootLayout({
   const initialNavOpen = `${cookieStore.get(NAV_DRAWER_OPEN_STORAGE_KEY)?.value}` === "true";
 
   return (
-    <html lang="en" className={roboto.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={joinClassNames(mainFont.variable, titleFont.variable)}
+      suppressHydrationWarning
+    >
       <body suppressHydrationWarning>
         <div id="root">
           <AppRouterCacheProvider>

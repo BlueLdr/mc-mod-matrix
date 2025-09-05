@@ -9,6 +9,11 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 
 //================================================
 
+const titleFontStyle = {
+  fontFamily: "var(--font-title)",
+  wordSpacing: "40%",
+};
+
 /*
   https://github.com/mui-org/material-ui/issues/13394
   https://v4.mui.com/customization/theming/#unstable-createmuistrictmodetheme-options-args-theme
@@ -24,11 +29,18 @@ export const MuiTheme = createMuiThemeForEnvironment({
     ...colors,
   },
   typography: {
+    fontFamily: "var(--font-default)",
     htmlFontSize: 16,
     button: {
       fontWeight: 400,
       textTransform: "none",
     },
+    h1: titleFontStyle,
+    h2: titleFontStyle,
+    h3: titleFontStyle,
+    h4: titleFontStyle,
+    h5: titleFontStyle,
+    h6: titleFontStyle,
   },
   components: {
     MuiTooltip: {

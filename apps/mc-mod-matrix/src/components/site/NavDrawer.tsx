@@ -1,5 +1,6 @@
 "use client";
 
+import localFont from "next/font/local";
 import { useContext } from "react";
 
 import {
@@ -28,6 +29,12 @@ import ArrowBack from "@mui/icons-material/ArrowBack";
 import Menu from "@mui/icons-material/Menu";
 
 //================================================
+
+const minecraftFont = localFont({
+  src: "../../../public/Minecraft-Seven_v2.woff2",
+  display: "swap",
+  variable: "--font-minecraft",
+});
 
 export type NavDrawerProps = { initialOpen?: boolean };
 
@@ -78,7 +85,9 @@ export function NavDrawer({ initialOpen = true }: NavDrawerProps) {
         <Grid container padding={4} justifyContent="space-between" alignItems="center">
           <Grid container spacing={2} alignItems="center">
             <Icon size={32} src="/logo.svg" />
-            <Typography variant="h5">MC Mod Matrix</Typography>
+            <Typography variant="h5" sx={minecraftFont.style}>
+              MC Mod Matrix
+            </Typography>
           </Grid>
           <IconButton onClick={() => setDrawerOpen(false)}>
             <ArrowBack />
