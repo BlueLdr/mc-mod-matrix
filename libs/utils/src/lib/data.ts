@@ -34,10 +34,13 @@ export const comparator =
   };
 
 export const gameVersionComparator = <T extends string>(a: T, b: T) => {
-  const [, aMinor, aPatch = 0] = a.split(".");
-  const [, bMinor, bPatch = 0] = b.split(".");
+  const [aMajor, aMinor, aPatch = 0] = a.split(".");
+  const [bMajor, bMinor, bPatch = 0] = b.split(".");
 
-  const result = Number(aMinor) - Number(bMinor) || Number(aPatch) - Number(bPatch);
+  const result =
+    Number(aMajor) - Number(bMajor) ||
+    Number(aMinor) - Number(bMinor) ||
+    Number(aPatch) - Number(bPatch);
   return isNaN(result) ? 0 : result;
 };
 
@@ -74,4 +77,4 @@ export const makeRecordFromEntries = <Key extends string | number, Value>(
   entries: [Key, Value][],
 ) => Object.fromEntries(entries) as Record<Key, Value>;
 
-export const gameVersionRegex = /^1(\.\d{1,2}){1,2}$/i;
+export const gameVersionRegex = /^(1|(\d{2}))(\.\d{1,2}){1,2}$/i;
