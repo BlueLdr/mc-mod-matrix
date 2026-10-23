@@ -405,7 +405,7 @@ export interface SearchModsParams {
   categoryIds?: string[];
   gameVersion?: string;
   gameVersions?: string[];
-  filterText?: string;
+  searchFilter?: string;
   sortField?: ModsSearchSortField;
   sortOrder?: SortOrder;
   modLoaderType?: ModLoaderType;
@@ -419,7 +419,7 @@ export interface SearchModsParams {
 }
 
 export interface SearchModsResponse {
-  data: SearchResult[];
+  data: Mod[];
   pagination: Pagination;
 }
 

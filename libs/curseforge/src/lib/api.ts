@@ -133,11 +133,12 @@ export class CurseforgeApi extends ApiConnector {
     const searchParams = this.buildSearchParams({
       classId: Curseforge.ModClassEnum.mod,
       sortField: Curseforge.ModsSearchSortField.Featured,
+      sortOrder: "desc",
       index: 0,
       pageSize: 30,
       ...params,
       gameId: this.gameId,
-      filterText: text,
+      searchFilter: text,
     } satisfies Curseforge.SearchModsParams);
     if (params.gameVersions?.length) {
       searchParams.set("gameVersions", `[${params.gameVersions.map(v => `"${v}"`).join(",")}]`);
