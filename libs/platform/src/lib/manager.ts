@@ -103,10 +103,13 @@ export class PlatformPluginManager {
           error: null,
         };
       })
-      .catch(error => ({
-        data: null,
-        error: createDisplayableError(error),
-      }));
+      .catch(error => {
+        console.error(`error`, error);
+        return {
+          data: null,
+          error: createDisplayableError(error),
+        };
+      });
   }
 
   //================================================

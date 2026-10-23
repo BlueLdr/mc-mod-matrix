@@ -11,10 +11,11 @@ import type { CurseforgePlatformModExtraData } from "./types";
 //================================================
 
 export type CurseforgePlatformModMetadata = Pick<
-  Curseforge.SearchResult,
-  "id" | "slug" | "name" | "summary" | "thumbnailUrl"
+  Curseforge.Mod,
+  "id" | "slug" | "name" | "summary"
 > & {
-  author: Pick<Curseforge.SearchResult["author"], "id" | "name">;
+  thumbnailUrl: Curseforge.Mod["logo"]["thumbnailUrl"];
+  author: Pick<Curseforge.ModAuthor, "id" | "name">;
 };
 
 export class CurseforgePlatformPlugin
@@ -96,14 +97,14 @@ export class CurseforgePlatformPlugin
 
   //================================================
 
-  private makeMetaFromSearchResult(data: Curseforge.SearchResult): CurseforgePlatformModMetadata {
+  private makeMetaFromSearchResult(data: Curseforge.Mod): CurseforgePlatformModMetadata {
     return {
       id: data.id,
       slug: data.slug,
-      author: { id: data.author.id, name: data.author.name },
+      author: { id: data.authors?.[0]?.id, name: data.authors?.[0]?.name },
       name: data.name,
       summary: data.summary,
-      thumbnailUrl: data.thumbnails?.thumbnailUrl64 ?? data.thumbnailUrl,
+      thumbnailUrl: data.logo.thumbnailUrl ?? data.logo?.url,
     };
   }
 }

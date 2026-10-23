@@ -5,16 +5,13 @@ import type { NextRequest } from "next/server";
 //================================================
 
 const CURSEFORGE_BASE_URL = process.env.MCMM_CURSEFORGE_API_URL ?? "https://api.curseforge.com";
-const CURSEFORGE_REGULAR_API_URL = "https://www.curseforge.com/api";
+// const CURSEFORGE_REGULAR_API_URL = "https://www.curseforge.com/api";
 const CURSEFORGE_API_KEY = process.env.MCMM_CURSEFORGE_API_KEY ?? "";
 
 export async function GET(request: NextRequest) {
   const path = request.nextUrl.pathname.replace(/^.*\/api\/curseforge/i, "");
   const isSearch = path.endsWith("mods/search");
-  const url = new URL(
-    isSearch ? "/api/v1/mods/search" : path,
-    isSearch ? CURSEFORGE_REGULAR_API_URL : CURSEFORGE_BASE_URL,
-  );
+  const url = new URL(isSearch ? "/v1/mods/search" : path, CURSEFORGE_BASE_URL);
   url.search = request.nextUrl.searchParams?.toString() ?? "";
 
   const headers = Array.from(request.headers.entries()).reduce(
